@@ -225,6 +225,12 @@ export interface UserUpdateData {
 	/** Предпочитаемый язык интерфейса */
 	preferred_language?: LanguageCode;
 
+	/** Согласие родителей (может обновляться если пользователь достиг 18 лет) */
+	parental_consent?: boolean;
+
+	/** Флаг блокировки аккаунта (только для админов) */
+	is_blocked?: boolean;
+
 	/** Текущий пароль (требуется для смены пароля) */
 	current_password?: string;
 
