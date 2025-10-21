@@ -1,0 +1,42 @@
+#:schema node_modules/wrangler/config-schema.json
+name = "berufsorientierung-app"
+main = ".svelte-kit/cloudflare/_worker.js"
+compatibility_date = "2024-09-23"
+
+# Статические файлы
+[assets]
+directory = ".svelte-kit/cloudflare/assets"
+binding = "ASSETS"
+
+# Переменные окружения (не чувствительные данные)
+[vars]
+EMAIL_PROVIDER = "mailchannels"
+EMAIL_FROM = "Berufsorientierung <Berufsorientierung@kolibri-dresden.de>"
+EMAIL_REPLY_TO = "Berufsorientierung <Berufsorientierung@kolibri-dresden.de>"
+EMAIL_BULK_CHUNK = "50"
+EMAIL_BULK_PAUSE_MS = "1500"
+
+# D1 База данных (заполните после создания БД)
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "berufsorientierung_db"
+# database_id = ""
+
+# R2 Storage для QR-кодов (заполните после создания bucket)
+# [[r2_buckets]]
+# binding = "QR_BUCKET"
+# bucket_name = "berufsorientierung-qr-codes"
+
+# Cron триггер для автоматического удаления профилей (выполняется каждый день в 02:00)
+# [triggers]
+# crons = ["0 2 * * *"]
+
+# Секреты (устанавливаются через wrangler secret put)
+# JWT_SECRET
+# DKIM_DOMAIN
+# DKIM_SELECTOR
+# DKIM_PRIVATE_KEY
+# R2_PUBLIC_URL
+# DATABASE_ID
+# SETUP_TOKEN
+# CRON_SECRET
