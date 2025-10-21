@@ -10,17 +10,9 @@ export type EventStatus = 'draft' | 'active' | 'cancelled';
 
 /**
  * Тип дополнительного поля
+ * Согласно спецификации Prompt 1.3
  */
-export type FieldType =
-	| 'text'
-	| 'textarea'
-	| 'select'
-	| 'checkbox'
-	| 'radio'
-	| 'number'
-	| 'date'
-	| 'email'
-	| 'tel';
+export type FieldType = 'text' | 'select' | 'checkbox' | 'date' | 'number';
 
 /**
  * Мультиязычные переводы для мероприятия
@@ -64,6 +56,60 @@ export interface EventTranslations {
 
 	/** Место проведения на немецком (обязательно) */
 	location_de: string;
+
+	/** Место проведения на английском */
+	location_en?: string | null;
+
+	/** Место проведения на русском */
+	location_ru?: string | null;
+
+	/** Место проведения на украинском */
+	location_uk?: string | null;
+}
+
+/**
+ * Мультиязычные переводы для создания мероприятия
+ * Согласно спецификации Prompt 1.3: обязателен только title_de
+ */
+export interface EventTranslationsCreate {
+	/** Заголовок на немецком (обязательно) */
+	title_de: string;
+
+	/** Заголовок на английском */
+	title_en?: string | null;
+
+	/** Заголовок на русском */
+	title_ru?: string | null;
+
+	/** Заголовок на украинском */
+	title_uk?: string | null;
+
+	/** Описание на немецком (опционально) */
+	description_de?: string | null;
+
+	/** Описание на английском */
+	description_en?: string | null;
+
+	/** Описание на русском */
+	description_ru?: string | null;
+
+	/** Описание на украинском */
+	description_uk?: string | null;
+
+	/** Требования на немецком */
+	requirements_de?: string | null;
+
+	/** Требования на английском */
+	requirements_en?: string | null;
+
+	/** Требования на русском */
+	requirements_ru?: string | null;
+
+	/** Требования на украинском */
+	requirements_uk?: string | null;
+
+	/** Место проведения на немецком (опционально) */
+	location_de?: string | null;
 
 	/** Место проведения на английском */
 	location_en?: string | null;
@@ -143,7 +189,7 @@ export interface EventAdditionalField {
 	/** Тип поля */
 	field_type: FieldType;
 
-	/** Опции для select/radio (JSON массив строк) */
+	/** Опции для select (JSON массив строк) */
 	field_options: string | null;
 
 	/** Обязательно ли поле для заполнения */
@@ -176,8 +222,9 @@ export interface EventAdditionalField {
 
 /**
  * Данные для создания нового мероприятия
+ * Использует EventTranslationsCreate, где обязателен только title_de
  */
-export interface EventCreateData extends EventTranslations {
+export interface EventCreateData extends EventTranslationsCreate {
 	/** Дата проведения мероприятия (ISO 8601 format) */
 	date: string;
 
