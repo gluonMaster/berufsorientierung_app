@@ -47,7 +47,7 @@ describe('Events Database Utilities', () => {
 					{
 						field_key: 'dietary',
 						field_type: 'select',
-						field_options: JSON.stringify(['vegan', 'vegetarian']),
+						field_options: ['vegan', 'vegetarian'], // Массив, не JSON строка
 						required: false,
 						label_de: 'Ernährung',
 						label_en: 'Diet',

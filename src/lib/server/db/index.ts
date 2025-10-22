@@ -35,8 +35,19 @@ export {
 // Event Additional Fields utilities
 export { setEventFields, getEventFields, deleteEventFields } from './eventFields';
 
+// Registrations utilities
+export {
+	registerUserForEvent,
+	cancelRegistration,
+	getUserRegistrations,
+	getEventRegistrations,
+	getRegistrationCount,
+	isUserRegistered,
+	getRegistrationById,
+	parseAdditionalData,
+} from './registrations';
+
 // TODO: Добавить экспорты для других таблиц:
-// - registrations
 // - admins
 // - activity_log
 // - deleted_users_archive
