@@ -47,8 +47,21 @@ export {
 	parseAdditionalData,
 } from './registrations';
 
+// Admin utilities
+export { isAdmin, addAdmin, removeAdmin, getAllAdmins, getAdminByUserId } from './admin';
+
+// Activity Log utilities
+export {
+	logActivity,
+	getActivityLog,
+	getRecentActivity,
+	getUserActivityLog,
+	getActivityStats,
+	cleanOldLogs,
+} from './activityLog';
+
+export type { ActivityLogFilters, ActivityLogResult } from './activityLog';
+
 // TODO: Добавить экспорты для других таблиц:
-// - admins
-// - activity_log
 // - deleted_users_archive
 // - pending_deletions

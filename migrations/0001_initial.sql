@@ -156,11 +156,13 @@ CREATE TABLE registrations (
 -- ADMINS TABLE
 -- Stores admin user relationships
 -- Tracks who granted admin rights and when
+-- ON DELETE CASCADE: When user is deleted, their admin record is removed
+-- ON DELETE SET NULL: When creator is deleted, created_by becomes NULL
 -- ============================================================================
 CREATE TABLE admins (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER UNIQUE NOT NULL REFERENCES users(id),
-    created_by INTEGER REFERENCES users(id), -- Admin who granted these rights
+    user_id INTEGER UNIQUE NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_by INTEGER REFERENCES users(id) ON DELETE SET NULL, -- Admin who granted these rights
     created_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -168,11 +170,12 @@ CREATE TABLE admins (
 -- ACTIVITY_LOG TABLE
 -- Audit log for all user actions
 -- Used for security monitoring and GDPR compliance
+-- ON DELETE SET NULL: When user is deleted, logs remain but user_id becomes NULL
 -- ============================================================================
 CREATE TABLE activity_log (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER REFERENCES users(id), -- NULL for anonymous actions
-    action_type TEXT NOT NULL, -- e.g., 'user_registered', 'event_registered', 'profile_updated'
+    user_id INTEGER REFERENCES users(id) ON DELETE SET NULL, -- NULL for anonymous/system actions
+    action_type TEXT NOT NULL, -- e.g., 'user_register', 'event_create', 'registration_create'
     details TEXT, -- JSON with additional context
     ip_address TEXT,
     timestamp TEXT DEFAULT CURRENT_TIMESTAMP
@@ -227,6 +230,7 @@ CREATE INDEX idx_registrations_event_cancelled ON registrations(event_id, cancel
 
 -- Activity log indexes
 CREATE INDEX idx_activity_log_user_id ON activity_log(user_id);
+CREATE INDEX idx_activity_log_action_type ON activity_log(action_type);
 CREATE INDEX idx_activity_log_timestamp ON activity_log(timestamp);
 
 -- Pending deletions indexes

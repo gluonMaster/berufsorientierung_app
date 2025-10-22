@@ -4,6 +4,40 @@
  */
 
 /**
+ * Типы действий для логирования
+ * Централизованный тип для всех действий в системе
+ *
+ * @see {@link $lib/server/db/activityLog.ts} для реализации
+ */
+export type ActivityLogActionType =
+	// Действия пользователей
+	| 'user_register' // Регистрация нового пользователя
+	| 'user_login' // Вход в систему
+	| 'user_logout' // Выход из системы
+	| 'user_update_profile' // Обновление профиля
+	| 'user_delete_request' // Запрос на удаление аккаунта
+	| 'user_deleted' // Аккаунт удален
+	// Действия с мероприятиями (админ)
+	| 'event_create' // Создание мероприятия
+	| 'event_update' // Обновление мероприятия
+	| 'event_delete' // Удаление мероприятия
+	| 'event_publish' // Публикация мероприятия
+	| 'event_cancel' // Отмена мероприятия
+	// Действия с записями
+	| 'registration_create' // Запись на мероприятие
+	| 'registration_cancel' // Отмена записи
+	// Административные действия
+	| 'admin_add' // Выдача прав администратора
+	| 'admin_remove' // Отзыв прав администратора
+	| 'bulk_email_sent'; // Массовая рассылка
+
+/**
+ * @deprecated Используйте ActivityLogActionType вместо ActivityLogAction
+ * Оставлено для обратной совместимости
+ */
+export type ActivityLogAction = ActivityLogActionType;
+
+/**
  * Администратор системы
  * Соответствует таблице `admins` в БД
  */
@@ -39,30 +73,6 @@ export interface AdminWithUser extends Admin {
 }
 
 /**
- * Типы действий для логирования
- */
-export type ActivityLogAction =
-	| 'user_register'
-	| 'user_login'
-	| 'user_logout'
-	| 'user_update_profile'
-	| 'user_delete_account'
-	| 'event_register'
-	| 'event_cancel_registration'
-	| 'admin_create_event'
-	| 'admin_update_event'
-	| 'admin_delete_event'
-	| 'admin_cancel_event'
-	| 'admin_publish_event'
-	| 'admin_send_newsletter'
-	| 'admin_grant_rights'
-	| 'admin_revoke_rights'
-	| 'admin_block_user'
-	| 'admin_unblock_user'
-	| 'admin_export_data'
-	| 'admin_import_data';
-
-/**
  * Лог активности пользователей
  * Соответствует таблице `activity_log` в БД
  */
@@ -74,7 +84,7 @@ export interface ActivityLog {
 	user_id: number | null;
 
 	/** Тип действия */
-	action_type: ActivityLogAction;
+	action_type: ActivityLogActionType;
 
 	/** Дополнительные детали действия (JSON) */
 	details: string | null;
@@ -181,7 +191,7 @@ export interface ActivityLogCreateData {
 	user_id?: number | null;
 
 	/** Тип действия */
-	action_type: ActivityLogAction;
+	action_type: ActivityLogActionType;
 
 	/** Дополнительные детали */
 	details?: Record<string, unknown>;
