@@ -32,6 +32,9 @@ export {
 	getEventWithFields,
 } from './events';
 
+// Event Additional Fields utilities
+export { setEventFields, getEventFields, deleteEventFields } from './eventFields';
+
 // TODO: Добавить экспорты для других таблиц:
 // - registrations
 // - admins

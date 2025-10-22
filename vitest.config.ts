@@ -8,6 +8,7 @@ export default defineConfig({
 		include: ['tests/**/*.{test,spec}.{js,ts}'],
 		globals: true,
 		environment: 'node',
+		setupFiles: ['./tests/setup.ts'], // Загружаем моки перед тестами
 	},
 	resolve: {
 		alias: {

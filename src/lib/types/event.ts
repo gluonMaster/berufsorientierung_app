@@ -175,6 +175,9 @@ export interface Event extends EventTranslations {
 /**
  * Дополнительное поле для сбора информации при регистрации
  * Соответствует таблице `event_additional_fields` в БД
+ *
+ * Поле field_options возвращается из БД как распарсенный объект/массив,
+ * но в БД хранится как JSON строка
  */
 export interface EventAdditionalField {
 	/** Уникальный идентификатор поля */
@@ -189,8 +192,12 @@ export interface EventAdditionalField {
 	/** Тип поля */
 	field_type: FieldType;
 
-	/** Опции для select (JSON массив строк) */
-	field_options: string | null;
+	/**
+	 * Опции для select/checkbox (массив строк для выбора)
+	 * null для text/date/number полей
+	 * Возвращается как распарсенный объект, в БД хранится как JSON строка
+	 */
+	field_options: string[] | null;
 
 	/** Обязательно ли поле для заполнения */
 	required: boolean;
@@ -221,6 +228,13 @@ export interface EventAdditionalField {
 }
 
 /**
+ * Входные данные для создания дополнительного поля
+ * Принимает field_options как массив строк или null
+ * Внутри будет автоматически сериализовано в JSON строку для БД
+ */
+export type EventAdditionalFieldInput = Omit<EventAdditionalField, 'id' | 'event_id'>;
+
+/**
  * Данные для создания нового мероприятия
  * Использует EventTranslationsCreate, где обязателен только title_de
  */
@@ -244,7 +258,7 @@ export interface EventCreateData extends EventTranslationsCreate {
 	status?: 'draft' | 'active';
 
 	/** Дополнительные поля для сбора информации */
-	additional_fields?: Omit<EventAdditionalField, 'id' | 'event_id'>[];
+	additional_fields?: EventAdditionalFieldInput[];
 }
 
 /**
@@ -271,7 +285,7 @@ export interface EventUpdateData extends Partial<EventTranslations> {
 	status?: EventStatus;
 
 	/** Дополнительные поля для сбора информации */
-	additional_fields?: Omit<EventAdditionalField, 'id' | 'event_id'>[];
+	additional_fields?: EventAdditionalFieldInput[];
 }
 
 /**

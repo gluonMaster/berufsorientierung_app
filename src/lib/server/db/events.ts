@@ -12,6 +12,7 @@ import type {
 	EventAdditionalField,
 	EventWithFields,
 } from '$lib/types/event';
+import { setEventFields, getEventFields } from './eventFields';
 
 /**
  * Создаёт новое мероприятие
@@ -82,32 +83,7 @@ export async function createEvent(
 
 		// Создаём дополнительные поля, если они указаны
 		if (data.additional_fields && data.additional_fields.length > 0) {
-			for (const field of data.additional_fields) {
-				await db
-					.prepare(
-						`INSERT INTO event_additional_fields (
-							event_id, field_key, field_type, field_options, required,
-							label_de, label_en, label_ru, label_uk,
-							placeholder_de, placeholder_en, placeholder_ru, placeholder_uk
-						) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-					)
-					.bind(
-						eventId,
-						field.field_key,
-						field.field_type,
-						field.field_options || null,
-						field.required ? 1 : 0,
-						field.label_de,
-						field.label_en || null,
-						field.label_ru || null,
-						field.label_uk || null,
-						field.placeholder_de || null,
-						field.placeholder_en || null,
-						field.placeholder_ru || null,
-						field.placeholder_uk || null
-					)
-					.run();
-			}
+			await setEventFields(db, eventId, data.additional_fields);
 		}
 
 		// Получаем созданное мероприятие
@@ -224,39 +200,7 @@ export async function updateEvent(
 
 		// Обновляем дополнительные поля, если они переданы
 		if (data.additional_fields) {
-			// Удаляем старые дополнительные поля
-			await db
-				.prepare('DELETE FROM event_additional_fields WHERE event_id = ?')
-				.bind(id)
-				.run();
-
-			// Создаём новые
-			for (const field of data.additional_fields) {
-				await db
-					.prepare(
-						`INSERT INTO event_additional_fields (
-							event_id, field_key, field_type, field_options, required,
-							label_de, label_en, label_ru, label_uk,
-							placeholder_de, placeholder_en, placeholder_ru, placeholder_uk
-						) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-					)
-					.bind(
-						id,
-						field.field_key,
-						field.field_type,
-						field.field_options || null,
-						field.required ? 1 : 0,
-						field.label_de,
-						field.label_en || null,
-						field.label_ru || null,
-						field.label_uk || null,
-						field.placeholder_de || null,
-						field.placeholder_en || null,
-						field.placeholder_ru || null,
-						field.placeholder_uk || null
-					)
-					.run();
-			}
+			await setEventFields(db, id, data.additional_fields);
 		}
 
 		// Возвращаем обновлённое мероприятие
@@ -625,6 +569,7 @@ export async function cancelEvent(
 
 /**
  * Получает мероприятие вместе с его дополнительными полями
+ * Дополнительные поля возвращаются с распарсенными field_options
  *
  * @param db - D1 Database instance
  * @param id - ID мероприятия
@@ -633,7 +578,7 @@ export async function cancelEvent(
 export async function getEventWithFields(
 	db: D1Database,
 	id: number
-): Promise<(Event & { additionalFields: EventAdditionalField[] }) | null> {
+): Promise<EventWithFields | null> {
 	try {
 		// Получаем мероприятие
 		const event = await getEventById(db, id);
@@ -641,15 +586,12 @@ export async function getEventWithFields(
 			return null;
 		}
 
-		// Получаем дополнительные поля
-		const fieldsResult = await db
-			.prepare('SELECT * FROM event_additional_fields WHERE event_id = ? ORDER BY id ASC')
-			.bind(id)
-			.all<EventAdditionalField>();
+		// Получаем дополнительные поля с правильным парсингом JSON
+		const additionalFields = await getEventFields(db, id);
 
 		return {
 			...event,
-			additionalFields: fieldsResult.results || [],
+			additional_fields: additionalFields,
 		};
 	} catch (error) {
 		console.error('Error getting event with fields:', error);
