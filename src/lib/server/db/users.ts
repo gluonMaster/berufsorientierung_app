@@ -369,9 +369,13 @@ export async function updateUser(
  * Архивирует данные пользователя перед удалением (GDPR compliance)
  * Сохраняет минимальную информацию в таблицу deleted_users_archive
  *
+ * ВНИМАНИЕ: Эта функция устарела. Используйте archiveUserGDPR из gdpr.ts для полной GDPR-совместимости.
+ * Оставлена для обратной совместимости с deleteUser().
+ *
  * @param db - D1 Database инстанс
  * @param id - ID пользователя для архивирования
  * @throws Error если пользователь не найден или архивирование не удалось
+ * @deprecated Используйте archiveUserGDPR из модуля gdpr.ts
  *
  * @example
  * await archiveUser(db, 123);
@@ -383,20 +387,28 @@ export async function archiveUser(db: D1Database, id: number): Promise<void> {
 		throw new Error('User not found');
 	}
 
-	// Получаем список мероприятий, в которых участвовал пользователь
+	// Получаем список мероприятий, в которых УЧАСТВОВАЛ пользователь (только завершенные)
 	const eventsResult = await db
 		.prepare(
-			`SELECT e.title_de 
+			`
+			SELECT 
+				e.id as eventId,
+				e.title_de as title,
+				e.date
 			FROM events e
 			INNER JOIN registrations r ON e.id = r.event_id
-			WHERE r.user_id = ? AND r.cancelled_at IS NULL`
+			WHERE r.user_id = ?
+			  AND r.cancelled_at IS NULL
+			  AND e.date <= datetime('now')
+			ORDER BY e.date DESC
+		`
 		)
 		.bind(id)
-		.all<{ title_de: string }>();
+		.all<{ eventId: number; title: string; date: string }>();
 
-	const eventsParticipated = eventsResult.results.map((row) => row.title_de).join(', ');
+	const eventsParticipated = eventsResult.results || [];
 
-	// Вставляем в архив
+	// Вставляем в архив в JSON формате (GDPR-совместимый)
 	const result = await db
 		.prepare(
 			`INSERT INTO deleted_users_archive (
@@ -408,7 +420,7 @@ export async function archiveUser(db: D1Database, id: number): Promise<void> {
 			user.last_name,
 			user.created_at,
 			nowSql(),
-			eventsParticipated || 'None'
+			eventsParticipated.length > 0 ? JSON.stringify(eventsParticipated) : null
 		)
 		.run();
 
@@ -422,6 +434,9 @@ export async function archiveUser(db: D1Database, id: number): Promise<void> {
  *
  * ВАЖНО: Эта функция автоматически архивирует данные перед удалением.
  * Проверьте, что прошло 28 дней с последнего мероприятия (GDPR) перед вызовом.
+ *
+ * РЕКОМЕНДАЦИЯ: Для полного GDPR-совместимого удаления используйте
+ * deleteUserCompletely() из модуля gdpr.ts, которая удаляет все зависимости.
  *
  * @param db - D1 Database инстанс
  * @param id - ID пользователя для удаления

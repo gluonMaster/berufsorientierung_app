@@ -10,7 +10,6 @@ export {
 	getUserById,
 	updateUser,
 	deleteUser,
-	archiveUser,
 	getAllUsers,
 	searchUsers,
 	getUsersList,
@@ -62,6 +61,14 @@ export {
 
 export type { ActivityLogFilters, ActivityLogResult } from './activityLog';
 
-// TODO: Добавить экспорты для других таблиц:
-// - deleted_users_archive
-// - pending_deletions
+// GDPR utilities (user deletion and archiving)
+export {
+	canDeleteUser,
+	scheduleUserDeletion,
+	archiveUser as archiveUserGDPR,
+	deleteUserCompletely,
+	processScheduledDeletions,
+	getScheduledDeletions,
+} from './gdpr';
+
+export type { CanDeleteUserResult } from './gdpr';
