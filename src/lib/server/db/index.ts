@@ -18,8 +18,21 @@ export {
 	emailExists,
 } from './users';
 
+// Events utilities
+export {
+	createEvent,
+	updateEvent,
+	deleteEvent,
+	getEventById,
+	getAllEvents,
+	getActiveEvents,
+	getPastEvents,
+	publishEvent,
+	cancelEvent,
+	getEventWithFields,
+} from './events';
+
 // TODO: Добавить экспорты для других таблиц:
-// - events
 // - registrations
 // - admins
 // - activity_log
