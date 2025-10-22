@@ -160,7 +160,7 @@ await db
 
 ---
 
-### 3. `src/lib/server/storage/README_R2.md`
+### 3. `docs/features/storage/R2.md`
 
 **Назначение:** Документация R2 утилит с примерами использования
 
@@ -168,7 +168,7 @@ await db
 
 ## 📝 Обновлённая документация
 
-### 1. `src/lib/server/db/README_EVENTS.md`
+### 1. `docs/database/events/README.md`
 
 **Изменения:**
 
@@ -178,7 +178,7 @@ await db
 
 ---
 
-### 2. `src/lib/server/db/CHANGELOG_EVENTS.md`
+### 2. `docs/database/events/CHANGELOG.md`
 
 **Изменения:**
 

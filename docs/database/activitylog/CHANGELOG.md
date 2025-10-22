@@ -83,7 +83,7 @@ export type { ActivityLogActionType, ActivityLogFilters, ActivityLogResult } fro
 
 ---
 
-#### 4. `src/lib/server/db/README_ADMIN.md`
+#### 4. `docs/database/admin/README.md`
 
 Полная документация для модуля admin.
 
@@ -97,7 +97,7 @@ export type { ActivityLogActionType, ActivityLogFilters, ActivityLogResult } fro
 
 ---
 
-#### 5. `src/lib/server/db/README_ACTIVITYLOG.md`
+#### 5. `docs/database/activitylog/README.md`
 
 Полная документация для модуля activityLog.
 

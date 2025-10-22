@@ -581,7 +581,7 @@ const participants = await getEventRegistrations(db, eventId);
 
 ## 🔗 См. также
 
-- [README_USERS.md](./README_USERS.md) - Утилиты для работы с пользователями
-- [README_EVENTS.md](./README_EVENTS.md) - Утилиты для работы с мероприятиями
-- [README_EVENTFIELDS.md](./README_EVENTFIELDS.md) - Дополнительные поля мероприятий
-- [CHANGELOG_EVENTS.md](./CHANGELOG_EVENTS.md) - История изменений events
+- [../users/README.md](../users/README.md) - Утилиты для работы с пользователями
+- [../events/README.md](../events/README.md) - Утилиты для работы с мероприятиями
+- [../events/EVENTFIELDS.md](../events/EVENTFIELDS.md) - Дополнительные поля мероприятий
+- [../events/CHANGELOG.md](../events/CHANGELOG.md) - История изменений events
