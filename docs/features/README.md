@@ -9,6 +9,7 @@
 Система аутентификации и авторизации пользователей.
 
 - [README.md](./auth/README.md) - Полная документация модуля
+- [MIDDLEWARE.md](./auth/MIDDLEWARE.md) - Auth middleware для защиты endpoints
 
 **Функционал:**
 
@@ -16,6 +17,7 @@
 - JWT токены (jose + WebCrypto)
 - Безопасные cookies
 - Полный цикл auth (регистрация/логин/logout)
+- Middleware для проверки авторизации и прав администратора
 
 ### [i18n/](./i18n/) - Интернационализация
 

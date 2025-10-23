@@ -509,8 +509,9 @@ openssl rand -base64 32
 
 ## 🔗 Связанные модули
 
+- **[Auth Middleware](./MIDDLEWARE.md)** - Middleware для проверки аутентификации и авторизации
 - **Database Users** (`src/lib/server/db/users.ts`) - Операции с пользователями
-- **Middleware Auth** (`src/lib/server/middleware/auth.ts`) - Middleware для проверки аутентификации
+- **Database Admin** (`src/lib/server/db/admin.ts`) - Проверка прав администратора
 - **API Routes** (`src/routes/api/auth/`) - API endpoints для регистрации/логина/logout
 
 ---
