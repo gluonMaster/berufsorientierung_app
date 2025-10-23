@@ -26,6 +26,7 @@ import { getClientIP } from '$lib/server/middleware/auth';
 import { handleApiError, errors } from '$lib/server/middleware/errorHandler';
 import { getDB } from '$lib/server/db';
 import { dev } from '$app/environment';
+import type { UserProfile } from '$lib/types/user';
 
 /**
  * POST /api/auth/register
@@ -158,7 +159,7 @@ export async function POST({ request, platform }: RequestEvent) {
 		}
 
 		// Шаг 11: Создаём профиль пользователя для ответа (без пароля)
-		const userProfile = {
+		const userProfile: UserProfile = {
 			id: newUser.id,
 			email: newUser.email,
 			first_name: newUser.first_name,
@@ -174,6 +175,7 @@ export async function POST({ request, platform }: RequestEvent) {
 			photo_video_consent: newUser.photo_video_consent,
 			parental_consent: newUser.parental_consent,
 			preferred_language: newUser.preferred_language,
+			is_blocked: newUser.is_blocked,
 			created_at: newUser.created_at,
 			updated_at: newUser.updated_at,
 		};

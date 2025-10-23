@@ -13,6 +13,7 @@ export type ActivityLogActionType =
 	// Действия пользователей
 	| 'user_register' // Регистрация нового пользователя
 	| 'user_login' // Вход в систему
+	| 'user_login_failed' // Неудачная попытка входа
 	| 'user_logout' // Выход из системы
 	| 'user_update_profile' // Обновление профиля
 	| 'user_delete_request' // Запрос на удаление аккаунта
