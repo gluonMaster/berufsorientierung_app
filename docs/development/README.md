@@ -23,6 +23,7 @@
 
 - [ADMIN_ACTIVITYLOG.md](./fixes/ADMIN_ACTIVITYLOG.md) - Исправления в модуле логирования админов
 - [REPORT_EVENTS.md](./fixes/REPORT_EVENTS.md) - Исправления в модуле событий
+- [AUTH_CLOUDFLARE_COMPATIBILITY.md](./fixes/AUTH_CLOUDFLARE_COMPATIBILITY.md) - Совместимость Auth модуля с Cloudflare Workers
 
 ---
 

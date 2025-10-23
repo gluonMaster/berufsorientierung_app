@@ -53,6 +53,10 @@
 
 Документация по функциональным возможностям приложения.
 
+#### Аутентификация ([features/auth/](./features/auth/))
+
+- [README.md](./features/auth/README.md) - Полная документация модуля аутентификации
+
 #### Интернационализация ([features/i18n/](./features/i18n/))
 
 - [SETUP.md](./features/i18n/SETUP.md) - Настройка i18n
@@ -84,6 +88,7 @@
 
 ### Для функционала
 
+- **Аутентификация**: [features/auth/README.md](./features/auth/README.md)
 - **Мультиязычность**: [features/i18n/](./features/i18n/)
 - **Загрузка файлов**: [features/storage/R2.md](./features/storage/R2.md)
 - **Валидация**: [features/validation/README.md](./features/validation/README.md)
@@ -99,4 +104,4 @@
 
 ---
 
-**Последнее обновление**: 2025-10-22
+**Последнее обновление**: 2025-10-23
