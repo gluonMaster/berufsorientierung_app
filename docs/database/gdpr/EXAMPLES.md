@@ -18,10 +18,11 @@
 ### Пример 1: Простая проверка возможности удаления
 
 ```typescript
-import { canDeleteUser } from '$lib/server/db';
+import { DB, getDB } from '$lib/server/db';
 
-async function checkDeletion(db: D1Database, userId: number) {
-	const result = await canDeleteUser(db, userId);
+async function checkDeletion(platform: any, userId: number) {
+	const db = getDB(platform);
+	const result = await DB.gdpr.canDeleteUser(db, userId);
 
 	if (result.canDelete) {
 		console.log('✅ Пользователь может быть удален немедленно');
@@ -38,25 +39,20 @@ async function checkDeletion(db: D1Database, userId: number) {
 ### Пример 2: Полный цикл удаления
 
 ```typescript
-import {
-	canDeleteUser,
-	deleteUserCompletely,
-	scheduleUserDeletion,
-	blockUser,
-	logActivity,
-} from '$lib/server/db';
+import { DB, getDB } from '$lib/server/db';
 
-async function handleUserDeletionRequest(db: D1Database, userId: number, ipAddress: string) {
+async function handleUserDeletionRequest(platform: any, userId: number, ipAddress: string) {
+	const db = getDB(platform);
 	try {
 		// 1. Проверяем возможность удаления
-		const check = await canDeleteUser(db, userId);
+		const check = await DB.gdpr.canDeleteUser(db, userId);
 
 		if (check.canDelete) {
 			// 2a. Удаляем немедленно
-			await deleteUserCompletely(db, userId);
+			await DB.gdpr.deleteUserCompletely(db, userId);
 
 			// 3a. Логируем
-			await logActivity(db, {
+			await DB.activityLog.logActivity(db, {
 				user_id: userId,
 				action_type: 'user_deleted',
 				details: { immediate: true },
@@ -70,10 +66,10 @@ async function handleUserDeletionRequest(db: D1Database, userId: number, ipAddre
 			};
 		} else {
 			// 2b. Планируем удаление (автоматически блокирует аккаунт)
-			const deleteDate = await scheduleUserDeletion(db, userId);
+			const deleteDate = await DB.gdpr.scheduleUserDeletion(db, userId);
 
 			// 3b. Логируем (блокировка уже выполнена в scheduleUserDeletion)
-			await logActivity(db, {
+			await DB.activityLog.logActivity(db, {
 				user_id: userId,
 				action_type: 'user_delete_request',
 				details: {
@@ -117,13 +113,7 @@ async function handleUserDeletionRequest(db: D1Database, userId: number, ipAddre
 ```typescript
 import type { RequestHandler } from './$types';
 import { json, error } from '@sveltejs/kit';
-import {
-	canDeleteUser,
-	deleteUserCompletely,
-	scheduleUserDeletion,
-	blockUser,
-	logActivity,
-} from '$lib/server/db';
+import { DB, getDB } from '$lib/server/db';
 
 export const POST: RequestHandler = async ({ request, locals, platform }) => {
 	// 1. Проверяем аутентификацию
@@ -131,10 +121,7 @@ export const POST: RequestHandler = async ({ request, locals, platform }) => {
 		throw error(401, 'Unauthorized');
 	}
 
-	const db = platform?.env?.DB;
-	if (!db) {
-		throw error(500, 'Database not available');
-	}
+	const db = getDB(platform);
 
 	const userId = locals.user.id;
 	const ipAddress = request.headers.get('cf-connecting-ip') || 'unknown';
@@ -155,13 +142,13 @@ export const POST: RequestHandler = async ({ request, locals, platform }) => {
 		}
 
 		// 3. Проверяем возможность удаления
-		const check = await canDeleteUser(db, userId);
+		const check = await DB.gdpr.canDeleteUser(db, userId);
 
 		if (check.canDelete) {
 			// Удаляем немедленно
-			await deleteUserCompletely(db, userId);
+			await DB.gdpr.deleteUserCompletely(db, userId);
 
-			await logActivity(db, {
+			await DB.activityLog.logActivity(db, {
 				user_id: userId,
 				action_type: 'user_deleted',
 				details: { immediate: true },
@@ -178,9 +165,9 @@ export const POST: RequestHandler = async ({ request, locals, platform }) => {
 			});
 		} else {
 			// Планируем удаление (автоматически блокирует аккаунт)
-			const deleteDate = await scheduleUserDeletion(db, userId);
+			const deleteDate = await DB.gdpr.scheduleUserDeletion(db, userId);
 
-			await logActivity(db, {
+			await DB.activityLog.logActivity(db, {
 				user_id: userId,
 				action_type: 'user_delete_request',
 				details: {
@@ -213,17 +200,14 @@ export const POST: RequestHandler = async ({ request, locals, platform }) => {
 ```typescript
 import type { RequestHandler } from './$types';
 import { json, error } from '@sveltejs/kit';
-import { logActivity, blockUser } from '$lib/server/db';
+import { DB, getDB } from '$lib/server/db';
 
 export const POST: RequestHandler = async ({ locals, platform }) => {
 	if (!locals.user) {
 		throw error(401, 'Unauthorized');
 	}
 
-	const db = platform?.env?.DB;
-	if (!db) {
-		throw error(500, 'Database not available');
-	}
+	const db = getDB(platform);
 
 	const userId = locals.user.id;
 
@@ -245,10 +229,10 @@ export const POST: RequestHandler = async ({ locals, platform }) => {
 		await db.prepare('DELETE FROM pending_deletions WHERE user_id = ?').bind(userId).run();
 
 		// 3. Разблокируем пользователя
-		await blockUser(db, userId, false); // false = unblock
+		await DB.users.blockUser(db, userId, false); // false = unblock
 
 		// 4. Логируем
-		await logActivity(db, {
+		await DB.activityLog.logActivity(db, {
 			user_id: userId,
 			action_type: 'user_delete_request',
 			details: { cancelled: true },
@@ -293,7 +277,7 @@ database_id = "your-database-id"
 **Файл:** `src/index.ts` (для SvelteKit adapter-cloudflare-workers)
 
 ```typescript
-import { processScheduledDeletions, logActivity } from '$lib/server/db';
+import { DB } from '$lib/server/db';
 
 export default {
 	/**
@@ -305,12 +289,18 @@ export default {
 
 		try {
 			// Обрабатываем все запланированные удаления
-			const deletedCount = await processScheduledDeletions(env.DB);
+			const deletedCount = await DB.gdpr.processScheduledDeletions(env.DB);
 
 			console.log(`[CRON] Successfully deleted ${deletedCount} accounts`);
 
 			if (deletedCount > 0) {
 				// Логируем автоматическое удаление
+				await DB.activityLog.logActivity(env.DB, {
+					action_type: 'user_deleted',
+					details: {
+						automated: true,
+						count: deletedCount,
+					},
 				await logActivity(env.DB, {
 					action_type: 'user_deleted',
 					details: {
@@ -327,7 +317,7 @@ export default {
 			console.error('[CRON] Error processing scheduled deletions:', error);
 
 			// Логируем ошибку
-			await logActivity(env.DB, {
+			await DB.activityLog.logActivity(env.DB, {
 				action_type: 'user_deleted',
 				details: {
 					automated: true,
@@ -359,7 +349,7 @@ curl "http://localhost:8787/__scheduled?cron=0+2+*+*+*"
 
 ```typescript
 import type { PageServerLoad } from './$types';
-import { getScheduledDeletions } from '$lib/server/db';
+import { DB, getDB } from '$lib/server/db';
 
 export const load: PageServerLoad = async ({ platform, locals }) => {
 	// Проверка прав администратора
@@ -367,13 +357,10 @@ export const load: PageServerLoad = async ({ platform, locals }) => {
 		throw error(403, 'Forbidden');
 	}
 
-	const db = platform?.env?.DB;
-	if (!db) {
-		throw error(500, 'Database not available');
-	}
+	const db = getDB(platform);
 
 	try {
-		const scheduledDeletions = await getScheduledDeletions(db);
+		const scheduledDeletions = await DB.gdpr.getScheduledDeletions(db);
 
 		// Вычисляем дополнительные данные для UI
 		const now = new Date();

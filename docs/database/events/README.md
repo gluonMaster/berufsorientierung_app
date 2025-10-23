@@ -9,9 +9,10 @@
 Создаёт новое мероприятие со статусом `draft` по умолчанию.
 
 ```typescript
-import { createEvent } from '$lib/server/db';
+import { DB, getDB } from '$lib/server/db';
 
-const event = await createEvent(
+const db = getDB(platform);
+const event = await DB.events.createEvent(
 	db,
 	{
 		title_de: 'Karrieretag',
@@ -42,9 +43,10 @@ const event = await createEvent(
 Обновляет существующее мероприятие (частичное обновление).
 
 ```typescript
-import { updateEvent } from '$lib/server/db';
+import { DB, getDB } from '$lib/server/db';
 
-const updatedEvent = await updateEvent(db, eventId, {
+const db = getDB(platform);
+const updatedEvent = await DB.events.updateEvent(db, eventId, {
 	max_participants: 50,
 	description_en: 'Updated description',
 });
@@ -55,10 +57,11 @@ const updatedEvent = await updateEvent(db, eventId, {
 Удаляет мероприятие. Автоматически удаляет связанные QR-коды из R2, если передан bucket.
 
 ```typescript
-import { deleteEvent } from '$lib/server/db';
+import { DB, getDB } from '$lib/server/db';
 
+const db = getDB(platform);
 // С автоматическим удалением QR-кодов из R2
-await deleteEvent(db, eventId, platform.env.QR_CODES_BUCKET);
+await DB.events.deleteEvent(db, eventId, platform.env.QR_CODES_BUCKET);
 
 // Без удаления QR-кодов (не рекомендуется)
 await deleteEvent(db, eventId);
@@ -69,9 +72,10 @@ await deleteEvent(db, eventId);
 Получает мероприятие по ID с количеством участников.
 
 ```typescript
-import { getEventById } from '$lib/server/db';
+import { DB, getDB } from '$lib/server/db';
 
-const event = await getEventById(db, eventId);
+const db = getDB(platform);
+const event = await DB.events.getEventById(db, eventId);
 if (!event) {
 	throw new Error('Event not found');
 }
@@ -83,9 +87,10 @@ console.log(event.current_participants); // количество активны�
 Получает все мероприятия с фильтрацией и пагинацией.
 
 ```typescript
-import { getAllEvents } from '$lib/server/db';
+import { DB, getDB } from '$lib/server/db';
 
-const { events, total } = await getAllEvents(db, {
+const db = getDB(platform);
+const { events, total } = await DB.events.getAllEvents(db, {
 	status: 'active',
 	dateFrom: '2025-01-01',
 	dateTo: '2025-12-31',
@@ -99,9 +104,10 @@ const { events, total } = await getAllEvents(db, {
 Получает только активные и предстоящие мероприятия (ближайшие первыми).
 
 ```typescript
-import { getActiveEvents } from '$lib/server/db';
+import { DB, getDB } from '$lib/server/db';
 
-const activeEvents = await getActiveEvents(db);
+const db = getDB(platform);
+const activeEvents = await DB.events.getActiveEvents(db);
 ```
 
 ### getPastEvents
@@ -109,9 +115,10 @@ const activeEvents = await getActiveEvents(db);
 Получает прошедшие мероприятия (новые первыми).
 
 ```typescript
-import { getPastEvents } from '$lib/server/db';
+import { DB, getDB } from '$lib/server/db';
 
-const pastEvents = await getPastEvents(db);
+const db = getDB(platform);
+const pastEvents = await DB.events.getPastEvents(db);
 ```
 
 ### publishEvent
@@ -119,9 +126,10 @@ const pastEvents = await getPastEvents(db);
 Публикует мероприятие (переводит из `draft` в `active`). Валидирует обязательные поля.
 
 ```typescript
-import { publishEvent } from '$lib/server/db';
+import { DB, getDB } from '$lib/server/db';
 
-const publishedEvent = await publishEvent(db, eventId);
+const db = getDB(platform);
+const publishedEvent = await DB.events.publishEvent(db, eventId);
 ```
 
 ### cancelEvent
@@ -129,9 +137,15 @@ const publishedEvent = await publishEvent(db, eventId);
 Отменяет мероприятие с указанием причины. Автоматически логирует действие администратора.
 
 ```typescript
-import { cancelEvent } from '$lib/server/db';
+import { DB, getDB } from '$lib/server/db';
 
-const cancelledEvent = await cancelEvent(db, eventId, 'Insufficient registrations', adminUserId);
+const db = getDB(platform);
+const cancelledEvent = await DB.events.cancelEvent(
+	db,
+	eventId,
+	'Insufficient registrations',
+	adminUserId
+);
 // Автоматически создаётся запись в activity_log с информацией об отмене
 ```
 
@@ -140,9 +154,10 @@ const cancelledEvent = await cancelEvent(db, eventId, 'Insufficient registration
 Получает мероприятие вместе с его дополнительными полями.
 
 ```typescript
-import { getEventWithFields } from '$lib/server/db';
+import { DB, getDB } from '$lib/server/db';
 
-const eventWithFields = await getEventWithFields(db, eventId);
+const db = getDB(platform);
+const eventWithFields = await DB.events.getEventWithFields(db, eventId);
 if (eventWithFields) {
 	console.log(eventWithFields.additionalFields); // массив дополнительных полей
 }
@@ -153,8 +168,11 @@ if (eventWithFields) {
 Все функции бросают ошибки при проблемах:
 
 ```typescript
+import { DB, getDB } from '$lib/server/db';
+
+const db = getDB(platform);
 try {
-	const event = await createEvent(db, data, adminId);
+	const event = await DB.events.createEvent(db, data, adminId);
 } catch (error) {
 	console.error('Failed to create event:', error);
 	// Обработка ошибки

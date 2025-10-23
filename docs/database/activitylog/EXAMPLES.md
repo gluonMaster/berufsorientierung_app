@@ -5,7 +5,7 @@
 ```typescript
 // src/routes/admin/+layout.server.ts
 import { redirect, error } from '@sveltejs/kit';
-import { isAdmin } from '$lib/server/db';
+import { DB, getDB } from '$lib/server/db';
 import type { LayoutServerLoad } from './$types';
 
 export const load: LayoutServerLoad = async ({ platform, locals }) => {
@@ -16,8 +16,9 @@ export const load: LayoutServerLoad = async ({ platform, locals }) => {
 		throw redirect(302, '/login');
 	}
 
+	const db = getDB(platform);
 	// Проверка прав администратора
-	const userIsAdmin = await isAdmin(platform.env.DB, userId);
+	const userIsAdmin = await DB.admin.isAdmin(db, userId);
 
 	if (!userIsAdmin) {
 		throw error(403, 'Доступ запрещен. Требуются права администратора.');
