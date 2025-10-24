@@ -2,6 +2,7 @@
  * Email Module Usage Examples
  *
  * Примеры использования функций sendEmail и sendBulkEmails
+ * с готовыми шаблонами из templates.ts
  *
  * ВАЖНО: Эти примеры для демонстрации. В реальном приложении
  * email отправка будет интегрирована в бизнес-логику (регистрация,
@@ -9,88 +10,60 @@
  */
 
 import { sendEmail, sendBulkEmails } from '$lib/server/email';
+import {
+	getWelcomeEmail,
+	getEventRegistrationEmail,
+	getEventCancellationEmail,
+	getEventCancelledByAdminEmail,
+} from '$lib/server/email/templates';
+import type { User } from '$lib/types/user';
+import type { Event } from '$lib/types/event';
 import type { RequestEvent } from '@sveltejs/kit';
 
 /**
  * Пример 1: Отправка Welcome email при регистрации
+ * Использует готовый мультиязычный шаблон из templates.ts
  */
-export async function sendWelcomeEmail(
-	userEmail: string,
-	userName: string,
-	platform: RequestEvent['platform']
-) {
+export async function sendWelcomeEmail(user: User, platform: RequestEvent['platform']) {
 	if (!platform) {
 		throw new Error('Platform is required');
 	}
 
-	const subject = 'Willkommen bei Berufsorientierung!';
-	const text = `
-Hallo ${userName},
+	// Получаем мультиязычный шаблон
+	const { subject, text } = getWelcomeEmail(user, user.preferred_language);
 
-vielen Dank für Ihre Registrierung bei Berufsorientierung!
+	await sendEmail(user.email, subject, text, platform.env);
 
-Wir freuen uns, Sie in unserem Programm begrüßen zu dürfen.
-
-Sie können sich jetzt für Veranstaltungen anmelden und Ihre Karrieremöglichkeiten erkunden.
-
-Bei Fragen stehen wir Ihnen gerne zur Verfügung.
-
-Mit freundlichen Grüßen
-Ihr Berufsorientierung Team
-
----
-Kolibri Dresden
-Berufsorientierung@kolibri-dresden.de
-	`.trim();
-
-	await sendEmail(userEmail, subject, text, platform.env);
+	console.log(`[Email] Welcome email sent to ${user.email} (${user.preferred_language})`);
 }
 
 /**
  * Пример 2: Отправка подтверждения записи на мероприятие
+ * Использует готовый мультиязычный шаблон из templates.ts
  */
 export async function sendEventRegistrationConfirmation(
-	userEmail: string,
-	userName: string,
-	eventTitle: string,
-	eventDate: string,
-	eventLocation: string,
-	telegramLink: string,
-	whatsappLink: string,
+	user: User,
+	event: Event,
 	platform: RequestEvent['platform']
 ) {
 	if (!platform) {
 		throw new Error('Platform is required');
 	}
 
-	const subject = `Anmeldebestätigung: ${eventTitle}`;
-	const text = `
-Hallo ${userName},
+	// Получаем мультиязычный шаблон с деталями мероприятия
+	const { subject, text } = getEventRegistrationEmail(
+		user,
+		event,
+		user.preferred_language,
+		event.telegram_link || undefined,
+		event.whatsapp_link || undefined
+	);
 
-Ihre Anmeldung für die Veranstaltung wurde erfolgreich bestätigt!
+	await sendEmail(user.email, subject, text, platform.env);
 
-Veranstaltungsdetails:
-- Titel: ${eventTitle}
-- Datum: ${eventDate}
-- Ort: ${eventLocation}
-
-Treten Sie unseren Gruppen bei:
-- Telegram: ${telegramLink}
-- WhatsApp: ${whatsappLink}
-
-Wir freuen uns auf Ihre Teilnahme!
-
-Bei Fragen oder Änderungen können Sie sich jederzeit an uns wenden.
-
-Mit freundlichen Grüßen
-Ihr Berufsorientierung Team
-
----
-Kolibri Dresden
-Berufsorientierung@kolibri-dresden.de
-	`.trim();
-
-	await sendEmail(userEmail, subject, text, platform.env);
+	console.log(
+		`[Email] Event registration confirmation sent to ${user.email} for event ${event.id}`
+	);
 }
 
 /**
@@ -126,45 +99,56 @@ export async function sendNewsletterToAll(
 }
 
 /**
- * Пример 4: Уведомление об отмене мероприятия
+ * Пример 3: Отправка подтверждения отмены записи пользователем
+ * Использует готовый мультиязычный шаблон из templates.ts
  */
-export async function sendEventCancellationNotice(
-	userEmail: string,
-	userName: string,
-	eventTitle: string,
-	cancellationReason: string,
+export async function sendUserCancellationConfirmation(
+	user: User,
+	event: Event,
 	platform: RequestEvent['platform']
 ) {
 	if (!platform) {
 		throw new Error('Platform is required');
 	}
 
-	const subject = `Veranstaltung abgesagt: ${eventTitle}`;
-	const text = `
-Hallo ${userName},
+	// Получаем мультиязычный шаблон подтверждения отмены
+	const { subject, text } = getEventCancellationEmail(user, event, user.preferred_language);
 
-leider müssen wir Ihnen mitteilen, dass die folgende Veranstaltung abgesagt wurde:
+	await sendEmail(user.email, subject, text, platform.env);
 
-Veranstaltung: ${eventTitle}
+	console.log(
+		`[Email] User cancellation confirmation sent to ${user.email} for event ${event.id}`
+	);
+}
 
-Grund der Absage:
-${cancellationReason}
+/**
+ * Пример 4: Уведомление об отмене мероприятия администратором
+ * Использует готовый мультиязычный шаблон из templates.ts
+ */
+export async function sendEventCancellationNotice(
+	user: User,
+	event: Event,
+	cancellationReason: string,
+	platform: RequestEvent['platform'],
+	eventsUrl?: string
+) {
+	if (!platform) {
+		throw new Error('Platform is required');
+	}
 
-Wir entschuldigen uns für die Unannehmlichkeiten.
+	// Получаем мультиязычный шаблон уведомления об отмене
+	// eventsUrl опционален, по умолчанию "/events"
+	const { subject, text } = getEventCancelledByAdminEmail(
+		user,
+		event,
+		cancellationReason,
+		user.preferred_language,
+		eventsUrl
+	);
 
-Sie können sich gerne für andere Veranstaltungen auf unserer Plattform anmelden.
+	await sendEmail(user.email, subject, text, platform.env);
 
-Bei Fragen stehen wir Ihnen gerne zur Verfügung.
-
-Mit freundlichen Grüßen
-Ihr Berufsorientierung Team
-
----
-Kolibri Dresden
-Berufsorientierung@kolibri-dresden.de
-	`.trim();
-
-	await sendEmail(userEmail, subject, text, platform.env);
+	console.log(`[Email] Event cancellation notice sent to ${user.email} for event ${event.id}`);
 }
 
 /**

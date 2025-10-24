@@ -14,7 +14,7 @@
 - **[MAILCHANNELS.md](./MAILCHANNELS.md)** - Настройка MailChannels, DNS (SPF/DKIM/DMARC), troubleshooting
 - **[DEVIATIONS.md](./DEVIATIONS.md)** - Отклонения от изначальной спецификации и их обоснование
 - **[CHANGELOG.md](./CHANGELOG.md)** - История изменений модуля
-- **[TEMPLATES.md](./TEMPLATES.md)** - Email шаблоны (Welcome, Event Registration, etc.) _(будет создан позже)_
+- **[TEMPLATES.md](./TEMPLATES.md)** - ✅ Email шаблоны (Welcome, Event Registration, Cancellation)
 
 ---
 
@@ -193,7 +193,14 @@ DKIM_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"
 4. **Event Cancelled by Admin** - при отмене мероприятия администратором
 5. **Bulk Newsletter** - массовая рассылка через админ-панель
 
-_(Шаблоны будут реализованы в следующем промпте)_
+**📚 Документация шаблонов:** [TEMPLATES.md](./TEMPLATES.md)
+
+Все шаблоны:
+
+- ✅ Мультиязычные (de, en, ru, uk)
+- ✅ Текстовые (plain text)
+- ✅ С fallback на немецкий язык
+- ✅ Cloudflare Workers совместимые
 
 ---
 

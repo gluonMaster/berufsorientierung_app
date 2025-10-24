@@ -136,7 +136,40 @@
 		"greeting": "Hallo {name}",
 		"footer": "Bei Fragen kontaktieren Sie uns: Berufsorientierung@kolibri-dresden.de",
 		"thankYou": "Vielen Dank",
-		"team": "Ihr Berufsorientierung Team"
+		"team": "Ihr Berufsorientierung Team",
+		"welcome": {
+			"intro": "Wir freuen uns, Sie bei Berufsorientierung begrüßen zu dürfen! Unser Ziel ist es, junge Menschen mit Migrationshintergrund bei der beruflichen Orientierung zu unterstützen.",
+			"howItWorks": "Über unsere Plattform können Sie sich für verschiedene Veranstaltungen und Workshops anmelden. Sie erhalten immer eine Bestätigungsmail mit allen wichtigen Informationen.",
+			"nextSteps": "Wie geht es weiter?",
+			"step1": "Besuchen Sie unsere Veranstaltungsübersicht",
+			"step2": "Melden Sie sich für interessante Events an",
+			"step3": "Bleiben Sie über neue Angebote informiert",
+			"closing": "Bei Fragen oder Anregungen sind wir jederzeit für Sie da."
+		},
+		"eventRegistration": {
+			"confirmed": "Sie wurden erfolgreich für folgende Veranstaltung angemeldet:",
+			"date": "Datum",
+			"location": "Ort",
+			"description": "Beschreibung",
+			"requirements": "Voraussetzungen",
+			"stayInTouch": "Bleiben Sie in Kontakt:",
+			"telegram": "Telegram",
+			"whatsapp": "WhatsApp",
+			"cancellation": "Stornierung",
+			"cancellationInfo": "Falls Sie nicht teilnehmen können, stornieren Sie bitte Ihre Anmeldung mindestens 3 Tage vor der Veranstaltung über Ihr Profil."
+		},
+		"eventCancellation": {
+			"cancelled": "Ihre Anmeldung für folgende Veranstaltung wurde erfolgreich storniert:",
+			"date": "Datum",
+			"reregister": "Sie können sich jederzeit erneut für diese Veranstaltung anmelden, sofern noch Plätze verfügbar sind.",
+			"seeYouSoon": "Wir hoffen, Sie bald bei einer anderen Veranstaltung begrüßen zu dürfen!"
+		},
+		"eventCancelledByAdmin": {
+			"notification": "Wir müssen Ihnen leider mitteilen, dass folgende Veranstaltung abgesagt werden musste:",
+			"reason": "Grund der Absage",
+			"apology": "Wir entschuldigen uns für die Unannehmlichkeiten und hoffen, Sie bald bei einer anderen Veranstaltung begrüßen zu dürfen.",
+			"checkWebsite": "Aktuelle und kommende Veranstaltungen finden Sie auf unserer Website."
+		}
 	},
 	"admin": {
 		"dashboard": "Dashboard",

@@ -136,7 +136,40 @@
 		"greeting": "Hello {name}",
 		"footer": "For questions, contact us: Berufsorientierung@kolibri-dresden.de",
 		"thankYou": "Thank you",
-		"team": "Your Berufsorientierung Team"
+		"team": "Your Berufsorientierung Team",
+		"welcome": {
+			"intro": "We are pleased to welcome you to Berufsorientierung! Our goal is to support young people with a migration background in their career orientation.",
+			"howItWorks": "Through our platform, you can register for various events and workshops. You will always receive a confirmation email with all important information.",
+			"nextSteps": "What's next?",
+			"step1": "Visit our event overview",
+			"step2": "Register for interesting events",
+			"step3": "Stay informed about new opportunities",
+			"closing": "If you have any questions or suggestions, we are always here for you."
+		},
+		"eventRegistration": {
+			"confirmed": "You have been successfully registered for the following event:",
+			"date": "Date",
+			"location": "Location",
+			"description": "Description",
+			"requirements": "Requirements",
+			"stayInTouch": "Stay in touch:",
+			"telegram": "Telegram",
+			"whatsapp": "WhatsApp",
+			"cancellation": "Cancellation",
+			"cancellationInfo": "If you cannot attend, please cancel your registration at least 3 days before the event through your profile."
+		},
+		"eventCancellation": {
+			"cancelled": "Your registration for the following event has been successfully cancelled:",
+			"date": "Date",
+			"reregister": "You can re-register for this event at any time, as long as spots are still available.",
+			"seeYouSoon": "We hope to see you at another event soon!"
+		},
+		"eventCancelledByAdmin": {
+			"notification": "We regret to inform you that the following event has been cancelled:",
+			"reason": "Reason for cancellation",
+			"apology": "We apologize for the inconvenience and hope to welcome you at another event soon.",
+			"checkWebsite": "Current and upcoming events can be found on our website."
+		}
 	},
 	"admin": {
 		"dashboard": "Dashboard",
