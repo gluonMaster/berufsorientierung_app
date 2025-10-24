@@ -148,10 +148,10 @@ wrangler deploy
 1. Настроить SPF запись в DNS:
 
 ```
-v=spf1 include:_spf.mx.cloudflare.net ~all
+v=spf1 a mx include:relay.mailchannels.net ~all
 ```
 
-2. Настроить DKIM (опционально):
+2. Настроить DKIM (опционально, но рекомендуется для deliverability):
 
 - Сгенерировать ключи
 - Добавить публичный ключ в DNS

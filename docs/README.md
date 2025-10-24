@@ -70,6 +70,11 @@
 
 - [R2.md](./features/storage/R2.md) - Cloudflare R2 Storage
 
+#### Email ([features/email/](./features/email/))
+
+- [README.md](./features/email/README.md) - Основная документация модуля email
+- [MAILCHANNELS.md](./features/email/MAILCHANNELS.md) - Настройка MailChannels и DNS
+
 ---
 
 ## 🔍 Быстрая навигация
@@ -91,6 +96,7 @@
 - **Аутентификация**: [features/auth/README.md](./features/auth/README.md)
 - **Мультиязычность**: [features/i18n/](./features/i18n/)
 - **Загрузка файлов**: [features/storage/R2.md](./features/storage/R2.md)
+- **Email отправка**: [features/email/README.md](./features/email/README.md)
 - **Валидация**: [features/validation/README.md](./features/validation/README.md)
 
 ---
@@ -104,4 +110,4 @@
 
 ---
 
-**Последнее обновление**: 2025-10-23
+**Последнее обновление**: 2025-10-24

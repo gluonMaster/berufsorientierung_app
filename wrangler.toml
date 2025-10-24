@@ -13,8 +13,9 @@ binding = "ASSETS"
 EMAIL_PROVIDER = "mailchannels"
 EMAIL_FROM = "Berufsorientierung <Berufsorientierung@kolibri-dresden.de>"
 EMAIL_REPLY_TO = "Berufsorientierung <Berufsorientierung@kolibri-dresden.de>"
+# Консервативные значения для батчинга (50 писем с паузой 1 минута)
 EMAIL_BULK_CHUNK = "50"
-EMAIL_BULK_PAUSE_MS = "1500"
+EMAIL_BULK_PAUSE_MS = "60000"
 
 # D1 База данных (заполните после создания БД)
 # [[d1_databases]]
