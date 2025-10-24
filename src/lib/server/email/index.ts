@@ -347,6 +347,40 @@ export async function sendBulkEmails(
 }
 
 /**
+ * Безопасная отправка email с логированием ошибок
+ *
+ * Обёртка для любой email операции, которая:
+ * - Перехватывает ошибки и НЕ бросает их дальше
+ * - Логирует контекст и детали ошибки
+ * - Позволяет продолжить выполнение даже если email failed
+ *
+ * 💡 Используйте для всех email отправок в критичных операциях
+ * (регистрация, запись на мероприятие и т.д.), чтобы ошибка email
+ * не блокировала основной функционал.
+ *
+ * @param fn - Асинхронная функция отправки email
+ * @param context - Описание операции для лога (например: "Welcome email after registration")
+ *
+ * @example
+ * await sendEmailSafely(
+ *   () => sendWelcomeEmail(user, 'de', platform!.env),
+ *   'Welcome email after registration'
+ * );
+ */
+export async function sendEmailSafely(fn: () => Promise<void>, context: string): Promise<void> {
+	try {
+		await fn();
+		console.log(`[Email Safe] Success: ${context}`);
+	} catch (error) {
+		// Логируем ошибку, но НЕ бросаем её дальше
+		console.error(`[Email Safe] Failed: ${context}`, {
+			error: error instanceof Error ? error.message : String(error),
+			stack: error instanceof Error ? error.stack : undefined,
+		});
+	}
+}
+
+/**
  * Экспорт типов для использования в других модулях
  */
 export type { SendEmailResult, DKIMConfig };

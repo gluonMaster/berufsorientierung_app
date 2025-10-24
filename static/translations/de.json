@@ -134,6 +134,7 @@
 			"newsletter": "Berufsorientierung Newsletter"
 		},
 		"greeting": "Hallo {name}",
+		"greetingNoName": "Liebe Teilnehmerin, lieber Teilnehmer",
 		"footer": "Bei Fragen kontaktieren Sie uns: Berufsorientierung@kolibri-dresden.de",
 		"thankYou": "Vielen Dank",
 		"team": "Ihr Berufsorientierung Team",

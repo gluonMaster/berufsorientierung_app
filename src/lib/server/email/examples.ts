@@ -153,8 +153,13 @@ export async function sendEventCancellationNotice(
 
 /**
  * Пример 5: Отправка с обработкой ошибок
+ * 
+ * УСТАРЕЛО: Используйте sendEmailSafely из src/lib/server/email/index.ts
+ * Эта функция оставлена для совместимости со старым кодом.
+ * 
+ * @deprecated Используйте sendEmailSafely из index.ts вместо этой функции
  */
-export async function sendEmailSafely(
+export async function sendEmailSafelyLegacy(
 	to: string,
 	subject: string,
 	text: string,

@@ -400,7 +400,10 @@ ${team}
  *
  * Уведомление об отмене мероприятия администратором
  *
- * @param user - Объект пользователя
+ * ⚠️ ВАЖНО: Использует общее приветствие без имени (email.greetingNoName)
+ * для корректной массовой рассылки через sendBulkEmails.
+ *
+ * @param user - Объект пользователя (используется только для типизации, не для персонализации)
  * @param event - Объект мероприятия
  * @param reason - Причина отмены
  * @param language - Код языка
@@ -422,7 +425,8 @@ export function getEventCancelledByAdminEmail(
 
 	const subject = translate(t, 'email.subjects.eventCancelledByAdmin', { eventTitle });
 
-	const greeting = translate(t, 'email.greeting', { name: user.first_name });
+	// Используем общее приветствие без имени для массовой рассылки
+	const greeting = translate(t, 'email.greetingNoName');
 	const footer = translate(t, 'email.footer');
 	const thankYou = translate(t, 'email.thankYou');
 	const team = translate(t, 'email.team');

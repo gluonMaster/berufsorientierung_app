@@ -10,7 +10,7 @@
  * 4. Хеширование пароля (bcrypt)
  * 5. Создание пользователя в БД
  * 6. Логирование действия
- * 7. Отправка welcome email (TODO)
+ * 7. Отправка welcome email (не блокирует регистрацию при ошибке)
  * 8. Генерация JWT токена
  * 9. Установка auth cookie
  *
@@ -27,6 +27,9 @@ import { handleApiError, errors } from '$lib/server/middleware/errorHandler';
 import { getDB } from '$lib/server/db';
 import { dev } from '$app/environment';
 import type { UserProfile } from '$lib/types/user';
+import type { LanguageCode } from '$lib/types';
+import { sendEmailSafely, sendEmail } from '$lib/server/email';
+import { getWelcomeEmail } from '$lib/server/email/templates';
 
 /**
  * POST /api/auth/register
@@ -144,10 +147,12 @@ export async function POST({ request, platform }: RequestEvent) {
 			console.error('[Register] Activity logging failed:', error);
 		}
 
-		// Шаг 9: TODO - Отправка welcome email
-		// TODO: Реализовать отправку welcome email через email/index.ts
-		// await sendWelcomeEmail(DB, newUser.id, newUser.email, preferredLanguage);
-		console.log(`[Register] TODO: Send welcome email to ${newUser.email}`);
+		// Шаг 9: Отправка welcome email (не блокирует регистрацию при ошибке)
+		await sendEmailSafely(async () => {
+			const emailData = getWelcomeEmail(newUser, preferredLanguage as LanguageCode);
+
+			await sendEmail(newUser.email, emailData.subject, emailData.text, platform!.env);
+		}, `Welcome email to ${newUser.email} after registration`);
 
 		// Шаг 10: Генерируем JWT токен
 		let authToken: string;

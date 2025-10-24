@@ -134,6 +134,7 @@
 			"newsletter": "Berufsorientierung Розсилка"
 		},
 		"greeting": "Вітаємо, {name}",
+		"greetingNoName": "Шановний учасник",
 		"footer": "З питань звертайтеся: Berufsorientierung@kolibri-dresden.de",
 		"thankYou": "Дякуємо",
 		"team": "Команда Berufsorientierung",
