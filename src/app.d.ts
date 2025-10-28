@@ -1,6 +1,8 @@
 // See https://svelte.dev/docs/kit/types#app.d.ts
 // for information about these interfaces
 
+import type { R2Bucket, D1Database } from '@cloudflare/workers-types';
+
 // Типы для Cloudflare Workers platform
 declare global {
 	namespace App {
@@ -23,7 +25,7 @@ declare global {
 		interface Platform {
 			env: {
 				DB: D1Database;
-				QR_BUCKET: R2Bucket;
+				R2_BUCKET: R2Bucket;
 				JWT_SECRET: string;
 				EMAIL_PROVIDER: string;
 				EMAIL_FROM: string;

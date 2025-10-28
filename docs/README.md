@@ -68,7 +68,9 @@
 
 #### Хранилище ([features/storage/](./features/storage/))
 
-- [R2.md](./features/storage/R2.md) - Cloudflare R2 Storage
+- [README.md](./features/storage/README.md) - Обзор модуля storage
+- [R2.md](./features/storage/R2.md) - Cloudflare R2 Storage (загрузка/удаление файлов)
+- [QR.md](./features/storage/QR.md) - Генерация QR-кодов для Telegram/WhatsApp
 
 #### Email ([features/email/](./features/email/))
 
@@ -95,7 +97,9 @@
 
 - **Аутентификация**: [features/auth/README.md](./features/auth/README.md)
 - **Мультиязычность**: [features/i18n/](./features/i18n/)
-- **Загрузка файлов**: [features/storage/R2.md](./features/storage/R2.md)
+- **Загрузка файлов**: [features/storage/README.md](./features/storage/README.md)
+  - [R2 Storage](./features/storage/R2.md) - Базовые утилиты
+  - [QR Codes](./features/storage/QR.md) - Генерация QR-кодов
 - **Email отправка**: [features/email/README.md](./features/email/README.md)
 - **Валидация**: [features/validation/README.md](./features/validation/README.md)
 

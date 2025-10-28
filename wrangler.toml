@@ -3,6 +3,9 @@ name = "berufsorientierung-app"
 main = ".svelte-kit/cloudflare/_worker.js"
 compatibility_date = "2024-09-23"
 
+# Node.js совместимость для QR-кодов (Buffer support)
+compatibility_flags = ["nodejs_compat"]
+
 # Статические файлы
 [assets]
 directory = ".svelte-kit/cloudflare/assets"
@@ -24,9 +27,10 @@ EMAIL_BULK_PAUSE_MS = "60000"
 # database_id = ""
 
 # R2 Storage для QR-кодов (заполните после создания bucket)
-# [[r2_buckets]]
-# binding = "QR_BUCKET"
-# bucket_name = "berufsorientierung-qr-codes"
+[[r2_buckets]]
+binding = "R2_BUCKET"
+bucket_name = "berufsorientierung-qr-codes"
+preview_bucket_name = "berufsorientierung-qr-codes-preview"
 
 # Cron триггер для автоматического удаления профилей (выполняется каждый день в 02:00)
 # [triggers]
