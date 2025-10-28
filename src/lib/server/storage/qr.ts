@@ -1,116 +1,87 @@
-/**
- * Утилиты для генерации QR-кодов
- *
- * Предоставляет функции для генерации QR-кодов для Telegram и WhatsApp ссылок
+﻿/**
+ * QR-РєРѕРґ РіРµРЅРµСЂР°С‚РѕСЂ РґР»СЏ Cloudflare Workers
+ * Р“РµРЅРµСЂРёСЂСѓРµС‚ SVG QR-РєРѕРґС‹ РґР»СЏ СЃСЃС‹Р»РѕРє РЅР° Telegram/WhatsApp РјРµСЂРѕРїСЂРёСЏС‚РёР№
  */
 
 import QRCode from 'qrcode';
 import type { R2Bucket } from '@cloudflare/workers-types';
-import { uploadFile, getPublicUrl } from './r2';
+import { getPublicUrl } from './r2';
 
 /**
- * Генерирует QR-код из ссылки и возвращает его в виде Uint8Array
- *
- * @param url - URL для кодирования в QR-код
- * @returns Promise<Uint8Array> - QR-код в формате PNG
- *
- * @example
- * ```ts
- * const qrData = await generateQRCode('https://t.me/example');
- * ```
+ * Р“РµРЅРµСЂРёСЂСѓРµС‚ SVG QR-РєРѕРґ РёР· С‚РµРєСЃС‚Р°
+ * @param text - РўРµРєСЃС‚ РґР»СЏ РєРѕРґРёСЂРѕРІР°РЅРёСЏ (РѕР±С‹С‡РЅРѕ URL)
+ * @returns Promise СЃРѕ СЃС‚СЂРѕРєРѕР№ SVG
  */
-export async function generateQRCode(url: string): Promise<Uint8Array> {
-	const buffer = await QRCode.toBuffer(url, {
-		errorCorrectionLevel: 'M', // Средний уровень коррекции ошибок
-		type: 'png',
-		width: 300, // Размер 300x300 пикселей
-		margin: 2, // Отступ от края
-	});
+export async function generateQRsvg(text: string): Promise<string> {
+	try {
+		const svg = await QRCode.toString(text, {
+			type: 'svg',
+			errorCorrectionLevel: 'H', // Р’С‹СЃРѕРєРёР№ СѓСЂРѕРІРµРЅСЊ РєРѕСЂСЂРµРєС†РёРё РѕС€РёР±РѕРє (РґРѕ 30% РїРѕРІСЂРµР¶РґРµРЅРёР№)
+			margin: 2, // РћС‚СЃС‚СѓРї РІРѕРєСЂСѓРі QR-РєРѕРґР° (РІ РјРѕРґСѓР»СЏС…)
+		});
 
-	return new Uint8Array(buffer);
+		return svg;
+	} catch (error) {
+		throw new Error(
+			`Failed to generate QR code SVG: ${error instanceof Error ? error.message : 'Unknown error'}`
+		);
+	}
 }
 
 /**
- * Генерирует QR-код, загружает его в R2 и возвращает публичный URL
- *
- * @param bucket - R2Bucket инстанс
- * @param url - URL для кодирования в QR-код
- * @param key - Ключ (путь) файла в bucket
- * @param publicUrl - Публичный URL bucket из env.R2_PUBLIC_URL
- * @returns Promise<string> - Публичный URL загруженного QR-кода
- *
- * @example
- * ```ts
- * const bucket = getR2Bucket(platform);
- * const qrUrl = await generateAndUploadQRCode(
- *   bucket,
- *   'https://t.me/example',
- *   'qr/telegram-123.png',
- *   env.R2_PUBLIC_URL
- * );
- * ```
+ * Р“РµРЅРµСЂРёСЂСѓРµС‚ QR-РєРѕРґ Рё Р·Р°РіСЂСѓР¶Р°РµС‚ РµРіРѕ РІ R2 Storage
+ * @param bucket - R2 bucket РґР»СЏ Р·Р°РіСЂСѓР·РєРё
+ * @param publicUrl - Р‘Р°Р·РѕРІС‹Р№ РїСѓР±Р»РёС‡РЅС‹Р№ URL R2 bucket (РЅР°РїСЂРёРјРµСЂ: https://r2.domain.com)
+ * @param eventId - ID РјРµСЂРѕРїСЂРёСЏС‚РёСЏ
+ * @param link - РЎСЃС‹Р»РєР° РґР»СЏ РєРѕРґРёСЂРѕРІР°РЅРёСЏ (Telegram/WhatsApp invite)
+ * @param type - РўРёРї СЃСЃС‹Р»РєРё (telegram РёР»Рё whatsapp)
+ * @returns Promise СЃ РїСѓР±Р»РёС‡РЅС‹Рј URL Р·Р°РіСЂСѓР¶РµРЅРЅРѕРіРѕ SVG
  */
-export async function generateAndUploadQRCode(
+export async function generateAndUploadQR(
 	bucket: R2Bucket,
-	url: string,
-	key: string,
-	publicUrl: string
+	publicUrl: string,
+	eventId: number,
+	link: string,
+	type: 'telegram' | 'whatsapp'
 ): Promise<string> {
-	// Генерируем QR-код
-	const qrData = await generateQRCode(url);
+	// Р“РµРЅРµСЂР°С†РёСЏ SVG QR-РєРѕРґР°
+	const svg = await generateQRsvg(link);
 
-	// Загружаем в R2
-	await uploadFile(bucket, key, qrData, 'image/png');
+	// Р¤РѕСЂРјРёСЂРѕРІР°РЅРёРµ РєР»СЋС‡Р° РґР»СЏ R2
+	const key = `qr-codes/event-${eventId}-${type}.svg`;
 
-	// Возвращаем публичный URL
+	// РџСЂРµРѕР±СЂР°Р·РѕРІР°РЅРёРµ СЃС‚СЂРѕРєРё SVG РІ Р±Р°Р№С‚С‹
+	const svgBytes = new TextEncoder().encode(svg);
+
+	// Р—Р°РіСЂСѓР·РєР° РІ R2 СЃ РєРµС€РёСЂРѕРІР°РЅРёРµРј
+	await bucket.put(key, svgBytes, {
+		httpMetadata: {
+			contentType: 'image/svg+xml',
+			cacheControl: 'public, max-age=31536000', // РљСЌС€РёСЂРѕРІР°С‚СЊ РЅР° 1 РіРѕРґ
+		},
+	});
+
+	// Р¤РѕСЂРјРёСЂРѕРІР°РЅРёРµ РїСѓР±Р»РёС‡РЅРѕРіРѕ URL С‡РµСЂРµР· СѓС‚РёР»РёС‚Сѓ РёР· r2.ts
 	return getPublicUrl(key, publicUrl);
 }
 
 /**
- * Генерирует QR-коды для Telegram и WhatsApp ссылок мероприятия
- *
- * @param bucket - R2Bucket инстанс
- * @param eventId - ID мероприятия
- * @param telegramLink - Ссылка на Telegram группу/канал (может быть null)
- * @param whatsappLink - Ссылка на WhatsApp группу (может быть null)
- * @param publicUrl - Публичный URL bucket из env.R2_PUBLIC_URL
- * @returns Promise<{ telegramQR: string | null; whatsappQR: string | null }>
- *
- * @example
- * ```ts
- * const bucket = getR2Bucket(platform);
- * const { telegramQR, whatsappQR } = await generateEventQRCodes(
- *   bucket,
- *   123,
- *   'https://t.me/example',
- *   'https://chat.whatsapp.com/example',
- *   env.R2_PUBLIC_URL
- * );
- * ```
+ * РЈРґР°Р»СЏРµС‚ QR-РєРѕРґС‹ РјРµСЂРѕРїСЂРёСЏС‚РёСЏ РёР· R2 Storage
+ * @param bucket - R2 bucket
+ * @param eventId - ID РјРµСЂРѕРїСЂРёСЏС‚РёСЏ
  */
-export async function generateEventQRCodes(
-	bucket: R2Bucket,
-	eventId: number,
-	telegramLink: string | null,
-	whatsappLink: string | null,
-	publicUrl: string
-): Promise<{ telegramQR: string | null; whatsappQR: string | null }> {
-	const result = {
-		telegramQR: null as string | null,
-		whatsappQR: null as string | null,
-	};
+export async function deleteEventQRs(bucket: R2Bucket, eventId: number): Promise<void> {
+	const telegramKey = `qr-codes/event-${eventId}-telegram.svg`;
+	const whatsappKey = `qr-codes/event-${eventId}-whatsapp.svg`;
 
-	// Генерируем Telegram QR-код
-	if (telegramLink) {
-		const key = `qr/telegram-${eventId}.png`;
-		result.telegramQR = await generateAndUploadQRCode(bucket, telegramLink, key, publicUrl);
+	try {
+		// РЈРґР°Р»СЏРµРј РѕР±Р° С„Р°Р№Р»Р° (Promise.all РґР»СЏ РїР°СЂР°Р»Р»РµР»СЊРЅРѕРіРѕ РІС‹РїРѕР»РЅРµРЅРёСЏ)
+		await Promise.all([bucket.delete(telegramKey), bucket.delete(whatsappKey)]);
+	} catch (error) {
+		// РќРµ Р±СЂРѕСЃР°РµРј РѕС€РёР±РєСѓ, РµСЃР»Рё С„Р°Р№Р»РѕРІ РЅРµ СЃСѓС‰РµСЃС‚РІСѓРµС‚ (R2 delete РёРґРµРјРїРѕС‚РµРЅС‚РµРЅ)
+		console.warn(
+			`Failed to delete QR codes for event ${eventId}:`,
+			error instanceof Error ? error.message : 'Unknown error'
+		);
 	}
-
-	// Генерируем WhatsApp QR-код
-	if (whatsappLink) {
-		const key = `qr/whatsapp-${eventId}.png`;
-		result.whatsappQR = await generateAndUploadQRCode(bucket, whatsappLink, key, publicUrl);
-	}
-
-	return result;
 }

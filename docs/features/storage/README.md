@@ -29,34 +29,38 @@
 import { getR2Bucket, uploadFile, getPublicUrl } from '$lib/server/storage/r2';
 
 const bucket = getR2Bucket(platform);
-await uploadFile(bucket, 'qr/telegram-123.png', qrData, 'image/png');
-const url = getPublicUrl('qr/telegram-123.png', env.R2_PUBLIC_URL);
+await uploadFile(bucket, 'qr-codes/telegram-123.svg', qrData, 'image/svg+xml');
+const url = getPublicUrl('qr-codes/telegram-123.svg', env.R2_PUBLIC_URL);
 ```
 
 ---
 
 ### [QR Code Generation](./QR.md)
 
-Утилиты для генерации QR-кодов.
+Утилиты для генерации SVG QR-кодов.
 
 **Основные функции:**
 
-- `generateQRCode(url)` - Генерация QR-кода из URL
-- `generateAndUploadQRCode(bucket, url, key, publicUrl)` - Генерация и загрузка в R2
-- `generateEventQRCodes(bucket, eventId, telegramLink, whatsappLink, publicUrl)` - Генерация QR для мероприятия
+- `generateQRsvg(text)` - Генерация SVG QR-кода из текста
+- `generateAndUploadQR(bucket, publicUrl, eventId, link, type)` - Генерация и загрузка SVG в R2
+- `deleteEventQRs(bucket, eventId)` - Удаление QR-кодов мероприятия
 
 **Использование:**
 
 ```typescript
-import { generateEventQRCodes } from '$lib/server/storage/qr';
+import { generateAndUploadQR, deleteEventQRs } from '$lib/server/storage/qr';
 
-const { telegramQR, whatsappQR } = await generateEventQRCodes(
+// Генерация и загрузка Telegram QR-кода
+const telegramQR = await generateAndUploadQR(
 	bucket,
+	env.R2_PUBLIC_URL,
 	eventId,
 	'https://t.me/example',
-	'https://chat.whatsapp.com/abc',
-	env.R2_PUBLIC_URL
+	'telegram'
 );
+
+// Удаление обоих QR-кодов мероприятия
+await deleteEventQRs(bucket, eventId);
 ```
 
 ---
@@ -110,21 +114,33 @@ src/lib/server/storage/
 
 ```typescript
 import { getR2Bucket } from '$lib/server/storage/r2';
-import { generateEventQRCodes } from '$lib/server/storage/qr';
+import { generateAndUploadQR } from '$lib/server/storage/qr';
 import { createEvent, updateEvent } from '$lib/server/db/events';
 
 // Создаём мероприятие
 const event = await createEvent(db, eventData);
 
-// Генерируем QR-коды
+// Генерируем QR-коды (SVG)
 const bucket = getR2Bucket(platform);
-const { telegramQR, whatsappQR } = await generateEventQRCodes(
-	bucket,
-	event.id,
-	eventData.telegram_link,
-	eventData.whatsapp_link,
-	platform.env.R2_PUBLIC_URL
-);
+const telegramQR = eventData.telegram_link
+	? await generateAndUploadQR(
+			bucket,
+			platform.env.R2_PUBLIC_URL,
+			event.id,
+			eventData.telegram_link,
+			'telegram'
+		)
+	: null;
+
+const whatsappQR = eventData.whatsapp_link
+	? await generateAndUploadQR(
+			bucket,
+			platform.env.R2_PUBLIC_URL,
+			event.id,
+			eventData.whatsapp_link,
+			'whatsapp'
+		)
+	: null;
 
 // Обновляем мероприятие с URL QR-кодов
 await updateEvent(db, event.id, {
@@ -136,22 +152,14 @@ await updateEvent(db, event.id, {
 ### 2. Удаление мероприятия с очисткой QR-кодов
 
 ```typescript
-import { getR2Bucket, deleteFile } from '$lib/server/storage/r2';
-import { getEventById, deleteEvent } from '$lib/server/db/events';
+import { getR2Bucket } from '$lib/server/storage/r2';
+import { deleteEventQRs } from '$lib/server/storage/qr';
+import { deleteEvent } from '$lib/server/db/events';
 
-const event = await getEventById(db, eventId);
 const bucket = getR2Bucket(platform);
 
-// Удаляем QR-коды из R2
-if (event.qr_telegram_url) {
-	const url = new URL(event.qr_telegram_url);
-	await deleteFile(bucket, url.pathname.substring(1));
-}
-
-if (event.qr_whatsapp_url) {
-	const url = new URL(event.qr_whatsapp_url);
-	await deleteFile(bucket, url.pathname.substring(1));
-}
+// Удаляем QR-коды из R2 (оба SVG файла)
+await deleteEventQRs(bucket, eventId);
 
 // Удаляем мероприятие из БД
 await deleteEvent(db, eventId);
@@ -160,23 +168,22 @@ await deleteEvent(db, eventId);
 ### 3. Обновление ссылок с перегенерацией QR
 
 ```typescript
-import { getR2Bucket, deleteFile } from '$lib/server/storage/r2';
-import { generateEventQRCodes } from '$lib/server/storage/qr';
+import { getR2Bucket } from '$lib/server/storage/r2';
+import { generateAndUploadQR, deleteEventQRs } from '$lib/server/storage/qr';
 
-// Удаляем старые QR-коды
-if (oldEvent.qr_telegram_url) {
-	const url = new URL(oldEvent.qr_telegram_url);
-	await deleteFile(bucket, url.pathname.substring(1));
-}
+const bucket = getR2Bucket(platform);
+
+// Удаляем старые QR-коды (оба SVG)
+await deleteEventQRs(bucket, eventId);
 
 // Генерируем новые QR-коды
-const { telegramQR, whatsappQR } = await generateEventQRCodes(
-	bucket,
-	eventId,
-	newTelegramLink,
-	newWhatsappLink,
-	platform.env.R2_PUBLIC_URL
-);
+const telegramQR = newTelegramLink
+	? await generateAndUploadQR(bucket, env.R2_PUBLIC_URL, eventId, newTelegramLink, 'telegram')
+	: null;
+
+const whatsappQR = newWhatsappLink
+	? await generateAndUploadQR(bucket, env.R2_PUBLIC_URL, eventId, newWhatsappLink, 'whatsapp')
+	: null;
 ```
 
 ---
