@@ -77,6 +77,13 @@
 - [README.md](./features/email/README.md) - Основная документация модуля email
 - [MAILCHANNELS.md](./features/email/MAILCHANNELS.md) - Настройка MailChannels и DNS
 
+#### UI Компоненты ([features/ui/](./features/ui/))
+
+- [README.md](./features/ui/README.md) - Полная документация всех компонентов
+- [QUICK_REFERENCE.md](./features/ui/QUICK_REFERENCE.md) - Быстрый справочник
+- [EXAMPLES.md](./features/ui/EXAMPLES.md) - Практические примеры
+- [CHANGELOG.md](./features/ui/CHANGELOG.md) - История изменений
+
 ---
 
 ## 🔍 Быстрая навигация
@@ -97,6 +104,9 @@
 
 - **Аутентификация**: [features/auth/README.md](./features/auth/README.md)
 - **Мультиязычность**: [features/i18n/](./features/i18n/)
+- **UI Компоненты**: [features/ui/README.md](./features/ui/README.md)
+  - [Quick Reference](./features/ui/QUICK_REFERENCE.md) - Быстрый справочник
+  - [Examples](./features/ui/EXAMPLES.md) - Примеры использования
 - **Загрузка файлов**: [features/storage/README.md](./features/storage/README.md)
   - [R2 Storage](./features/storage/R2.md) - Базовые утилиты
   - [QR Codes](./features/storage/QR.md) - Генерация QR-кодов
@@ -114,4 +124,4 @@
 
 ---
 
-**Последнее обновление**: 2025-10-24
+**Последнее обновление**: 2025-10-29

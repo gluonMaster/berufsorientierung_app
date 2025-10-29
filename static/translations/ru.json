@@ -224,5 +224,18 @@
 		"login": "Войти",
 		"register": "Регистрация",
 		"logout": "Выйти"
+	},
+	"ui": {
+		"modal": {
+			"close": "Закрыть",
+			"closeAriaLabel": "Закрыть модальное окно"
+		},
+		"button": {
+			"loading": "Загрузка..."
+		},
+		"toast": {
+			"close": "Закрыть",
+			"closeAriaLabel": "Закрыть уведомление"
+		}
 	}
 }

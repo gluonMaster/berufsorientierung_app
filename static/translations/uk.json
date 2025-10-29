@@ -224,5 +224,18 @@
 		"login": "Увійти",
 		"register": "Реєстрація",
 		"logout": "Вийти"
+	},
+	"ui": {
+		"modal": {
+			"close": "Закрити",
+			"closeAriaLabel": "Закрити модальне вікно"
+		},
+		"button": {
+			"loading": "Завантаження..."
+		},
+		"toast": {
+			"close": "Закрити",
+			"closeAriaLabel": "Закрити сповіщення"
+		}
 	}
 }

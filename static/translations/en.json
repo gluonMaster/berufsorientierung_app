@@ -224,5 +224,18 @@
 		"login": "Login",
 		"register": "Register",
 		"logout": "Logout"
+	},
+	"ui": {
+		"modal": {
+			"close": "Close",
+			"closeAriaLabel": "Close modal window"
+		},
+		"button": {
+			"loading": "Loading..."
+		},
+		"toast": {
+			"close": "Close",
+			"closeAriaLabel": "Close notification"
+		}
 	}
 }

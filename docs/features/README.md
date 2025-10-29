@@ -61,6 +61,26 @@
 - Управление публичными URL
 - Автоматическое кэширование (1 год)
 
+### [ui/](./ui/) - UI компоненты
+
+Переиспользуемые компоненты интерфейса с Tailwind CSS.
+
+- [README.md](./ui/README.md) - Полная документация всех компонентов
+
+**Компоненты:**
+
+- Button - Кнопка с поддержкой loading, размеров и типов
+- FormField - Поле формы с валидацией и accessibility
+- Modal - Модальное окно с focus trap и backdrop
+- Toast - Уведомления с автозакрытием
+
+**Особенности:**
+
+- Mobile-first адаптация
+- ARIA атрибуты для accessibility
+- Плавные анимации и transitions
+- Консистентный дизайн (Tailwind CSS)
+
 ### [email/](./email/) - Email система
 
 Отправка email через MailChannels HTTP API.

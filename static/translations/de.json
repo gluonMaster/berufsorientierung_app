@@ -224,5 +224,18 @@
 		"login": "Anmelden",
 		"register": "Registrieren",
 		"logout": "Abmelden"
+	},
+	"ui": {
+		"modal": {
+			"close": "Schließen",
+			"closeAriaLabel": "Modales Fenster schließen"
+		},
+		"button": {
+			"loading": "Lädt..."
+		},
+		"toast": {
+			"close": "Schließen",
+			"closeAriaLabel": "Benachrichtigung schließen"
+		}
 	}
 }
