@@ -1,98 +1,150 @@
 <script lang="ts">
 	/**
 	 * Header Component
-	 * Main navigation header with language switcher
+	 * Sticky navigation с логотипом, меню и языковым переключателем
+	 * Мобильное бургер-меню для экранов <768px
 	 */
 
-	import { _ } from 'svelte-i18n';
-	import LanguageSwitcher from './LanguageSwitcher.svelte';
 	import { page } from '$app/stores';
+	import { _ } from 'svelte-i18n';
+	import { clickOutside } from '$lib/utils/clickOutside';
+	import LanguageSwitcher from './LanguageSwitcher.svelte';
+	import type { User } from '$lib/types';
 
-	// Props
-	interface Props {
-		isAuthenticated?: boolean;
-		isAdmin?: boolean;
-	}
+	// Типы
+	type HeaderUser = User & { isAdmin: boolean };
 
-	let { isAuthenticated = false, isAdmin = false }: Props = $props();
+	// Пропсы
+	let { user = null } = $props<{ user: HeaderUser | null }>();
 
-	// Mobile menu state
+	// Состояние мобильного меню
 	let isMobileMenuOpen = $state(false);
 
+	// Ссылки навигации
+	const navLinks = $derived([
+		{ href: '/', label: $_('nav.home'), requireAuth: false },
+		{ href: '/events', label: $_('nav.events'), requireAuth: false },
+		...(user
+			? [
+					{ href: '/profile', label: $_('nav.profile'), requireAuth: true },
+					...(user.isAdmin
+						? [
+								{
+									href: '/admin',
+									label: $_('nav.admin'),
+									requireAuth: true,
+									adminOnly: true,
+								},
+							]
+						: []),
+				]
+			: []),
+	]);
+
+	// Кнопки авторизации
+	const authButtons = $derived(
+		user
+			? [{ href: '/api/auth/logout', label: $_('nav.logout'), isLogout: true }]
+			: [
+					{ href: '/login', label: $_('nav.login') },
+					{ href: '/register', label: $_('nav.register') },
+				]
+	);
+
+	/**
+	 * Переключает мобильное меню
+	 */
 	function toggleMobileMenu() {
 		isMobileMenuOpen = !isMobileMenuOpen;
 	}
 
+	/**
+	 * Закрывает мобильное меню
+	 */
 	function closeMobileMenu() {
 		isMobileMenuOpen = false;
 	}
+
+	/**
+	 * Обрабатывает клик по кнопке logout
+	 */
+	async function handleLogout(event: MouseEvent) {
+		event.preventDefault();
+		closeMobileMenu();
+
+		// Отправляем POST запрос на logout
+		try {
+			const response = await fetch('/api/auth/logout', { method: 'POST' });
+			if (response.ok) {
+				// Перезагружаем страницу для обновления состояния
+				window.location.href = '/';
+			}
+		} catch (error) {
+			console.error('Logout error:', error);
+		}
+	}
+
+	/**
+	 * Закрывает меню при клике вне его
+	 */
+	function handleClickOutside() {
+		if (isMobileMenuOpen) {
+			closeMobileMenu();
+		}
+	}
+
+	/**
+	 * Закрывает меню при нажатии Escape
+	 */
+	function handleKeydown(event: KeyboardEvent) {
+		if (event.key === 'Escape' && isMobileMenuOpen) {
+			closeMobileMenu();
+		}
+	}
 </script>
+
+<svelte:window on:keydown={handleKeydown} />
 
 <header class="header">
 	<div class="container">
-		<!-- Logo -->
-		<a href="/" class="logo" aria-label="Berufsorientierung Home">
+		<!-- Логотип -->
+		<a href="/" class="logo">
 			<span class="logo-text">Berufsorientierung</span>
 		</a>
 
 		<!-- Desktop Navigation -->
-		<nav class="desktop-nav" aria-label={$_('nav.home')}>
-			<a href="/" class="nav-link" class:active={$page.url.pathname === '/'}>
-				{$_('nav.home')}
-			</a>
-			<a
-				href="/events"
-				class="nav-link"
-				class:active={$page.url.pathname.startsWith('/events')}
-			>
-				{$_('nav.events')}
-			</a>
-
-			{#if isAuthenticated}
-				<a
-					href="/profile"
-					class="nav-link"
-					class:active={$page.url.pathname.startsWith('/profile')}
-				>
-					{$_('nav.profile')}
-				</a>
-
-				{#if isAdmin}
-					<a
-						href="/admin"
-						class="nav-link"
-						class:active={$page.url.pathname.startsWith('/admin')}
-					>
-						{$_('nav.admin')}
-					</a>
-				{/if}
-			{/if}
+		<nav class="nav-desktop" aria-label="Main navigation">
+			<ul class="nav-list">
+				{#each navLinks as link (link.href)}
+					<li>
+						<a
+							href={link.href}
+							class="nav-link"
+							class:active={$page.url.pathname === link.href}
+							aria-current={$page.url.pathname === link.href ? 'page' : undefined}
+						>
+							{link.label}
+						</a>
+					</li>
+				{/each}
+			</ul>
 		</nav>
 
-		<!-- Right Side: Language Switcher & Auth Buttons -->
-		<div class="header-actions">
-			<!-- Language Switcher - visible on all screen sizes -->
-			<div class="language-wrapper">
-				<LanguageSwitcher />
-			</div>
-
-			<!-- Auth buttons - desktop only -->
-			<div class="auth-buttons-desktop">
-				{#if isAuthenticated}
-					<form action="/api/auth/logout" method="POST" style="display: inline;">
-						<button type="submit" class="btn btn-secondary">
-							{$_('nav.logout')}
+		<!-- Desktop Auth Buttons & Language Switcher -->
+		<div class="header-actions-desktop">
+			{#each authButtons as button (button.href)}
+				{#if button.isLogout}
+					<form method="POST" action={button.href} style="display: inline;">
+						<button type="submit" class="auth-button logout" onclick={handleLogout}>
+							{button.label}
 						</button>
 					</form>
 				{:else}
-					<a href="/login" class="btn btn-secondary">
-						{$_('nav.login')}
-					</a>
-					<a href="/register" class="btn btn-primary">
-						{$_('nav.register')}
-					</a>
+					<a href={button.href} class="auth-button">{button.label}</a>
 				{/if}
-			</div>
+			{/each}
+
+			<LanguageSwitcher />
 		</div>
 
 		<!-- Mobile Menu Button -->
@@ -101,82 +153,109 @@
 			class="mobile-menu-button"
 			onclick={toggleMobileMenu}
 			aria-expanded={isMobileMenuOpen}
-			aria-label="Toggle menu"
+			aria-label={isMobileMenuOpen ? $_('common.close') : $_('nav.openMenu')}
 		>
-			<svg
-				width="24"
-				height="24"
-				viewBox="0 0 24 24"
-				fill="none"
-				stroke="currentColor"
-				stroke-width="2"
-				stroke-linecap="round"
-				stroke-linejoin="round"
-			>
-				{#if isMobileMenuOpen}
-					<path d="M18 6L6 18M6 6l12 12" />
-				{:else}
-					<path d="M3 12h18M3 6h18M3 18h18" />
-				{/if}
-			</svg>
+			{#if isMobileMenuOpen}
+				<!-- Close Icon -->
+				<svg
+					width="24"
+					height="24"
+					viewBox="0 0 24 24"
+					fill="none"
+					xmlns="http://www.w3.org/2000/svg"
+					aria-hidden="true"
+				>
+					<path
+						d="M6 18L18 6M6 6L18 18"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					/>
+				</svg>
+			{:else}
+				<!-- Burger Icon -->
+				<svg
+					width="24"
+					height="24"
+					viewBox="0 0 24 24"
+					fill="none"
+					xmlns="http://www.w3.org/2000/svg"
+					aria-hidden="true"
+				>
+					<path
+						d="M3 12H21M3 6H21M3 18H21"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					/>
+				</svg>
+			{/if}
 		</button>
 	</div>
 
 	<!-- Mobile Menu -->
 	{#if isMobileMenuOpen}
-		<div class="mobile-menu">
-			<nav class="mobile-nav">
-				<a href="/" class="mobile-nav-link" onclick={closeMobileMenu}>
-					{$_('nav.home')}
-				</a>
-				<a href="/events" class="mobile-nav-link" onclick={closeMobileMenu}>
-					{$_('nav.events')}
-				</a>
+		<div class="mobile-menu" use:clickOutside={handleClickOutside}>
+			<nav aria-label="Mobile navigation">
+				<ul class="mobile-nav-list">
+					{#each navLinks as link (link.href)}
+						<li>
+							<a
+								href={link.href}
+								class="mobile-nav-link"
+								class:active={$page.url.pathname === link.href}
+								onclick={closeMobileMenu}
+								aria-current={$page.url.pathname === link.href ? 'page' : undefined}
+							>
+								{link.label}
+							</a>
+						</li>
+					{/each}
+				</ul>
 
-				{#if isAuthenticated}
-					<a href="/profile" class="mobile-nav-link" onclick={closeMobileMenu}>
-						{$_('nav.profile')}
-					</a>
+				<!-- Mobile Auth Buttons -->
+				<div class="mobile-auth-buttons">
+					{#each authButtons as button (button.href)}
+						{#if button.isLogout}
+							<form method="POST" action={button.href} style="width: 100%;">
+								<button
+									type="submit"
+									class="mobile-auth-button logout"
+									onclick={handleLogout}
+								>
+									{button.label}
+								</button>
+							</form>
+						{:else}
+							<a
+								href={button.href}
+								class="mobile-auth-button"
+								onclick={closeMobileMenu}
+							>
+								{button.label}
+							</a>
+						{/if}
+					{/each}
+				</div>
 
-					{#if isAdmin}
-						<a href="/admin" class="mobile-nav-link" onclick={closeMobileMenu}>
-							{$_('nav.admin')}
-						</a>
-					{/if}
-
-					<form action="/api/auth/logout" method="POST" class="mobile-action">
-						<button type="submit" class="btn btn-secondary btn-block">
-							{$_('nav.logout')}
-						</button>
-					</form>
-				{:else}
-					<div class="mobile-auth-buttons">
-						<a
-							href="/login"
-							class="btn btn-secondary btn-block"
-							onclick={closeMobileMenu}
-						>
-							{$_('nav.login')}
-						</a>
-						<a
-							href="/register"
-							class="btn btn-primary btn-block"
-							onclick={closeMobileMenu}
-						>
-							{$_('nav.register')}
-						</a>
-					</div>
-				{/if}
+				<!-- Mobile Language Switcher -->
+				<div class="mobile-language-switcher">
+					<LanguageSwitcher />
+				</div>
 			</nav>
 		</div>
 	{/if}
 </header>
 
 <style>
+	/* Header */
 	.header {
 		position: sticky;
 		top: 0;
 		z-index: 40;
+		width: 100%;
 		background-color: white;
 		border-bottom: 1px solid #e5e7eb;
 		box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
@@ -188,7 +267,7 @@
 		justify-content: space-between;
 		max-width: 1280px;
 		margin: 0 auto;
-		padding: 1rem;
+		padding: 1rem 1rem;
 		gap: 1rem;
 	}
 
@@ -196,50 +275,42 @@
 	.logo {
 		display: flex;
 		align-items: center;
-		font-size: 1.25rem;
-		font-weight: 700;
-		color: #1f2937;
 		text-decoration: none;
-		transition: color 0.2s ease;
-	}
-
-	.logo:hover {
-		color: #3b82f6;
+		flex-shrink: 0;
 	}
 
 	.logo-text {
-		display: none;
-	}
-
-	@media (min-width: 640px) {
-		.logo-text {
-			display: inline;
-		}
+		font-size: 1.25rem;
+		font-weight: 700;
+		color: #1f2937;
+		white-space: nowrap;
 	}
 
 	/* Desktop Navigation */
-	.desktop-nav {
+	.nav-desktop {
 		display: none;
-		align-items: center;
-		gap: 1.5rem;
 		flex: 1;
-		margin: 0 2rem;
+		justify-content: center;
 	}
 
-	@media (min-width: 1024px) {
-		.desktop-nav {
-			display: flex;
-		}
+	.nav-list {
+		display: flex;
+		gap: 0.5rem;
+		list-style: none;
+		margin: 0;
+		padding: 0;
 	}
 
 	.nav-link {
-		font-size: 0.875rem;
+		display: inline-block;
+		padding: 0.5rem 1rem;
+		font-size: 0.9375rem;
 		font-weight: 500;
-		color: #6b7280;
+		color: #4b5563;
 		text-decoration: none;
-		transition: color 0.2s ease;
-		padding: 0.5rem 0.75rem;
 		border-radius: 0.375rem;
+		transition: all 0.2s ease;
+		white-space: nowrap;
 	}
 
 	.nav-link:hover {
@@ -247,74 +318,59 @@
 		background-color: #f3f4f6;
 	}
 
+	.nav-link:focus {
+		outline: none;
+		box-shadow: 0 0 0 2px #3b82f6;
+	}
+
 	.nav-link.active {
-		color: #3b82f6;
-		font-weight: 600;
+		color: #2563eb;
+		background-color: #eff6ff;
 	}
 
-	/* Header Actions */
-	.header-actions {
-		display: flex;
-		align-items: center;
-		gap: 0.75rem;
-	}
-
-	/* Language wrapper - always visible */
-	.language-wrapper {
-		display: flex;
-		align-items: center;
-	}
-
-	/* Auth buttons - desktop only */
-	.auth-buttons-desktop {
+	/* Desktop Actions */
+	.header-actions-desktop {
 		display: none;
 		align-items: center;
 		gap: 0.75rem;
 	}
 
-	@media (min-width: 1024px) {
-		.auth-buttons-desktop {
-			display: flex;
-		}
-	}
-
-	/* Buttons */
-	.btn {
+	.auth-button {
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
 		padding: 0.5rem 1rem;
 		font-size: 0.875rem;
 		font-weight: 500;
+		color: #374151;
+		background-color: white;
+		border: 1px solid #d1d5db;
 		border-radius: 0.5rem;
 		text-decoration: none;
-		transition: all 0.2s ease;
 		cursor: pointer;
-		border: none;
+		transition: all 0.2s ease;
+		white-space: nowrap;
 		min-height: 44px;
 	}
 
-	.btn-primary {
-		background-color: #3b82f6;
-		color: white;
-	}
-
-	.btn-primary:hover {
-		background-color: #2563eb;
-	}
-
-	.btn-secondary {
-		background-color: white;
-		color: #374151;
-		border: 1px solid #d1d5db;
-	}
-
-	.btn-secondary:hover {
+	.auth-button:hover {
 		background-color: #f9fafb;
+		border-color: #9ca3af;
 	}
 
-	.btn-block {
-		width: 100%;
+	.auth-button:focus {
+		outline: none;
+		box-shadow: 0 0 0 2px #3b82f6;
+	}
+
+	.auth-button.logout {
+		color: #dc2626;
+		border-color: #fca5a5;
+	}
+
+	.auth-button.logout:hover {
+		background-color: #fef2f2;
+		border-color: #f87171;
 	}
 
 	/* Mobile Menu Button */
@@ -322,8 +378,10 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		width: 44px;
+		height: 44px;
 		padding: 0.5rem;
-		background: none;
+		background-color: transparent;
 		border: none;
 		color: #374151;
 		cursor: pointer;
@@ -331,28 +389,25 @@
 		transition: background-color 0.2s ease;
 	}
 
-	@media (min-width: 1024px) {
-		.mobile-menu-button {
-			display: none;
-		}
-	}
-
 	.mobile-menu-button:hover {
 		background-color: #f3f4f6;
 	}
 
-	/* Mobile Menu */
-	.mobile-menu {
-		display: block;
-		border-top: 1px solid #e5e7eb;
-		background-color: white;
-		animation: slideDown 0.2s ease;
+	.mobile-menu-button:focus {
+		outline: none;
+		box-shadow: 0 0 0 2px #3b82f6;
 	}
 
-	@media (min-width: 1024px) {
-		.mobile-menu {
-			display: none;
-		}
+	/* Mobile Menu */
+	.mobile-menu {
+		position: absolute;
+		top: 100%;
+		left: 0;
+		right: 0;
+		background-color: white;
+		border-bottom: 1px solid #e5e7eb;
+		box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+		animation: slideDown 0.2s ease;
 	}
 
 	@keyframes slideDown {
@@ -366,53 +421,145 @@
 		}
 	}
 
-	.mobile-nav {
-		display: flex;
-		flex-direction: column;
-		padding: 1rem;
-		gap: 0.5rem;
+	.mobile-nav-list {
+		list-style: none;
+		margin: 0;
+		padding: 0.5rem 0;
 	}
 
 	.mobile-nav-link {
 		display: block;
 		padding: 0.75rem 1rem;
-		font-size: 0.875rem;
+		font-size: 1rem;
 		font-weight: 500;
-		color: #374151;
+		color: #4b5563;
 		text-decoration: none;
-		border-radius: 0.375rem;
-		transition: background-color 0.2s ease;
+		transition: background-color 0.15s ease;
 		min-height: 44px;
 	}
 
 	.mobile-nav-link:hover {
+		background-color: #f9fafb;
+	}
+
+	.mobile-nav-link:focus {
+		outline: none;
 		background-color: #f3f4f6;
 	}
 
-	.mobile-action {
-		margin-top: 0.5rem;
+	.mobile-nav-link.active {
+		color: #2563eb;
+		background-color: #eff6ff;
 	}
 
+	/* Mobile Auth Buttons */
 	.mobile-auth-buttons {
 		display: flex;
 		flex-direction: column;
 		gap: 0.5rem;
-		margin-top: 0.5rem;
+		padding: 0.75rem 1rem;
+		border-top: 1px solid #e5e7eb;
 	}
 
-	/* Dark mode support */
+	.mobile-auth-button {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 100%;
+		padding: 0.75rem 1rem;
+		font-size: 0.9375rem;
+		font-weight: 500;
+		color: #374151;
+		background-color: white;
+		border: 1px solid #d1d5db;
+		border-radius: 0.5rem;
+		text-decoration: none;
+		cursor: pointer;
+		transition: all 0.15s ease;
+		min-height: 44px;
+	}
+
+	.mobile-auth-button:hover {
+		background-color: #f9fafb;
+		border-color: #9ca3af;
+	}
+
+	.mobile-auth-button:focus {
+		outline: none;
+		box-shadow: 0 0 0 2px #3b82f6;
+	}
+
+	.mobile-auth-button.logout {
+		color: #dc2626;
+		border-color: #fca5a5;
+	}
+
+	.mobile-auth-button.logout:hover {
+		background-color: #fef2f2;
+		border-color: #f87171;
+	}
+
+	/* Mobile Language Switcher */
+	.mobile-language-switcher {
+		padding: 0.75rem 1rem;
+		border-top: 1px solid #e5e7eb;
+	}
+
+	/* Tablet Breakpoint (768px) */
+	@media (min-width: 768px) {
+		.container {
+			padding: 1rem 1.5rem;
+		}
+
+		.logo-text {
+			font-size: 1.5rem;
+		}
+
+		.nav-desktop {
+			display: flex;
+		}
+
+		.header-actions-desktop {
+			display: flex;
+		}
+
+		.mobile-menu-button {
+			display: none;
+		}
+
+		.mobile-menu {
+			display: none;
+		}
+	}
+
+	/* Desktop Breakpoint (1024px) */
+	@media (min-width: 1024px) {
+		.container {
+			padding: 1rem 2rem;
+		}
+
+		.nav-list {
+			gap: 1rem;
+		}
+
+		.nav-link {
+			padding: 0.625rem 1.25rem;
+		}
+
+		.header-actions-desktop {
+			gap: 1rem;
+		}
+	}
+
+	/* Dark mode support (optional) */
 	@media (prefers-color-scheme: dark) {
 		.header {
 			background-color: #1f2937;
 			border-bottom-color: #374151;
 		}
 
-		.logo {
+		.logo-text {
 			color: #f9fafb;
-		}
-
-		.logo:hover {
-			color: #93c5fd;
 		}
 
 		.nav-link {
@@ -426,29 +573,23 @@
 
 		.nav-link.active {
 			color: #93c5fd;
+			background-color: #1e3a8a;
 		}
 
-		.btn-secondary {
-			background-color: #374151;
+		.auth-button {
 			color: #f9fafb;
+			background-color: #374151;
 			border-color: #4b5563;
 		}
 
-		.btn-secondary:hover {
+		.auth-button:hover {
 			background-color: #4b5563;
-		}
-
-		.mobile-menu-button {
-			color: #f9fafb;
-		}
-
-		.mobile-menu-button:hover {
-			background-color: #374151;
+			border-color: #6b7280;
 		}
 
 		.mobile-menu {
 			background-color: #1f2937;
-			border-top-color: #374151;
+			border-bottom-color: #374151;
 		}
 
 		.mobile-nav-link {
@@ -457,6 +598,30 @@
 
 		.mobile-nav-link:hover {
 			background-color: #374151;
+		}
+
+		.mobile-nav-link.active {
+			color: #93c5fd;
+			background-color: #1e3a8a;
+		}
+
+		.mobile-auth-buttons {
+			border-top-color: #374151;
+		}
+
+		.mobile-auth-button {
+			color: #f9fafb;
+			background-color: #374151;
+			border-color: #4b5563;
+		}
+
+		.mobile-auth-button:hover {
+			background-color: #4b5563;
+			border-color: #6b7280;
+		}
+
+		.mobile-language-switcher {
+			border-top-color: #374151;
 		}
 	}
 </style>

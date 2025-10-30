@@ -223,7 +223,8 @@
 		"admin": "Admin",
 		"login": "Login",
 		"register": "Register",
-		"logout": "Logout"
+		"logout": "Logout",
+		"openMenu": "Open menu"
 	},
 	"ui": {
 		"modal": {
