@@ -80,7 +80,19 @@
 		"deadline": "Registration Deadline",
 		"details": "Details",
 		"registered": "Registered",
-		"spotsLeft": "{count} spots available",
+		"spotsLeft": "Spots available",
+		"participants": "Participants",
+		"date": "Date",
+		"time": "Time",
+		"registrationDeadline": "Registration Deadline",
+		"viewDetails": "View details",
+		"loginToRegister": "Login to register",
+		"status": {
+			"open": "Registration open",
+			"full": "Full",
+			"deadlinePassed": "Deadline passed",
+			"registered": "You are registered"
+		},
 		"noSpotsLeft": "No spots available",
 		"registrationClosed": "Registration closed",
 		"eventDate": "Event Date",
@@ -237,6 +249,22 @@
 		"toast": {
 			"close": "Close",
 			"closeAriaLabel": "Close notification"
+		}
+	},
+	"homepage": {
+		"hero": {
+			"title": "Career Guidance for Young People",
+			"subtitle": "Register for project events",
+			"registerCta": "Register now"
+		},
+		"events": {
+			"title": "Upcoming Events",
+			"subtitle": "Discover our current career guidance opportunities",
+			"empty": {
+				"title": "No events available",
+				"message": "There are currently no scheduled events. Please check back soon!",
+				"refresh": "Refresh page"
+			}
 		}
 	}
 }

@@ -80,7 +80,19 @@
 		"deadline": "Anmeldefrist",
 		"details": "Details",
 		"registered": "Angemeldet",
-		"spotsLeft": "{count} Plätze verfügbar",
+		"spotsLeft": "Verfügbare Plätze",
+		"participants": "Teilnehmer",
+		"date": "Datum",
+		"time": "Uhrzeit",
+		"registrationDeadline": "Anmeldefrist",
+		"viewDetails": "Details anzeigen",
+		"loginToRegister": "Anmelden zum Registrieren",
+		"status": {
+			"open": "Anmeldung offen",
+			"full": "Ausgebucht",
+			"deadlinePassed": "Frist abgelaufen",
+			"registered": "Sie sind angemeldet"
+		},
 		"noSpotsLeft": "Keine Plätze verfügbar",
 		"registrationClosed": "Anmeldung geschlossen",
 		"eventDate": "Veranstaltungsdatum",
@@ -237,6 +249,22 @@
 		"toast": {
 			"close": "Schließen",
 			"closeAriaLabel": "Benachrichtigung schließen"
+		}
+	},
+	"homepage": {
+		"hero": {
+			"title": "Berufsorientierung für Jugendliche",
+			"subtitle": "Registrierung für Veranstaltungen des Projekts",
+			"registerCta": "Jetzt registrieren"
+		},
+		"events": {
+			"title": "Kommende Veranstaltungen",
+			"subtitle": "Entdecken Sie unsere aktuellen Angebote zur beruflichen Orientierung",
+			"empty": {
+				"title": "Keine Veranstaltungen verfügbar",
+				"message": "Aktuell sind keine Veranstaltungen geplant. Schauen Sie bald wieder vorbei!",
+				"refresh": "Seite aktualisieren"
+			}
 		}
 	}
 }
