@@ -568,7 +568,111 @@ const participants = await getEventRegistrations(db, eventId);
 // Используйте UserProfile тип вместо User
 ```
 
+## 🌐 API Endpoint
+
+### POST /api/events/register
+
+**Расположение:** `src/routes/api/events/register/+server.ts`
+
+Регистрация пользователя на мероприятие через REST API.
+
+**Требует авторизации:** ✅ Да (JWT cookie)
+
+**Request Body:**
+
+```typescript
+{
+  "event_id": number,           // ID мероприятия (обязательно)
+  "additional_data"?: {         // Дополнительные данные (опционально)
+    [key: string]: unknown
+  },
+  "profile_confirmed": boolean  // Подтверждение актуальности профиля (обязательно)
+}
+```
+
+**Валидация через Zod:** `registrationCreateSchema`
+
+**Проверки:**
+
+1. ✅ Мероприятие существует и активно (`status='active'`)
+2. ✅ Есть свободные места (`current_participants < max_participants`)
+3. ✅ Дедлайн не прошёл (`registration_deadline >= now`)
+4. ✅ Пользователь ещё не записан
+
+**Response (201 Created):**
+
+```json
+{
+	"success": true,
+	"registration": {
+		"id": 123,
+		"event_id": 456,
+		"registered_at": "2025-10-20T14:30:00",
+		"additional_data": "{...}"
+	},
+	"event": {
+		"id": 456,
+		"title_de": "Workshop",
+		"title_en": "Workshop",
+		"title_ru": "Воркшоп",
+		"title_uk": "Воркшоп",
+		"date": "2025-11-01T10:00:00",
+		"location_de": "Dresden",
+		"location_en": "Dresden",
+		"location_ru": "Дрезден",
+		"location_uk": "Дрезден"
+	},
+	"telegramLink": "https://t.me/...",
+	"whatsappLink": "https://wa.me/...",
+	"qrTelegram": "https://r2.../qr_telegram.png",
+	"qrWhatsapp": "https://r2.../qr_whatsapp.png"
+}
+```
+
+**Ошибки:**
+
+- `400` - Валидация failed
+- `403` - Нет мест / дедлайн истёк / уже записан
+- `404` - Мероприятие не найдено
+- `500` - Server error
+
+**Дополнительные действия:**
+
+1. 📝 Логирование через `logActivity()` (`action_type: 'registration_create'`)
+2. ✉️ Отправка email подтверждения (не блокирует при ошибке)
+
+**Пример использования:**
+
+```typescript
+// Frontend (SvelteKit)
+const response = await fetch('/api/events/register', {
+	method: 'POST',
+	headers: { 'Content-Type': 'application/json' },
+	body: JSON.stringify({
+		event_id: 456,
+		additional_data: {
+			dietary_restrictions: 'vegetarian',
+		},
+		profile_confirmed: true,
+	}),
+});
+
+if (response.ok) {
+	const data = await response.json();
+	console.log('Registered!', data.registration.id);
+	console.log('Telegram:', data.telegramLink);
+	console.log('WhatsApp:', data.whatsappLink);
+}
+```
+
 ## 📝 Changelog
+
+### 2025-11-04
+
+- ✅ Добавлен API endpoint POST /api/events/register (Prompt 7.1)
+- ✅ Полная валидация через registrationCreateSchema
+- ✅ Отправка email подтверждения с ссылками на мессенджеры
+- ✅ Возврат QR-кодов в ответе
 
 ### 2025-10-22
 
@@ -585,3 +689,4 @@ const participants = await getEventRegistrations(db, eventId);
 - [../events/README.md](../events/README.md) - Утилиты для работы с мероприятиями
 - [../events/EVENTFIELDS.md](../events/EVENTFIELDS.md) - Дополнительные поля мероприятий
 - [../events/CHANGELOG.md](../events/CHANGELOG.md) - История изменений events
+- [../../features/email/TEMPLATES.md](../../features/email/TEMPLATES.md) - Email шаблоны
