@@ -19,6 +19,7 @@ declare global {
 				lastName: string;
 				isAdmin: boolean;
 			};
+			csrfToken?: string;
 		}
 
 		// Cloudflare Workers bindings

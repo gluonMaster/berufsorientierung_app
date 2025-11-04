@@ -6,6 +6,9 @@
 	import { setUser } from '$lib/stores/user';
 	import { _ } from 'svelte-i18n';
 
+	// Данные из server load функции (включая CSRF токен)
+	export let data: { csrfToken?: string };
+
 	// Состояние формы
 	let formData: UserLoginData = {
 		email: '',
@@ -62,8 +65,14 @@
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
+					// Добавляем CSRF токен в заголовок для защиты от атак
+					...(data.csrfToken && { 'X-CSRF-Token': data.csrfToken }),
 				},
-				body: JSON.stringify(validatedData),
+				body: JSON.stringify({
+					...validatedData,
+					// Добавляем CSRF токен в тело запроса как fallback
+					csrfToken: data.csrfToken,
+				}),
 			});
 
 			const result = await response.json();
@@ -146,6 +155,11 @@
 		<!-- Форма входа -->
 		<div class="bg-white rounded-lg shadow-md p-8">
 			<form on:submit={handleSubmit} novalidate>
+				<!-- CSRF токен для защиты от атак -->
+				{#if data.csrfToken}
+					<input type="hidden" name="_csrf" value={data.csrfToken} />
+				{/if}
+
 				<!-- Общее сообщение об ошибке -->
 				{#if errorMessage}
 					<div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg" role="alert">

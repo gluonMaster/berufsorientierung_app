@@ -24,6 +24,7 @@ import { createUser, getUserByEmail } from '$lib/server/db/users';
 import { logActivity } from '$lib/server/db/activityLog';
 import { getClientIP } from '$lib/server/middleware/auth';
 import { handleApiError, errors } from '$lib/server/middleware/errorHandler';
+import { verifyCsrf } from '$lib/server/middleware/csrf';
 import { getDB } from '$lib/server/db';
 import { dev } from '$app/environment';
 import type { UserProfile } from '$lib/types/user';
@@ -35,8 +36,18 @@ import { getWelcomeEmail } from '$lib/server/email/templates';
  * POST /api/auth/register
  * Регистрация нового пользователя
  */
-export async function POST({ request, platform }: RequestEvent) {
+export async function POST(event: RequestEvent) {
 	try {
+		// Шаг 0: Проверяем CSRF токен для защиты от атак
+		try {
+			await verifyCsrf(event);
+		} catch (error) {
+			console.error('[Register] CSRF verification failed:', error);
+			throw errors.forbidden('Invalid CSRF token');
+		}
+
+		const { request, platform } = event;
+
 		// Получаем доступ к БД и окружению через getDB()
 		const DB = getDB(platform);
 
