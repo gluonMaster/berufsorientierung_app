@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Компонент кнопки с поддержкой различных стилей, размеров и состояний
-	export let type: 'primary' | 'secondary' | 'danger' = 'primary';
-	export let htmlType: 'button' | 'submit' | 'reset' = 'button';
+	export let variant: 'primary' | 'secondary' | 'danger' = 'primary';
+	export let type: 'button' | 'submit' | 'reset' = 'button';
 	export let disabled = false;
 	export let loading = false;
 	export let size: 'sm' | 'md' | 'lg' = 'md';
@@ -30,20 +30,13 @@
 	const widthClass = fullWidth ? 'w-full' : '';
 
 	// Объединение всех классов
-	$: classes = `${baseClasses} ${typeClasses[type]} ${sizeClasses[size]} ${widthClass}`;
+	$: classes = `${baseClasses} ${typeClasses[variant]} ${sizeClasses[size]} ${widthClass}`;
 
 	// Автоматическая блокировка при загрузке
 	$: isDisabled = disabled || loading;
 </script>
 
-<button
-	class={classes}
-	disabled={isDisabled}
-	aria-busy={loading}
-	on:click
-	type={htmlType}
-	{...$$restProps}
->
+<button class={classes} disabled={isDisabled} aria-busy={loading} {type} on:click {...$$restProps}>
 	{#if loading}
 		<!-- Спиннер загрузки -->
 		<svg

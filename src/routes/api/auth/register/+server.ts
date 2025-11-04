@@ -18,7 +18,7 @@
  */
 
 import { json, type RequestEvent } from '@sveltejs/kit';
-import { userRegistrationSchema } from '$lib/server/validation/schemas';
+import { userRegistrationSchema } from '$lib/validation/schemas';
 import { hashPassword, generateToken, setAuthCookie } from '$lib/server/auth';
 import { createUser, getUserByEmail } from '$lib/server/db/users';
 import { logActivity } from '$lib/server/db/activityLog';
