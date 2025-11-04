@@ -21,7 +21,9 @@
 		"search": "Search",
 		"filter": "Filter",
 		"export": "Export",
-		"import": "Import"
+		"import": "Import",
+		"yes": "Yes",
+		"no": "No"
 	},
 	"form": {
 		"firstName": "First Name",
@@ -129,6 +131,56 @@
 		"eventDraft": "This event is not yet published",
 		"joinTelegram": "Join Telegram Group",
 		"joinWhatsapp": "Join WhatsApp Group"
+	},
+	"eventRegister": {
+		"title": "Register for Event",
+		"back": "Back",
+		"next": "Next",
+		"step1": {
+			"title": "Verify Data",
+			"heading": "Confirmation of Your Personal Data",
+			"description": "The following data will be used for event registration:",
+			"confirmData": "I confirm that the data is current",
+			"editProfile": "Edit personal data",
+			"fields": {
+				"name": "Name",
+				"email": "Email",
+				"birthDate": "Date of Birth",
+				"address": "Address",
+				"phone": "Phone"
+			}
+		},
+		"step2": {
+			"title": "Additional Info",
+			"heading": "Additional Information",
+			"description": "Please fill out the following additional fields:",
+			"selectOption": "Please select"
+		},
+		"step3": {
+			"title": "Confirmation",
+			"heading": "Confirm Registration",
+			"description": "Please review your details before final confirmation:",
+			"eventInfo": "Event Information",
+			"eventTitle": "Title",
+			"eventDate": "Date and Time",
+			"location": "Location",
+			"availableSpots": "Available Spots",
+			"yourInfo": "Your Data",
+			"additionalInfo": "Additional Information",
+			"confirm": "Confirm Registration",
+			"submitting": "Submitting..."
+		},
+		"success": {
+			"title": "Successfully Registered!",
+			"message": "You have been successfully registered for the event. You will receive a confirmation email shortly.",
+			"joinMessengers": "Join our groups:",
+			"scanQR": "Or scan the QR codes:",
+			"goHome": "Return to Home"
+		},
+		"errors": {
+			"requiredField": "{field} is required",
+			"generic": "An error occurred during registration. Please try again."
+		}
 	},
 	"profile": {
 		"myProfile": "My Profile",

@@ -21,7 +21,9 @@
 		"search": "Suchen",
 		"filter": "Filtern",
 		"export": "Exportieren",
-		"import": "Importieren"
+		"import": "Importieren",
+		"yes": "Ja",
+		"no": "Nein"
 	},
 	"form": {
 		"firstName": "Vorname",
@@ -129,6 +131,56 @@
 		"eventDraft": "Diese Veranstaltung ist noch nicht veröffentlicht",
 		"joinTelegram": "Telegram-Gruppe beitreten",
 		"joinWhatsapp": "WhatsApp-Gruppe beitreten"
+	},
+	"eventRegister": {
+		"title": "Für Veranstaltung anmelden",
+		"back": "Zurück",
+		"next": "Weiter",
+		"step1": {
+			"title": "Daten prüfen",
+			"heading": "Bestätigung Ihrer persönlichen Daten",
+			"description": "Die folgenden Daten werden für die Anmeldung zur Veranstaltung verwendet:",
+			"confirmData": "Ich bestätige, dass die Daten aktuell sind",
+			"editProfile": "Persönliche Daten bearbeiten",
+			"fields": {
+				"name": "Name",
+				"email": "E-Mail",
+				"birthDate": "Geburtsdatum",
+				"address": "Adresse",
+				"phone": "Telefon"
+			}
+		},
+		"step2": {
+			"title": "Zusatzinformationen",
+			"heading": "Zusätzliche Informationen",
+			"description": "Bitte füllen Sie die folgenden zusätzlichen Felder aus:",
+			"selectOption": "Bitte auswählen"
+		},
+		"step3": {
+			"title": "Bestätigung",
+			"heading": "Anmeldung bestätigen",
+			"description": "Bitte überprüfen Sie Ihre Angaben vor der finalen Bestätigung:",
+			"eventInfo": "Veranstaltungsinformationen",
+			"eventTitle": "Titel",
+			"eventDate": "Datum und Uhrzeit",
+			"location": "Ort",
+			"availableSpots": "Verfügbare Plätze",
+			"yourInfo": "Ihre Daten",
+			"additionalInfo": "Zusätzliche Informationen",
+			"confirm": "Anmeldung bestätigen",
+			"submitting": "Wird gesendet..."
+		},
+		"success": {
+			"title": "Erfolgreich angemeldet!",
+			"message": "Sie wurden erfolgreich für die Veranstaltung angemeldet. Sie erhalten in Kürze eine Bestätigungs-E-Mail.",
+			"joinMessengers": "Treten Sie unseren Gruppen bei:",
+			"scanQR": "Oder scannen Sie die QR-Codes:",
+			"goHome": "Zur Startseite zurückkehren"
+		},
+		"errors": {
+			"requiredField": "{field} ist erforderlich",
+			"generic": "Bei der Anmeldung ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut."
+		}
 	},
 	"profile": {
 		"myProfile": "Mein Profil",
