@@ -73,7 +73,8 @@
 		"passwordTooShort": "Password must be at least 8 characters long",
 		"minAge": "You must be at least {age} years old",
 		"maxLength": "Maximum length: {max} characters",
-		"minLength": "Minimum length: {min} characters"
+		"minLength": "Minimum length: {min} characters",
+		"turnstile_required": "Please confirm you are not a robot"
 	},
 	"auth": {
 		"loginTitle": "Login",

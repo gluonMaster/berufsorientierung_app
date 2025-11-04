@@ -1,13 +1,14 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { Button, FormField } from '$lib/components/ui';
+	import Turnstile from '$lib/components/security/Turnstile.svelte';
 	import { userRegistrationSchema, calculateAge } from '$lib/validation/schemas';
 	import type { UserRegistrationData } from '$lib/types/user';
 	import { setUser } from '$lib/stores/user';
 	import { locale, _ } from 'svelte-i18n';
 
-	// Данные из server load функции (включая CSRF токен)
-	export let data: { csrfToken?: string };
+	// Данные из server load функции (включая CSRF токен и Turnstile site key)
+	export let data: { csrfToken?: string; turnstileSiteKey?: string };
 
 	// Состояние формы
 	let formData: UserRegistrationData = {
@@ -89,6 +90,21 @@
 			// Валидация на клиенте
 			const validatedData = userRegistrationSchema.parse(formData);
 
+			// Извлекаем Turnstile токен из формы
+			const form = event.target as HTMLFormElement;
+			const turnstileToken =
+				form.querySelector<HTMLInputElement>('input[name="cf-turnstile-response"]')
+					?.value || '';
+
+			// Проверяем наличие Turnstile токена
+			if (!turnstileToken) {
+				errorMessage = $_('validation.turnstile_required', {
+					default: 'Подтвердите, что вы не робот',
+				});
+				isSubmitting = false;
+				return;
+			}
+
 			// Отправляем запрос на сервер
 			const response = await fetch('/api/auth/register', {
 				method: 'POST',
@@ -101,6 +117,8 @@
 					...validatedData,
 					// Добавляем CSRF токен в тело запроса как fallback
 					csrfToken: data.csrfToken,
+					// Добавляем Turnstile токен для верификации на сервере
+					turnstileToken,
 				}),
 			});
 
@@ -621,6 +639,11 @@
 						{/if}
 					</div>
 				</fieldset>
+
+				<!-- Cloudflare Turnstile (защита от ботов) -->
+				{#if data.turnstileSiteKey}
+					<Turnstile siteKey={data.turnstileSiteKey} action="register" />
+				{/if}
 
 				<!-- Кнопки действий -->
 				<div class="flex flex-col sm:flex-row gap-4">

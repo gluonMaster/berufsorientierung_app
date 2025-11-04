@@ -24,6 +24,7 @@ import { logActivity } from '$lib/server/db/activityLog';
 import { getClientIP } from '$lib/server/middleware/auth';
 import { handleApiError, errors } from '$lib/server/middleware/errorHandler';
 import { verifyCsrf } from '$lib/server/middleware/csrf';
+import { verifyTurnstile, extractTurnstileToken } from '$lib/server/middleware/turnstile';
 import { getDB } from '$lib/server/db';
 import { dev } from '$app/environment';
 import type { UserProfile } from '$lib/types/user';
@@ -59,6 +60,19 @@ export async function POST(event: RequestEvent) {
 			requestData = await request.json();
 		} catch (error) {
 			throw errors.badRequest('Invalid JSON in request body');
+		}
+
+		// Шаг 1.5: Верифицируем Turnstile токен для защиты от ботов
+		const turnstileToken = extractTurnstileToken(requestData as Record<string, unknown>);
+		const ipAddress = getClientIP(request);
+
+		try {
+			await verifyTurnstile(platform?.env, turnstileToken, ipAddress || undefined);
+		} catch (error) {
+			console.error('[Login] Turnstile verification failed:', error);
+			throw errors.forbidden(
+				error instanceof Error ? error.message : 'Turnstile verification failed'
+			);
 		}
 
 		// Шаг 2: Валидируем данные через Zod схему

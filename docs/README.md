@@ -77,6 +77,12 @@
 - [README.md](./features/email/README.md) - Основная документация модуля email
 - [MAILCHANNELS.md](./features/email/MAILCHANNELS.md) - Настройка MailChannels и DNS
 
+#### Безопасность ([features/security/](./features/security/))
+
+- [CSRF.md](./features/security/CSRF.md) - CSRF защита (double-submit cookie)
+- [TURNSTILE.md](./features/security/TURNSTILE.md) - Cloudflare Turnstile (защита от ботов)
+- [QUICK_REFERENCE.md](./features/security/QUICK_REFERENCE.md) - Быстрый справочник безопасности
+
 #### UI Компоненты ([features/ui/](./features/ui/))
 
 - [README.md](./features/ui/README.md) - Полная документация всех компонентов
@@ -104,6 +110,9 @@
 
 - **Аутентификация**: [features/auth/README.md](./features/auth/README.md)
 - **Мультиязычность**: [features/i18n/](./features/i18n/)
+- **Безопасность**: [features/security/](./features/security/)
+  - [CSRF Protection](./features/security/CSRF.md) - Защита от CSRF атак
+  - [Turnstile](./features/security/TURNSTILE.md) - Защита от ботов
 - **UI Компоненты**: [features/ui/README.md](./features/ui/README.md)
   - [Quick Reference](./features/ui/QUICK_REFERENCE.md) - Быстрый справочник
   - [Examples](./features/ui/EXAMPLES.md) - Примеры использования
@@ -124,4 +133,4 @@
 
 ---
 
-**Последнее обновление**: 2025-10-29
+**Последнее обновление**: 2025-11-04

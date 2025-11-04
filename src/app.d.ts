@@ -39,6 +39,8 @@ declare global {
 				R2_PUBLIC_URL: string;
 				SETUP_TOKEN?: string;
 				CRON_SECRET?: string;
+				TURNSTILE_SITE_KEY: string;
+				TURNSTILE_SECRET_KEY: string;
 			};
 			context: ExecutionContext;
 			caches: CacheStorage & { default: Cache };
