@@ -1,40 +1,44 @@
 /**
  * API Endpoint: POST /api/events/cancel
- *
  * Отмена записи пользователя на мероприятие
  *
- * Бизнес-правило: Пользователь может отменить запись только если до мероприятия > 3 дней
+ * Требует авторизации
  *
- * Процесс отмены:
- * 1. Аутентификация пользователя (обязательно)
- * 2. Валидация registration_id и причины отмены
- * 3. Проверка существования записи и принадлежности пользователю
- * 4. Проверка что запись не была отменена ранее
- * 5. Проверка срока отмены (> 3 дней до мероприятия)
- * 6. Отмена записи в БД
- * 7. Логирование действия
- * 8. Отправка confirmation email (не блокирует отмену при ошибке)
+ * Логика:
+ * 1. Проверка авторизации (requireAuth)
+ * 2. Получение и валидация eventId
+ * 3. Поиск регистрации по userId + eventId
+ * 4. Проверка что регистрация существует и не отменена
+ * 5. Получение мероприятия
+ * 6. Проверка что до мероприятия > 3 дней
+ * 7. Отмена регистрации через cancelRegistration
+ * 8. Логирование действия
+ * 9. Отправка email подтверждения (не блокирует при ошибке)
+ * 10. Возврат { success: true }
  *
- * @returns 200 OK с подтверждением отмены
+ * Обработка ошибок:
+ * - 403: нельзя отменить (< 3 дней до мероприятия)
+ * - 404: регистрация не найдена
+ * - 500: server error
  */
 
 import { json, type RequestEvent } from '@sveltejs/kit';
 import { z } from 'zod';
 import { requireAuth, getClientIP } from '$lib/server/middleware/auth';
-import { handleApiError, errors } from '$lib/server/middleware/errorHandler';
-import { getDB } from '$lib/server/db';
+import { handleApiError, createError } from '$lib/server/middleware/errorHandler';
 import { getEventById } from '$lib/server/db/events';
-import { getRegistrationById, cancelRegistration } from '$lib/server/db/registrations';
+import { cancelRegistration } from '$lib/server/db/registrations';
 import { logActivity } from '$lib/server/db/activityLog';
-import { sendEmailSafely, sendEmail } from '$lib/server/email';
+import { sendEmail } from '$lib/server/email';
 import { getEventCancellationEmail } from '$lib/server/email/templates';
-import type { LanguageCode } from '$lib/types';
+import type { LanguageCode } from '$lib/types/common';
+import type { D1Database } from '@cloudflare/workers-types';
 
 /**
  * Zod схема для валидации запроса на отмену
  */
-const cancelRegistrationSchema = z.object({
-	registration_id: z.number().int().positive('Registration ID must be a positive integer'),
+const cancelEventRegistrationSchema = z.object({
+	event_id: z.number().int().positive('Event ID must be a positive integer'),
 	cancellation_reason: z
 		.string()
 		.min(5, 'Cancellation reason must be at least 5 characters')
@@ -43,151 +47,176 @@ const cancelRegistrationSchema = z.object({
 });
 
 /**
- * Константа: минимальное количество дней до мероприятия для отмены
+ * Вспомогательная функция: получить активную регистрацию пользователя на мероприятие
  */
-const MIN_DAYS_BEFORE_EVENT = 3;
+async function getActiveRegistration(
+	db: D1Database,
+	userId: number,
+	eventId: number
+): Promise<{ id: number; user_id: number; event_id: number; cancelled_at: string | null } | null> {
+	const result = await db
+		.prepare(
+			`SELECT id, user_id, event_id, cancelled_at
+			FROM registrations
+			WHERE user_id = ? AND event_id = ?
+			LIMIT 1`
+		)
+		.bind(userId, eventId)
+		.first<{ id: number; user_id: number; event_id: number; cancelled_at: string | null }>();
+
+	return result;
+}
 
 /**
  * POST /api/events/cancel
  * Отмена записи на мероприятие
  */
 export async function POST({ request, platform }: RequestEvent) {
+	// Проверка доступности platform.env
+	if (!platform?.env) {
+		return handleApiError(createError(500, 'Platform environment not available'));
+	}
+
+	const { DB, JWT_SECRET } = platform.env;
+
 	try {
-		const DB = getDB(platform);
-
-		if (!platform?.env?.JWT_SECRET) {
-			throw errors.internal('JWT secret not configured');
-		}
-
-		const JWT_SECRET = platform.env.JWT_SECRET;
-
-		// Шаг 1: Проверка аутентификации (обязательно)
+		// ============================================
+		// 1. ПРОВЕРКА АВТОРИЗАЦИИ
+		// ============================================
 		const user = await requireAuth(request, DB, JWT_SECRET);
 
-		// Шаг 2: Парсинг и валидация запроса
-		let requestData: unknown;
+		// ============================================
+		// 2. ПАРСИНГ И ВАЛИДАЦИЯ ВХОДНЫХ ДАННЫХ
+		// ============================================
+		let body;
 		try {
-			requestData = await request.json();
-		} catch (error) {
-			throw errors.badRequest('Invalid JSON in request body');
+			body = await request.json();
+		} catch {
+			throw createError(400, 'Invalid JSON body', 'INVALID_JSON');
 		}
 
-		const validationResult = cancelRegistrationSchema.safeParse(requestData);
+		// Валидация через Zod схему
+		const validationResult = cancelEventRegistrationSchema.safeParse(body);
 
 		if (!validationResult.success) {
-			const validationErrors = validationResult.error.issues.map((err) => ({
-				field: err.path.join('.'),
-				message: err.message,
-			}));
-
-			throw errors.badRequest('Validation failed', { errors: validationErrors });
+			throw createError(
+				400,
+				'Validation failed',
+				'VALIDATION_ERROR',
+				validationResult.error.issues
+			);
 		}
 
-		const data = validationResult.data;
+		const { event_id, cancellation_reason } = validationResult.data;
 
-		// Шаг 3: Получение записи
-		const registration = await getRegistrationById(DB, data.registration_id);
+		// ============================================
+		// 3. ПОИСК РЕГИСТРАЦИИ ПО userId + eventId
+		// ============================================
+		const registration = await getActiveRegistration(DB, user.id, event_id);
 
 		if (!registration) {
-			throw errors.notFound('Registration not found');
+			throw createError(404, 'Registration not found', 'REGISTRATION_NOT_FOUND');
 		}
 
-		// Проверка принадлежности записи пользователю
-		if (registration.user_id !== user.id) {
-			throw errors.forbidden('You can only cancel your own registrations');
-		}
-
-		// Шаг 4: Проверка что запись не была отменена ранее
+		// ============================================
+		// 4. ПРОВЕРКА ЧТО РЕГИСТРАЦИЯ НЕ ОТМЕНЕНА
+		// ============================================
 		if (registration.cancelled_at) {
-			throw errors.badRequest('Registration is already cancelled', {
+			throw createError(400, 'Registration is already cancelled', 'ALREADY_CANCELLED', {
 				cancelled_at: registration.cancelled_at,
 			});
 		}
 
-		// Шаг 5: Получение мероприятия и проверка срока отмены
-		const event = await getEventById(DB, registration.event_id);
+		// ============================================
+		// 5. ПОЛУЧЕНИЕ МЕРОПРИЯТИЯ
+		// ============================================
+		const event = await getEventById(DB, event_id);
 
 		if (!event) {
-			throw errors.notFound('Event not found');
+			throw createError(404, 'Event not found', 'EVENT_NOT_FOUND');
 		}
 
-		const eventDate = new Date(event.date);
+		// ============================================
+		// 6. ПРОВЕРКА ЧТО ДО МЕРОПРИЯТИЯ > 3 ДНЕЙ
+		// ============================================
 		const now = new Date();
-		const daysUntilEvent = Math.ceil(
-			(eventDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
-		);
+		const eventDate = new Date(event.date);
+		const daysUntilEvent = (eventDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
 
-		if (daysUntilEvent <= MIN_DAYS_BEFORE_EVENT) {
-			throw errors.badRequest(
-				`Cannot cancel registration less than ${MIN_DAYS_BEFORE_EVENT} days before the event`,
+		if (daysUntilEvent <= 3) {
+			throw createError(
+				403,
+				'Cannot cancel registration less than 3 days before event',
+				'CANCELLATION_TOO_LATE',
 				{
 					event_date: event.date,
 					days_until_event: daysUntilEvent,
-					min_required_days: MIN_DAYS_BEFORE_EVENT,
+					min_required_days: 3,
 				}
 			);
 		}
 
-		// Шаг 6: Отмена записи
+		// ============================================
+		// 7. ОТМЕНА РЕГИСТРАЦИИ
+		// ============================================
 		await cancelRegistration(
 			DB,
 			user.id,
-			registration.event_id,
-			data.cancellation_reason || 'User cancelled'
+			event_id,
+			cancellation_reason || 'User cancelled registration'
 		);
 
-		// Шаг 7: Логирование
+		// ============================================
+		// 8. ЛОГИРОВАНИЕ ДЕЙСТВИЯ
+		// ============================================
 		const clientIP = getClientIP(request);
-		try {
-			const logDetails = JSON.stringify({
-				registration_id: data.registration_id,
-				event_id: event.id,
-				event_title: event.title_de,
-				cancellation_reason: data.cancellation_reason || 'Not specified',
-			});
 
-			await logActivity(
-				DB,
-				user.id,
-				'registration_cancel',
-				logDetails,
-				clientIP || undefined
-			);
-		} catch (error) {
-			console.error('[Event Cancel] Activity logging failed:', error);
+		await logActivity(
+			DB,
+			user.id,
+			'registration_cancel',
+			JSON.stringify({
+				event_id: event_id,
+				event_title: event.title_de,
+				cancellation_reason: cancellation_reason || 'Not specified',
+			}),
+			clientIP || undefined
+		);
+
+		// ============================================
+		// 9. ОТПРАВКА EMAIL ПОДТВЕРЖДЕНИЯ
+		// ============================================
+
+		// Определяем язык пользователя (из профиля, default 'de')
+		const userLanguage: LanguageCode = (user.preferred_language as LanguageCode) || 'de';
+
+		// Генерируем email шаблон
+		const { subject, text } = getEventCancellationEmail(user, event, userLanguage);
+
+		// Отправляем email (не блокируем если failed)
+		try {
+			await sendEmail(user.email, subject, text, platform.env);
+
+			console.log(`[Cancellation] Confirmation email sent to ${user.email}`);
+		} catch (emailError) {
+			// Логируем ошибку, но не прерываем процесс отмены
+			console.error('[Cancellation] Failed to send confirmation email:', emailError);
 		}
 
-		// Шаг 8: Отправка confirmation email (не блокирует отмену при ошибке)
-		const userLanguage = (user.preferred_language || 'de') as LanguageCode;
+		// ============================================
+		// 10. ВОЗВРАТ УСПЕШНОГО ОТВЕТА
+		// ============================================
 
-		await sendEmailSafely(async () => {
-			const emailData = getEventCancellationEmail(user, event, userLanguage);
-
-			await sendEmail(user.email, emailData.subject, emailData.text, platform!.env);
-		}, `Event cancellation confirmation email to ${user.email} for event ${event.title_de}`);
-
-		// Шаг 9: Возврат успешного ответа
 		return json(
 			{
-				message: 'Registration cancelled successfully',
-				registration_id: data.registration_id,
-				event: {
-					id: event.id,
-					title: {
-						de: event.title_de,
-						en: event.title_en,
-						ru: event.title_ru,
-						uk: event.title_uk,
-					},
-					date: event.date,
-				},
-				cancelled_at: new Date().toISOString(),
+				success: true,
 			},
 			{
 				status: 200,
 			}
 		);
 	} catch (error) {
+		// Все ошибки обрабатываются через централизованный обработчик
 		return handleApiError(error);
 	}
 }

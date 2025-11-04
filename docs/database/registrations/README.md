@@ -665,14 +665,84 @@ if (response.ok) {
 }
 ```
 
+---
+
+### POST /api/events/cancel
+
+**Расположение:** `src/routes/api/events/cancel/+server.ts`
+
+Отмена регистрации пользователя на мероприятие.
+
+**Требует авторизации:** ✅ Да (JWT cookie)
+
+**Request Body:**
+
+```typescript
+{
+  "event_id": number,                // ID мероприятия (обязательно)
+  "cancellation_reason"?: string     // Причина отмены (опционально, 5-500 символов)
+}
+```
+
+**Валидация через Zod:** Inline schema `cancelEventRegistrationSchema`
+
+**Проверки:**
+
+1. ✅ Регистрация существует (по `userId` + `eventId`)
+2. ✅ Регистрация не отменена ранее (`cancelled_at IS NULL`)
+3. ✅ До мероприятия больше 3 дней (`daysUntilEvent > 3`)
+
+**Response (200 OK):**
+
+```json
+{
+	"success": true
+}
+```
+
+**Ошибки:**
+
+- `400` - Валидация failed / Регистрация уже отменена
+- `403` - Нельзя отменить (меньше 3 дней до мероприятия)
+- `404` - Регистрация или мероприятие не найдено
+- `500` - Server error
+
+**Дополнительные действия:**
+
+1. 📝 Логирование через `logActivity()` (`action_type: 'registration_cancel'`)
+2. ✉️ Отправка email подтверждения отмены (не блокирует при ошибке)
+
+**Пример использования:**
+
+```typescript
+// Frontend (SvelteKit)
+const response = await fetch('/api/events/cancel', {
+	method: 'POST',
+	headers: { 'Content-Type': 'application/json' },
+	body: JSON.stringify({
+		event_id: 456,
+		cancellation_reason: 'Personal reasons',
+	}),
+});
+
+if (response.ok) {
+	const data = await response.json();
+	console.log('Registration cancelled successfully');
+} else if (response.status === 403) {
+	console.error('Cannot cancel: less than 3 days before event');
+}
+```
+
 ## 📝 Changelog
 
 ### 2025-11-04
 
 - ✅ Добавлен API endpoint POST /api/events/register (Prompt 7.1)
+- ✅ Добавлен API endpoint POST /api/events/cancel (Prompt 7.2)
 - ✅ Полная валидация через registrationCreateSchema
+- ✅ Проверка временного ограничения (> 3 дней до мероприятия)
 - ✅ Отправка email подтверждения с ссылками на мессенджеры
-- ✅ Возврат QR-кодов в ответе
+- ✅ Возврат QR-кодов в ответе регистрации
 
 ### 2025-10-22
 
