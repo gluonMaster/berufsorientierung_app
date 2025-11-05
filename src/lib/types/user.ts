@@ -189,6 +189,12 @@ export interface UserRegistrationData {
  * Все поля опциональны (обновляется только то, что передано)
  */
 export interface UserUpdateData {
+	/** Email адрес */
+	email?: string;
+
+	/** Хеш пароля (используется внутри системы, не в запросах клиента) */
+	password_hash?: string;
+
 	/** Имя */
 	first_name?: string;
 

@@ -283,6 +283,9 @@ export const userLoginSchema = z.object({
  */
 export const userUpdateSchema = z
 	.object({
+		// Аутентификация
+		email: emailSchema.optional(),
+
 		// Личные данные
 		first_name: nameSchema.optional(),
 		last_name: nameSchema.optional(),
@@ -301,6 +304,7 @@ export const userUpdateSchema = z
 
 		// Согласия
 		photo_video_consent: z.boolean().optional(),
+		parental_consent: z.boolean().optional(),
 
 		// Предпочтения
 		preferred_language: z.enum(['de', 'en', 'ru', 'uk']).optional(),

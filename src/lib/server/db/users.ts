@@ -296,7 +296,10 @@ export async function updateUser(
 
 	// Маппинг полей (некоторые поля из UserUpdateData не сохраняются напрямую)
 	// ВАЖНО: is_blocked и parental_consent должны быть здесь для blockUser()
+	// email и password_hash для обновления аутентификационных данных
 	const fieldMapping: Record<string, string> = {
+		email: 'email',
+		password_hash: 'password_hash',
 		first_name: 'first_name',
 		last_name: 'last_name',
 		birth_date: 'birth_date',
