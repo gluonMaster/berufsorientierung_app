@@ -111,7 +111,7 @@
 		</div>
 
 		<!-- Навигация -->
-		<nav class="sidebar-nav" role="navigation" aria-label={$_('admin.navigation')}>
+		<nav class="sidebar-nav" aria-label={$_('admin.navigation')}>
 			{#each navItems as item}
 				<a
 					href={item.path}

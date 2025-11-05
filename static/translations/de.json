@@ -277,7 +277,6 @@
 	},
 	"admin": {
 		"title": "Admin-Panel",
-		"dashboard": "Dashboard",
 		"navigation": "Hauptnavigation",
 		"users": "Benutzer",
 		"events": "Veranstaltungen",
@@ -297,6 +296,60 @@
 			"newsletter": "Newsletter",
 			"stats": "Statistiken",
 			"logs": "Protokolle"
+		},
+		"dashboard": {
+			"title": "Dashboard",
+			"subtitle": "Übersicht über das System",
+			"stats": {
+				"totalUsers": "Gesamte Benutzer",
+				"activeEvents": "Aktive Veranstaltungen",
+				"upcomingRegistrations": "Anstehende Anmeldungen",
+				"scheduledDeletions": "Geplante Löschungen"
+			},
+			"recentActivity": {
+				"title": "Letzte Aktivitäten",
+				"viewAll": "Alle Protokolle anzeigen",
+				"empty": "Noch keine Aktivitäten aufgezeichnet",
+				"system": "System",
+				"table": {
+					"time": "Zeit",
+					"user": "Benutzer",
+					"action": "Aktion",
+					"ip": "IP-Adresse"
+				}
+			}
+		},
+		"activityLog": {
+			"actions": {
+				"user_register": "Benutzerregistrierung",
+				"user_login": "Benutzeranmeldung",
+				"user_login_failed": "Anmeldefehler",
+				"user_logout": "Benutzerabmeldung",
+				"user_update_profile": "Profil aktualisiert",
+				"user_delete_account": "Konto gelöscht",
+				"user_delete_request": "Löschungsanfrage gestellt",
+				"user_schedule_deletion": "Löschung geplant",
+				"profile_deleted_immediate": "Profil sofort gelöscht",
+				"profile_deletion_scheduled": "Profillöschung geplant",
+				"profile_deletion_failed": "Profillöschung fehlgeschlagen",
+				"event_register": "Für Veranstaltung angemeldet",
+				"event_cancel": "Veranstaltungsanmeldung storniert",
+				"registration_create": "Anmeldung erstellt",
+				"registration_cancel": "Anmeldung storniert",
+				"admin_create_event": "Veranstaltung erstellt",
+				"admin_update_event": "Veranstaltung aktualisiert",
+				"admin_delete_event": "Veranstaltung gelöscht",
+				"admin_cancel_event": "Veranstaltung abgesagt",
+				"admin_publish_event": "Veranstaltung veröffentlicht",
+				"admin_send_newsletter": "Newsletter versendet",
+				"admin_block_user": "Benutzer gesperrt",
+				"admin_unblock_user": "Benutzer entsperrt",
+				"admin_make_admin": "Admin-Rechte vergeben",
+				"admin_remove_admin": "Admin-Rechte entzogen",
+				"admin_add": "Administrator hinzugefügt",
+				"admin_remove": "Administrator entfernt",
+				"bulk_email_sent": "Massen-E-Mail versendet"
+			}
 		},
 		"createEvent": "Veranstaltung erstellen",
 		"editEvent": "Veranstaltung bearbeiten",

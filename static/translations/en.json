@@ -277,7 +277,6 @@
 	},
 	"admin": {
 		"title": "Admin Panel",
-		"dashboard": "Dashboard",
 		"navigation": "Main Navigation",
 		"users": "Users",
 		"events": "Events",
@@ -297,6 +296,60 @@
 			"newsletter": "Newsletter",
 			"stats": "Statistics",
 			"logs": "Logs"
+		},
+		"dashboard": {
+			"title": "Dashboard",
+			"subtitle": "System Overview",
+			"stats": {
+				"totalUsers": "Total Users",
+				"activeEvents": "Active Events",
+				"upcomingRegistrations": "Upcoming Registrations",
+				"scheduledDeletions": "Scheduled Deletions"
+			},
+			"recentActivity": {
+				"title": "Recent Activity",
+				"viewAll": "View All Logs",
+				"empty": "No activity recorded yet",
+				"system": "System",
+				"table": {
+					"time": "Time",
+					"user": "User",
+					"action": "Action",
+					"ip": "IP Address"
+				}
+			}
+		},
+		"activityLog": {
+			"actions": {
+				"user_register": "User registration",
+				"user_login": "User login",
+				"user_login_failed": "Login failed",
+				"user_logout": "User logout",
+				"user_update_profile": "Profile updated",
+				"user_delete_account": "Account deleted",
+				"user_delete_request": "Deletion request submitted",
+				"user_schedule_deletion": "Deletion scheduled",
+				"profile_deleted_immediate": "Profile deleted immediately",
+				"profile_deletion_scheduled": "Profile deletion scheduled",
+				"profile_deletion_failed": "Profile deletion failed",
+				"event_register": "Registered for event",
+				"event_cancel": "Event registration cancelled",
+				"registration_create": "Registration created",
+				"registration_cancel": "Registration cancelled",
+				"admin_create_event": "Event created",
+				"admin_update_event": "Event updated",
+				"admin_delete_event": "Event deleted",
+				"admin_cancel_event": "Event cancelled",
+				"admin_publish_event": "Event published",
+				"admin_send_newsletter": "Newsletter sent",
+				"admin_block_user": "User blocked",
+				"admin_unblock_user": "User unblocked",
+				"admin_make_admin": "Admin rights granted",
+				"admin_remove_admin": "Admin rights revoked",
+				"admin_add": "Administrator added",
+				"admin_remove": "Administrator removed",
+				"bulk_email_sent": "Bulk email sent"
+			}
 		},
 		"createEvent": "Create Event",
 		"editEvent": "Edit Event",

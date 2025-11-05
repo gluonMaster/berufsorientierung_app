@@ -277,7 +277,6 @@
 	},
 	"admin": {
 		"title": "Панель администратора",
-		"dashboard": "Панель управления",
 		"navigation": "Главная навигация",
 		"users": "Пользователи",
 		"events": "Мероприятия",
@@ -297,6 +296,60 @@
 			"newsletter": "Рассылка",
 			"stats": "Статистика",
 			"logs": "Логи"
+		},
+		"dashboard": {
+			"title": "Панель управления",
+			"subtitle": "Обзор системы",
+			"stats": {
+				"totalUsers": "Всего пользователей",
+				"activeEvents": "Активные мероприятия",
+				"upcomingRegistrations": "Предстоящие регистрации",
+				"scheduledDeletions": "Запланированные удаления"
+			},
+			"recentActivity": {
+				"title": "Последняя активность",
+				"viewAll": "Посмотреть все логи",
+				"empty": "Активность пока не записана",
+				"system": "Система",
+				"table": {
+					"time": "Время",
+					"user": "Пользователь",
+					"action": "Действие",
+					"ip": "IP-адрес"
+				}
+			}
+		},
+		"activityLog": {
+			"actions": {
+				"user_register": "Регистрация пользователя",
+				"user_login": "Вход пользователя",
+				"user_login_failed": "Ошибка входа",
+				"user_logout": "Выход пользователя",
+				"user_update_profile": "Профиль обновлён",
+				"user_delete_account": "Аккаунт удалён",
+				"user_delete_request": "Запрос на удаление отправлен",
+				"user_schedule_deletion": "Удаление запланировано",
+				"profile_deleted_immediate": "Профиль удалён немедленно",
+				"profile_deletion_scheduled": "Удаление профиля запланировано",
+				"profile_deletion_failed": "Ошибка удаления профиля",
+				"event_register": "Регистрация на мероприятие",
+				"event_cancel": "Отмена регистрации",
+				"registration_create": "Регистрация создана",
+				"registration_cancel": "Регистрация отменена",
+				"admin_create_event": "Мероприятие создано",
+				"admin_update_event": "Мероприятие обновлено",
+				"admin_delete_event": "Мероприятие удалено",
+				"admin_cancel_event": "Мероприятие отменено",
+				"admin_publish_event": "Мероприятие опубликовано",
+				"admin_send_newsletter": "Рассылка отправлена",
+				"admin_block_user": "Пользователь заблокирован",
+				"admin_unblock_user": "Пользователь разблокирован",
+				"admin_make_admin": "Права админа выданы",
+				"admin_remove_admin": "Права админа отозваны",
+				"admin_add": "Администратор добавлен",
+				"admin_remove": "Администратор удалён",
+				"bulk_email_sent": "Массовая рассылка отправлена"
+			}
 		},
 		"createEvent": "Создать мероприятие",
 		"editEvent": "Редактировать мероприятие",

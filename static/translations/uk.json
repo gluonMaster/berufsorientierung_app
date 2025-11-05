@@ -277,7 +277,6 @@
 	},
 	"admin": {
 		"title": "Панель адміністратора",
-		"dashboard": "Панель керування",
 		"navigation": "Головна навігація",
 		"users": "Користувачі",
 		"events": "Заходи",
@@ -297,6 +296,60 @@
 			"newsletter": "Розсилка",
 			"stats": "Статистика",
 			"logs": "Логи"
+		},
+		"dashboard": {
+			"title": "Панель керування",
+			"subtitle": "Огляд системи",
+			"stats": {
+				"totalUsers": "Всього користувачів",
+				"activeEvents": "Активні заходи",
+				"upcomingRegistrations": "Майбутні реєстрації",
+				"scheduledDeletions": "Заплановані видалення"
+			},
+			"recentActivity": {
+				"title": "Остання активність",
+				"viewAll": "Переглянути всі логи",
+				"empty": "Активність ще не записана",
+				"system": "Система",
+				"table": {
+					"time": "Час",
+					"user": "Користувач",
+					"action": "Дія",
+					"ip": "IP-адреса"
+				}
+			}
+		},
+		"activityLog": {
+			"actions": {
+				"user_register": "Реєстрація користувача",
+				"user_login": "Вхід користувача",
+				"user_login_failed": "Помилка входу",
+				"user_logout": "Вихід користувача",
+				"user_update_profile": "Профіль оновлено",
+				"user_delete_account": "Акаунт видалено",
+				"user_delete_request": "Запит на видалення надіслано",
+				"user_schedule_deletion": "Видалення заплановано",
+				"profile_deleted_immediate": "Профіль видалено негайно",
+				"profile_deletion_scheduled": "Видалення профілю заплановано",
+				"profile_deletion_failed": "Помилка видалення профілю",
+				"event_register": "Реєстрація на захід",
+				"event_cancel": "Скасування реєстрації",
+				"registration_create": "Реєстрацію створено",
+				"registration_cancel": "Реєстрацію скасовано",
+				"admin_create_event": "Захід створено",
+				"admin_update_event": "Захід оновлено",
+				"admin_delete_event": "Захід видалено",
+				"admin_cancel_event": "Захід скасовано",
+				"admin_publish_event": "Захід опубліковано",
+				"admin_send_newsletter": "Розсилка надіслана",
+				"admin_block_user": "Користувач заблокований",
+				"admin_unblock_user": "Користувач розблокований",
+				"admin_make_admin": "Права адміна надані",
+				"admin_remove_admin": "Права адміна відкликані",
+				"admin_add": "Адміністратора додано",
+				"admin_remove": "Адміністратора видалено",
+				"bulk_email_sent": "Масову розсилку надіслано"
+			}
 		},
 		"createEvent": "Створити захід",
 		"editEvent": "Редагувати захід",
