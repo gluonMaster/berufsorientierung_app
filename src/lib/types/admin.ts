@@ -18,6 +18,9 @@ export type ActivityLogActionType =
 	| 'user_update_profile' // Обновление профиля
 	| 'user_delete_request' // Запрос на удаление аккаунта
 	| 'user_deleted' // Аккаунт удален
+	| 'profile_deleted_immediate' // Профиль удален немедленно (GDPR)
+	| 'profile_deletion_scheduled' // Профиль запланирован к удалению (GDPR)
+	| 'profile_deletion_failed' // Ошибка при удалении профиля
 	// Действия с мероприятиями (админ)
 	| 'event_create' // Создание мероприятия
 	| 'event_update' // Обновление мероприятия

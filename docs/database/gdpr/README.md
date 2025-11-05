@@ -415,11 +415,140 @@ await logActivity(db, {
 });
 ```
 
+## API Endpoints
+
+### POST /api/profile/delete
+
+Удаляет профиль текущего авторизованного пользователя.
+
+**Файл:** `src/routes/api/profile/delete/+server.ts`
+
+**Требования:**
+
+- Пользователь должен быть авторизован (JWT токен в cookie)
+
+**Request:**
+
+```typescript
+// Тело запроса пустое, пользователь определяется по auth токену
+POST /api/profile/delete
+```
+
+**Response (немедленное удаление):**
+
+```json
+{
+	"deleted": true,
+	"immediate": true
+}
+```
+
+**Response (запланированное удаление):**
+
+```json
+{
+	"deleted": true,
+	"immediate": false,
+	"deletionDate": "2025-12-05T10:00:00.000Z"
+}
+```
+
+**Заголовки ответа:**
+
+```
+Set-Cookie: auth_token=; Max-Age=0; HttpOnly; Secure; SameSite=Strict
+```
+
+**Логика:**
+
+1. Проверка авторизации (`requireAuth`)
+2. Проверка возможности удаления (`DB.gdpr.canDeleteUser`)
+3. Если `canDelete = true`:
+   - Полное удаление (`DB.gdpr.deleteUserCompletely`)
+   - Логирование `profile_deleted_immediate`
+   - Очистка auth cookie
+   - Возврат `{ deleted: true, immediate: true }`
+4. Если `canDelete = false`:
+   - Планирование удаления + блокировка (`DB.gdpr.scheduleUserDeletion`)
+   - Логирование `profile_deletion_scheduled`
+   - Очистка auth cookie
+   - Возврат `{ deleted: true, immediate: false, deletionDate }`
+
+**Коды ответов:**
+
+- `200` - Успешное удаление (немедленное или запланированное)
+- `401` - Пользователь не авторизован
+- `500` - Ошибка сервера
+
+**Пример использования (fetch):**
+
+```typescript
+async function deleteProfile() {
+	const response = await fetch('/api/profile/delete', {
+		method: 'POST',
+		credentials: 'include', // Важно для отправки cookies
+	});
+
+	if (response.ok) {
+		const data = await response.json();
+
+		if (data.immediate) {
+			alert('Ваш профиль удален');
+			window.location.href = '/';
+		} else {
+			alert(`Ваш профиль будет удален ${new Date(data.deletionDate).toLocaleDateString()}`);
+			window.location.href = '/';
+		}
+	} else {
+		alert('Ошибка при удалении профиля');
+	}
+}
+```
+
+**Логирование:**
+
+При удалении создаются следующие записи в `activity_log`:
+
+- `profile_deleted_immediate` - успешное немедленное удаление
+  ```json
+  {
+  	"deleted_user_id": 123,
+  	"email": "user@example.com",
+  	"reason": "immediate_deletion"
+  }
+  ```
+- `profile_deletion_scheduled` - запланированное удаление (аккаунт заблокирован)
+
+  ```json
+  {
+  	"deletion_date": "2025-12-05T10:00:00.000Z",
+  	"reason": "User has upcoming events",
+  	"account_blocked": true
+  }
+  ```
+
+- `profile_deletion_failed` - ошибка при удалении
+  ```json
+  {
+  	"reason": "immediate_deletion_error",
+  	"error": "Database error message"
+  }
+  ```
+
+**Важные замечания:**
+
+- После вызова endpoint пользователь **ВСЕГДА** разлогинен (cookie очищается)
+- Если удаление запланировано, аккаунт **немедленно блокируется** (`is_blocked = 1`)
+- Заблокированные пользователи не могут авторизоваться (проверка в `getUserFromRequest`)
+
+---
+
 ## Связанные файлы
 
 - **Типы:** `src/lib/types/admin.ts` - `PendingDeletion`, `DeletedUserArchive`
 - **Схема БД:** `migrations/0001_initial.sql` - таблицы `pending_deletions`, `deleted_users_archive`
 - **Activity Log:** `src/lib/server/db/activityLog.ts` - логирование действий
+- **API Endpoint:** `src/routes/api/profile/delete/+server.ts` - удаление профиля
 
 ## Changelog
 

@@ -156,11 +156,180 @@ describe('GDPR Module', () => {
 
 ### Следующие шаги
 
-- [ ] Создать API endpoints для запроса удаления (`/api/profile/delete`)
+- [x] Создать API endpoints для запроса удаления (`/api/profile/delete`)
 - [ ] Настроить Cloudflare Cron Trigger в `wrangler.toml`
 - [ ] Добавить UI для админ-панели (список запланированных удалений)
 - [ ] Реализовать email уведомления при удалении
 - [ ] Добавить integration tests
+
+---
+
+## [1.1.0] - 2025-11-05
+
+### Добавлено
+
+#### API Endpoint: DELETE Profile
+
+- ✅ **`POST /api/profile/delete`** - Удаление профиля пользователя
+  - Файл: `src/routes/api/profile/delete/+server.ts`
+  - Автоматическая проверка возможности удаления через `DB.gdpr.canDeleteUser`
+  - Немедленное удаление если прошло >= 28 дней после последнего мероприятия
+  - Запланированное удаление с немедленной блокировкой аккаунта
+  - Автоматическая очистка auth cookie (разлогин пользователя)
+  - Полное логирование всех действий в `activity_log`
+
+**Новые типы действий в ActivityLog:**
+
+```typescript
+| 'profile_deleted_immediate'     // Немедленное удаление профиля
+| 'profile_deletion_scheduled'    // Запланированное удаление (аккаунт заблокирован)
+| 'profile_deletion_failed'       // Ошибка при удалении
+```
+
+**Логика endpoint:**
+
+1. Требует авторизации (`requireAuth`)
+2. Проверяет возможность удаления (`DB.gdpr.canDeleteUser`)
+3. **Если можно удалить немедленно:**
+   - Вызывает `DB.gdpr.deleteUserCompletely`
+   - Логирует `profile_deleted_immediate` с user_id = null
+   - Очищает auth cookie
+   - Возвращает `{ deleted: true, immediate: true }`
+4. **Если нельзя удалить сейчас:**
+   - Вызывает `DB.gdpr.scheduleUserDeletion` (автоматически блокирует is_blocked = 1)
+   - Логирует `profile_deletion_scheduled`
+   - Очищает auth cookie
+   - Возвращает `{ deleted: true, immediate: false, deletionDate }`
+
+**Коды ответов:**
+
+- `200` - Успешное удаление (немедленное или запланированное)
+- `401` - Пользователь не авторизован
+- `500` - Ошибка сервера
+
+**Пример response (немедленное):**
+
+```json
+{
+	"deleted": true,
+	"immediate": true
+}
+```
+
+**Пример response (запланированное):**
+
+```json
+{
+	"deleted": true,
+	"immediate": false,
+	"deletionDate": "2025-12-05T10:00:00.000Z"
+}
+```
+
+**Заголовки ответа:**
+
+```
+Set-Cookie: auth_token=; Path=/; Max-Age=0; HttpOnly; SameSite=Strict; Secure
+```
+
+#### Документация
+
+- ✅ Обновлен `docs/database/gdpr/README.md` - добавлена секция "API Endpoints"
+- ✅ Полное описание endpoint с примерами использования
+- ✅ Документированы все коды ответов и форматы логирования
+- ✅ Добавлены примеры fetch запросов из клиента
+
+#### Типы
+
+- ✅ Обновлен `src/lib/types/admin.ts` - добавлены новые ActivityLogActionType:
+  - `profile_deleted_immediate`
+  - `profile_deletion_scheduled`
+  - `profile_deletion_failed`
+
+### Технические детали
+
+**Безопасность:**
+
+- Используется `requireAuth` middleware для проверки авторизации
+- IP адрес клиента записывается в логи через `getClientIP(request)`
+- Auth cookie очищается с флагами `HttpOnly`, `Secure`, `SameSite=Strict`
+
+**Обработка ошибок:**
+
+- Все ошибки логируются в `activity_log` с типом `profile_deletion_failed`
+- Детали ошибок включают: тип операции (immediate/scheduled), сообщение об ошибке
+- Catch блоки для каждого этапа удаления
+
+**Логирование:**
+
+При немедленном удалении:
+
+```json
+{
+	"action_type": "profile_deleted_immediate",
+	"details": {
+		"deleted_user_id": 123,
+		"email": "user@example.com",
+		"reason": "immediate_deletion"
+	}
+}
+```
+
+При запланированном удалении:
+
+```json
+{
+	"action_type": "profile_deletion_scheduled",
+	"details": {
+		"deletion_date": "2025-12-05T10:00:00.000Z",
+		"reason": "User has upcoming events",
+		"account_blocked": true
+	}
+}
+```
+
+### Интеграция
+
+**Импорты:**
+
+```typescript
+import { json, type RequestEvent } from '@sveltejs/kit';
+import { requireAuth, getClientIP } from '$lib/server/middleware/auth';
+import { DB } from '$lib/server/db';
+import { clearAuthCookie } from '$lib/server/auth';
+```
+
+**Использование в клиенте:**
+
+```typescript
+async function deleteProfile() {
+	const response = await fetch('/api/profile/delete', {
+		method: 'POST',
+		credentials: 'include',
+	});
+
+	if (response.ok) {
+		const data = await response.json();
+		// Обработка ответа
+	}
+}
+```
+
+### Важные замечания
+
+- ⚠️ После вызова endpoint пользователь **ВСЕГДА** разлогинен
+- ⚠️ Если удаление запланировано, аккаунт **немедленно блокируется**
+- ⚠️ Заблокированные пользователи не могут авторизоваться (проверка в `getUserFromRequest`)
+- ✅ Endpoint идемпотентен - повторный вызов не создает дубликатов
+
+### Связанные файлы
+
+- `src/routes/api/profile/delete/+server.ts` - реализация endpoint
+- `src/lib/types/admin.ts` - типы ActivityLogActionType
+- `src/lib/server/db/gdpr.ts` - функции удаления
+- `docs/database/gdpr/README.md` - документация
+
+---
 
 ---
 
