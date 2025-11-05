@@ -276,12 +276,28 @@
 		}
 	},
 	"admin": {
+		"title": "Admin Panel",
 		"dashboard": "Dashboard",
+		"navigation": "Main Navigation",
 		"users": "Users",
 		"events": "Events",
 		"registrations": "Registrations",
 		"newsletter": "Newsletter",
 		"stats": "Statistics",
+		"logs": "Logs",
+		"logout": "Logout",
+		"menu": {
+			"toggle": "Toggle menu"
+		},
+		"nav": {
+			"dashboard": "Dashboard",
+			"events": "Events",
+			"users": "Users",
+			"registrations": "Registrations",
+			"newsletter": "Newsletter",
+			"stats": "Statistics",
+			"logs": "Logs"
+		},
 		"createEvent": "Create Event",
 		"editEvent": "Edit Event",
 		"deleteEvent": "Delete Event",

@@ -276,12 +276,28 @@
 		}
 	},
 	"admin": {
+		"title": "Admin-Panel",
 		"dashboard": "Dashboard",
+		"navigation": "Hauptnavigation",
 		"users": "Benutzer",
 		"events": "Veranstaltungen",
 		"registrations": "Anmeldungen",
 		"newsletter": "Newsletter",
 		"stats": "Statistiken",
+		"logs": "Protokolle",
+		"logout": "Abmelden",
+		"menu": {
+			"toggle": "Menü umschalten"
+		},
+		"nav": {
+			"dashboard": "Dashboard",
+			"events": "Veranstaltungen",
+			"users": "Benutzer",
+			"registrations": "Anmeldungen",
+			"newsletter": "Newsletter",
+			"stats": "Statistiken",
+			"logs": "Protokolle"
+		},
 		"createEvent": "Veranstaltung erstellen",
 		"editEvent": "Veranstaltung bearbeiten",
 		"deleteEvent": "Veranstaltung löschen",

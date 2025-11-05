@@ -276,12 +276,28 @@
 		}
 	},
 	"admin": {
+		"title": "Панель адміністратора",
 		"dashboard": "Панель керування",
+		"navigation": "Головна навігація",
 		"users": "Користувачі",
 		"events": "Заходи",
 		"registrations": "Реєстрації",
 		"newsletter": "Розсилка",
 		"stats": "Статистика",
+		"logs": "Логи",
+		"logout": "Вийти",
+		"menu": {
+			"toggle": "Перемкнути меню"
+		},
+		"nav": {
+			"dashboard": "Панель керування",
+			"events": "Заходи",
+			"users": "Користувачі",
+			"registrations": "Реєстрації",
+			"newsletter": "Розсилка",
+			"stats": "Статистика",
+			"logs": "Логи"
+		},
 		"createEvent": "Створити захід",
 		"editEvent": "Редагувати захід",
 		"deleteEvent": "Видалити захід",
