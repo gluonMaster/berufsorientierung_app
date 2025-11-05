@@ -60,6 +60,15 @@ export interface RegistrationWithEvent extends Registration {
 	/** Заголовок мероприятия на немецком */
 	event_title_de: string;
 
+	/** Заголовок мероприятия на английском */
+	event_title_en: string | null;
+
+	/** Заголовок мероприятия на русском */
+	event_title_ru: string | null;
+
+	/** Заголовок мероприятия на украинском */
+	event_title_uk: string | null;
+
 	/** Дата проведения мероприятия */
 	event_date: string;
 

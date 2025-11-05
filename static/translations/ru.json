@@ -23,7 +23,8 @@
 		"export": "Экспорт",
 		"import": "Импорт",
 		"yes": "Да",
-		"no": "Нет"
+		"no": "Нет",
+		"actions": "Действия"
 	},
 	"form": {
 		"firstName": "Имя",
@@ -197,7 +198,25 @@
 		"personalData": "Личные данные",
 		"contactData": "Контактные данные",
 		"preferences": "Настройки",
-		"language": "Язык"
+		"language": "Язык",
+		"accountManagement": "Управление аккаунтом",
+		"accountScheduledForDeletion": "Аккаунт запланирован к удалению",
+		"accessBlocked": "Ваш доступ к платформе заблокирован",
+		"noRegistrations": "Вы еще не зарегистрировались ни на одно мероприятие",
+		"status": "Статус",
+		"statusUpcoming": "Предстоящее",
+		"statusPast": "Прошедшее",
+		"statusCancelled": "Отменено",
+		"cannotCancel": "Отмена невозможна",
+		"cancelRegistrationTitle": "Отменить регистрацию",
+		"cancelRegistrationConfirm": "Вы уверены, что хотите отменить регистрацию на это мероприятие?",
+		"deleteAccountTitle": "Удалить аккаунт",
+		"whatWillHappen": "Что произойдет",
+		"deletePoint1": "Все ваши личные данные будут удалены",
+		"deletePoint2": "Ваши активные регистрации будут отменены",
+		"deletePoint3": "Это действие нельзя отменить",
+		"confirmDelete": "Подтвердить удаление",
+		"eventTitle": "Мероприятие"
 	},
 	"gdpr": {
 		"dataProcessing": "Я согласен на обработку моих персональных данных в соответствии с политикой конфиденциальности",
@@ -292,11 +311,12 @@
 	},
 	"errors": {
 		"generic": "Произошла ошибка",
+		"genericError": "Произошла ошибка",
 		"networkError": "Ошибка сети. Проверьте подключение к интернету",
 		"serverError": "Ошибка сервера. Попробуйте позже",
 		"notFound": "Не найдено",
 		"unauthorized": "Не авторизован",
-		"forbidden": "Доступ запрещен",
+		"forbidden": "Доступ запрещён",
 		"sessionExpired": "Ваша сессия истекла. Пожалуйста, войдите снова",
 		"invalidData": "Неверные данные"
 	},

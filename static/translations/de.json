@@ -23,7 +23,8 @@
 		"export": "Exportieren",
 		"import": "Importieren",
 		"yes": "Ja",
-		"no": "Nein"
+		"no": "Nein",
+		"actions": "Aktionen"
 	},
 	"form": {
 		"firstName": "Vorname",
@@ -197,7 +198,25 @@
 		"personalData": "Persönliche Daten",
 		"contactData": "Kontaktdaten",
 		"preferences": "Einstellungen",
-		"language": "Sprache"
+		"language": "Sprache",
+		"accountManagement": "Kontoverwaltung",
+		"accountScheduledForDeletion": "Konto zur Löschung geplant",
+		"accessBlocked": "Ihr Zugang zur Plattform ist gesperrt",
+		"noRegistrations": "Sie haben sich noch für keine Veranstaltungen angemeldet",
+		"status": "Status",
+		"statusUpcoming": "Bevorstehend",
+		"statusPast": "Vergangen",
+		"statusCancelled": "Storniert",
+		"cannotCancel": "Stornierung nicht möglich",
+		"cancelRegistrationTitle": "Anmeldung stornieren",
+		"cancelRegistrationConfirm": "Möchten Sie Ihre Anmeldung für diese Veranstaltung wirklich stornieren?",
+		"deleteAccountTitle": "Konto löschen",
+		"whatWillHappen": "Was wird passieren",
+		"deletePoint1": "Alle Ihre persönlichen Daten werden gelöscht",
+		"deletePoint2": "Ihre aktiven Anmeldungen werden storniert",
+		"deletePoint3": "Diese Aktion kann nicht rückgängig gemacht werden",
+		"confirmDelete": "Löschung bestätigen",
+		"eventTitle": "Veranstaltung"
 	},
 	"gdpr": {
 		"dataProcessing": "Ich stimme der Verarbeitung meiner personenbezogenen Daten gemäß der Datenschutzerklärung zu",
@@ -292,6 +311,7 @@
 	},
 	"errors": {
 		"generic": "Ein Fehler ist aufgetreten",
+		"genericError": "Ein Fehler ist aufgetreten",
 		"networkError": "Netzwerkfehler. Bitte überprüfen Sie Ihre Internetverbindung",
 		"serverError": "Serverfehler. Bitte versuchen Sie es später erneut",
 		"notFound": "Nicht gefunden",

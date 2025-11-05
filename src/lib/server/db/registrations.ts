@@ -326,6 +326,9 @@ export async function getUserRegistrations(
 	try {
 		interface DBRegistrationWithEventRow extends DBRegistrationRow {
 			event_title_de: string;
+			event_title_en: string | null;
+			event_title_ru: string | null;
+			event_title_uk: string | null;
 			event_date: string;
 			event_location_de: string;
 			event_status: 'draft' | 'active' | 'cancelled';
@@ -336,6 +339,9 @@ export async function getUserRegistrations(
 				`SELECT 
 					r.*,
 					e.title_de as event_title_de,
+					e.title_en as event_title_en,
+					e.title_ru as event_title_ru,
+					e.title_uk as event_title_uk,
 					e.date as event_date,
 					e.location_de as event_location_de,
 					e.status as event_status
@@ -355,6 +361,9 @@ export async function getUserRegistrations(
 		return (result.results || []).map((row) => ({
 			...rowToRegistration(row),
 			event_title_de: row.event_title_de,
+			event_title_en: row.event_title_en,
+			event_title_ru: row.event_title_ru,
+			event_title_uk: row.event_title_uk,
 			event_date: normalizeTimestamp(row.event_date) || '',
 			event_location_de: row.event_location_de,
 			event_status: row.event_status,

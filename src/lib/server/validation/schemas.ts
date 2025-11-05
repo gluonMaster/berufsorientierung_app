@@ -302,9 +302,15 @@ export const userUpdateSchema = z
 		whatsapp: optionalPhoneSchema,
 		telegram: z.string().trim().optional(),
 
-		// Согласия
-		photo_video_consent: z.boolean().optional(),
-		parental_consent: z.boolean().optional(),
+		// Согласия (с preprocessing для конвертации строк из формы в boolean)
+		photo_video_consent: z.preprocess(
+			(v) => v === 'on' || v === 'true' || v === true,
+			z.boolean().optional()
+		),
+		parental_consent: z.preprocess(
+			(v) => v === 'on' || v === 'true' || v === true,
+			z.boolean().optional()
+		),
 
 		// Предпочтения
 		preferred_language: z.enum(['de', 'en', 'ru', 'uk']).optional(),

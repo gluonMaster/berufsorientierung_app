@@ -23,7 +23,8 @@
 		"export": "Експорт",
 		"import": "Імпорт",
 		"yes": "Так",
-		"no": "Ні"
+		"no": "Ні",
+		"actions": "Дії"
 	},
 	"form": {
 		"firstName": "Ім'я",
@@ -197,7 +198,25 @@
 		"personalData": "Особисті дані",
 		"contactData": "Контактні дані",
 		"preferences": "Налаштування",
-		"language": "Мова"
+		"language": "Мова",
+		"accountManagement": "Управління обліковим записом",
+		"accountScheduledForDeletion": "Обліковий запис заплановано до видалення",
+		"accessBlocked": "Ваш доступ до платформи заблоковано",
+		"noRegistrations": "Ви ще не зареєструвалися на жоден захід",
+		"status": "Статус",
+		"statusUpcoming": "Майбутній",
+		"statusPast": "Минулий",
+		"statusCancelled": "Скасовано",
+		"cannotCancel": "Скасування неможливе",
+		"cancelRegistrationTitle": "Скасувати реєстрацію",
+		"cancelRegistrationConfirm": "Ви впевнені, що хочете скасувати реєстрацію на цей захід?",
+		"deleteAccountTitle": "Видалити обліковий запис",
+		"whatWillHappen": "Що станеться",
+		"deletePoint1": "Всі ваші особисті дані будуть видалені",
+		"deletePoint2": "Ваші активні реєстрації будуть скасовані",
+		"deletePoint3": "Цю дію неможливо скасувати",
+		"confirmDelete": "Підтвердити видалення",
+		"eventTitle": "Захід"
 	},
 	"gdpr": {
 		"dataProcessing": "Я погоджуюся на обробку моїх персональних даних відповідно до політики конфіденційності",
@@ -292,6 +311,7 @@
 	},
 	"errors": {
 		"generic": "Сталася помилка",
+		"genericError": "Сталася помилка",
 		"networkError": "Помилка мережі. Перевірте підключення до інтернету",
 		"serverError": "Помилка сервера. Спробуйте пізніше",
 		"notFound": "Не знайдено",

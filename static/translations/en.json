@@ -23,7 +23,8 @@
 		"export": "Export",
 		"import": "Import",
 		"yes": "Yes",
-		"no": "No"
+		"no": "No",
+		"actions": "Actions"
 	},
 	"form": {
 		"firstName": "First Name",
@@ -197,7 +198,25 @@
 		"personalData": "Personal Data",
 		"contactData": "Contact Data",
 		"preferences": "Preferences",
-		"language": "Language"
+		"language": "Language",
+		"accountManagement": "Account Management",
+		"accountScheduledForDeletion": "Account Scheduled for Deletion",
+		"accessBlocked": "Your platform access is blocked",
+		"noRegistrations": "You haven't registered for any events yet",
+		"status": "Status",
+		"statusUpcoming": "Upcoming",
+		"statusPast": "Past",
+		"statusCancelled": "Cancelled",
+		"cannotCancel": "Cancellation not possible",
+		"cancelRegistrationTitle": "Cancel Registration",
+		"cancelRegistrationConfirm": "Are you sure you want to cancel your registration for this event?",
+		"deleteAccountTitle": "Delete Account",
+		"whatWillHappen": "What will happen",
+		"deletePoint1": "All your personal data will be deleted",
+		"deletePoint2": "Your active registrations will be cancelled",
+		"deletePoint3": "This action cannot be undone",
+		"confirmDelete": "Confirm Deletion",
+		"eventTitle": "Event"
 	},
 	"gdpr": {
 		"dataProcessing": "I consent to the processing of my personal data in accordance with the privacy policy",
@@ -292,6 +311,7 @@
 	},
 	"errors": {
 		"generic": "An error occurred",
+		"genericError": "An error occurred",
 		"networkError": "Network error. Please check your internet connection",
 		"serverError": "Server error. Please try again later",
 		"notFound": "Not found",
