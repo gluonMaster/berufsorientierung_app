@@ -31,14 +31,40 @@ import type { LanguageCode } from '$lib/types';
 
 /**
  * Zod схема для валидации запроса на отмену мероприятия
+ * Принимает как snake_case (event_id, cancellation_reason), так и camelCase (eventId, reason)
+ * для совместимости с промптом 9.4 и текущим UI
  */
-const cancelEventSchema = z.object({
-	event_id: z.number().int().positive('Event ID must be a positive integer'),
-	cancellation_reason: z
-		.string()
-		.min(10, 'Cancellation reason must be at least 10 characters')
-		.max(1000, 'Cancellation reason must not exceed 1000 characters'),
-});
+const cancelEventSchema = z
+	.object({
+		// snake_case (текущая реализация)
+		event_id: z.number().int().positive('Event ID must be a positive integer').optional(),
+		cancellation_reason: z
+			.string()
+			.min(10, 'Cancellation reason must be at least 10 characters')
+			.max(1000, 'Cancellation reason must not exceed 1000 characters')
+			.optional(),
+		// camelCase (из промпта 9.4)
+		eventId: z.number().int().positive('Event ID must be a positive integer').optional(),
+		reason: z
+			.string()
+			.min(10, 'Cancellation reason must be at least 10 characters')
+			.max(1000, 'Cancellation reason must not exceed 1000 characters')
+			.optional(),
+	})
+	.refine(
+		(data) => {
+			// Должен быть указан хотя бы один вариант ID
+			return data.event_id !== undefined || data.eventId !== undefined;
+		},
+		{ message: 'Either event_id or eventId must be provided' }
+	)
+	.refine(
+		(data) => {
+			// Должна быть указана хотя бы одна причина
+			return data.cancellation_reason !== undefined || data.reason !== undefined;
+		},
+		{ message: 'Either cancellation_reason or reason must be provided' }
+	);
 
 /**
  * POST /api/admin/events/cancel
@@ -76,10 +102,14 @@ export async function POST({ request, platform }: RequestEvent) {
 			throw errors.badRequest('Validation failed', { errors: validationErrors });
 		}
 
-		const data = validationResult.data;
+		const rawData = validationResult.data;
+
+		// Нормализация: принимаем оба варианта полей для совместимости
+		const eventId = rawData.event_id ?? rawData.eventId!;
+		const cancellationReason = rawData.cancellation_reason ?? rawData.reason!;
 
 		// Шаг 3: Получение мероприятия
-		const event = await getEventById(DB, data.event_id);
+		const event = await getEventById(DB, eventId);
 
 		if (!event) {
 			throw errors.notFound('Event not found');
@@ -94,25 +124,25 @@ export async function POST({ request, platform }: RequestEvent) {
 		}
 
 		// Шаг 5: Получение списка всех зарегистрированных пользователей
-		const registrations = await getEventRegistrations(DB, data.event_id);
+		const registrations = await getEventRegistrations(DB, eventId);
 
 		// Фильтруем только активные регистрации (не отменённые)
 		const activeRegistrations = registrations.filter((reg) => !reg.cancelled_at);
 
 		console.log(
-			`[Admin Cancel Event] Found ${activeRegistrations.length} active registrations for event ${data.event_id}`
+			`[Admin Cancel Event] Found ${activeRegistrations.length} active registrations for event ${eventId}`
 		);
 
 		// Шаг 6: Обновление статуса мероприятия на 'cancelled'
-		await cancelEvent(DB, data.event_id, data.cancellation_reason, admin.id);
+		await cancelEvent(DB, eventId, cancellationReason, admin.id);
 
 		// Шаг 7: Логирование действия
 		const clientIP = getClientIP(request);
 		try {
 			const logDetails = JSON.stringify({
-				event_id: data.event_id,
+				event_id: eventId,
 				event_title: event.title_de,
-				cancellation_reason: data.cancellation_reason,
+				cancellation_reason: cancellationReason,
 				affected_users: activeRegistrations.length,
 			});
 
@@ -174,7 +204,7 @@ export async function POST({ request, platform }: RequestEvent) {
 					const emailTemplate = getEventCancelledByAdminEmail(
 						sampleUser,
 						event,
-						data.cancellation_reason,
+						cancellationReason,
 						language,
 						'/events' // URL to events page
 					);
@@ -213,8 +243,11 @@ export async function POST({ request, platform }: RequestEvent) {
 		}
 
 		// Шаг 9: Возврат успешного ответа
+		// Соответствует спецификации 9.4 + расширенная диагностика
 		return json(
 			{
+				success: true, // Из промпта 9.4
+				notifiedCount: bulkEmailResult.success, // Из промпта 9.4
 				message: 'Event cancelled successfully',
 				event: {
 					id: event.id,
@@ -226,9 +259,10 @@ export async function POST({ request, platform }: RequestEvent) {
 					},
 					date: event.date,
 					status: 'cancelled',
-					cancellation_reason: data.cancellation_reason,
+					cancellation_reason: cancellationReason,
 				},
-				affected_users: activeRegistrations.length,
+				totalRegistrations: activeRegistrations.length, // Алиас для affected_users
+				affected_users: activeRegistrations.length, // Оставлено для обратной совместимости
 				email_notifications: {
 					total: activeRegistrations.length,
 					sent: bulkEmailResult.success,

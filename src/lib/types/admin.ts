@@ -27,6 +27,8 @@ export type ActivityLogActionType =
 	| 'event_delete' // Удаление мероприятия
 	| 'event_publish' // Публикация мероприятия
 	| 'event_cancel' // Отмена мероприятия
+	| 'event_export' // Экспорт мероприятий в JSON
+	| 'event_import' // Импорт мероприятий из JSON
 	// Действия с записями
 	| 'registration_create' // Запись на мероприятие
 	| 'registration_cancel' // Отмена записи
