@@ -1,27 +1,43 @@
 <script lang="ts">
-	import { onMount, onDestroy } from 'svelte';
+	import { createEventDispatcher, onMount, onDestroy } from 'svelte';
 	import { browser } from '$app/environment';
 	import { _ } from 'svelte-i18n';
 
 	// Компонент модального окна с backdrop, анимацией и focus trap
-	export let isOpen = false;
-	export let onClose: () => void;
+	export let isOpen = true;
+	export let onClose: (() => void) | undefined = undefined;
 	export let title: string;
+	export let size: 'sm' | 'md' | 'lg' = 'md';
+
+	const dispatch = createEventDispatcher();
 
 	let modalElement: HTMLDivElement;
 	let previousActiveElement: HTMLElement | null = null;
 
+	// Размеры модала
+	const sizeClasses = {
+		sm: 'max-w-md',
+		md: 'max-w-lg md:max-w-2xl',
+		lg: 'max-w-2xl md:max-w-4xl lg:max-w-6xl',
+	};
+
+	// Функция закрытия модала
+	function handleClose() {
+		dispatch('close');
+		onClose?.();
+	}
+
 	// Обработка нажатия ESC для закрытия модала
 	function handleKeydown(event: KeyboardEvent) {
 		if (event.key === 'Escape' && isOpen) {
-			onClose();
+			handleClose();
 		}
 	}
 
 	// Закрытие по клику на backdrop
 	function handleBackdropClick(event: MouseEvent) {
 		if (event.target === event.currentTarget) {
-			onClose();
+			handleClose();
 		}
 	}
 
@@ -106,7 +122,9 @@
 		>
 			<div
 				bind:this={modalElement}
-				class="bg-white rounded-lg shadow-xl w-full max-w-md sm:max-w-lg md:max-w-2xl max-h-[90vh] overflow-y-auto transform transition-all duration-200 animate-fade-in-scale"
+				class="bg-white rounded-lg shadow-xl w-full {sizeClasses[
+					size
+				]} max-h-[90vh] overflow-hidden transform transition-all duration-200 animate-fade-in-scale flex flex-col"
 				on:keydown={handleModalKeydown}
 			>
 				<!-- Header -->
@@ -117,7 +135,7 @@
 					<button
 						type="button"
 						class="text-gray-400 hover:text-gray-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg p-2"
-						on:click={onClose}
+						on:click={handleClose}
 						aria-label={$_('ui.modal.closeAriaLabel')}
 					>
 						<svg
@@ -138,9 +156,18 @@
 				</div>
 
 				<!-- Content -->
-				<div class="p-4 sm:p-6">
+				<div class="p-4 sm:p-6 overflow-y-auto flex-1">
 					<slot />
 				</div>
+
+				<!-- Footer Actions -->
+				{#if $$slots.actions}
+					<div
+						class="flex items-center justify-end gap-3 p-4 sm:p-6 border-t border-gray-200"
+					>
+						<slot name="actions" />
+					</div>
+				{/if}
 			</div>
 		</div>
 	</div>

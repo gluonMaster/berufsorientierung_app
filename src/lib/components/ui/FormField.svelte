@@ -6,15 +6,17 @@
 	export let error = '';
 	export let required = false;
 	export let value = '';
-	export let name: string;
+	export let name: string | undefined = undefined;
 	export let disabled = false;
 	export let autocomplete: string | undefined = undefined;
 	export let id: string | undefined = undefined;
+	export let help: string | undefined = undefined;
 
 	// Детерминированный ID для связи label с input (избегаем SSR mismatch)
-	// Если id не передан, генерируем на основе name
-	const fieldId = id || `field-${name}`;
+	// Если id не передан, генерируем на основе name (или случайный для кастомных полей)
+	const fieldId = id || (name ? `field-${name}` : `field-${Math.random().toString(36).slice(2)}`);
 	const errorId = `${fieldId}-error`;
+	const helpId = `${fieldId}-help`;
 
 	// Базовые стили для input/textarea
 	const baseInputClasses =
@@ -41,11 +43,13 @@
 		{/if}
 	</label>
 
-	<!-- Input или Textarea -->
-	{#if type === 'textarea'}
+	<!-- Слот для кастомного контента или стандартные Input/Textarea -->
+	{#if $$slots.default}
+		<slot />
+	{:else if type === 'textarea'}
 		<textarea
 			id={fieldId}
-			{name}
+			name={name || fieldId}
 			{placeholder}
 			{required}
 			{disabled}
@@ -53,14 +57,16 @@
 			class={inputClasses}
 			rows="4"
 			aria-invalid={!!error}
-			aria-describedby={error ? errorId : undefined}
+			aria-describedby={[error ? errorId : '', help ? helpId : '']
+				.filter(Boolean)
+				.join(' ') || undefined}
 			on:input={handleInput}
 			{...$$restProps}
 		></textarea>
 	{:else}
 		<input
 			id={fieldId}
-			{name}
+			name={name || fieldId}
 			{type}
 			{placeholder}
 			{required}
@@ -69,10 +75,19 @@
 			{autocomplete}
 			class={inputClasses}
 			aria-invalid={!!error}
-			aria-describedby={error ? errorId : undefined}
+			aria-describedby={[error ? errorId : '', help ? helpId : '']
+				.filter(Boolean)
+				.join(' ') || undefined}
 			on:input={handleInput}
 			{...$$restProps}
 		/>
+	{/if}
+
+	<!-- Вспомогательный текст -->
+	{#if help}
+		<p id={helpId} class="mt-2 text-sm text-gray-600">
+			{help}
+		</p>
 	{/if}
 
 	<!-- Сообщение об ошибке -->
