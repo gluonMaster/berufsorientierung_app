@@ -145,8 +145,8 @@ export async function registerUserForEvent(
 		// 5. Получаем текущее количество активных записей
 		const currentParticipants = await getRegistrationCount(db, eventId);
 
-		// 6. Проверяем наличие свободных мест
-		if (currentParticipants >= event.max_participants) {
+		// 6. Проверяем наличие свободных мест (если установлен лимит)
+		if (event.max_participants !== null && currentParticipants >= event.max_participants) {
 			throw new Error('Event is full, no available spots');
 		}
 

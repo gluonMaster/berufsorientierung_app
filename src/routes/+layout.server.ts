@@ -3,7 +3,7 @@
  * Загружает данные текущего пользователя для всех страниц приложения
  */
 
-import type { LayoutServerLoad } from './$types';
+import type { ServerLoad } from '@sveltejs/kit';
 import type { User } from '$lib/types';
 import { extractTokenFromRequest, verifyToken } from '$lib/server/auth';
 import { getUserById } from '$lib/server/db/users';
@@ -21,7 +21,7 @@ type RootLayoutData = {
  * Проверяет авторизацию пользователя и возвращает его данные
  * НЕ редиректит неавторизованных - это публичное приложение
  */
-export const load: LayoutServerLoad = async ({ request, platform }) => {
+export const load: ServerLoad = async ({ request, platform }) => {
 	// Извлекаем токен из cookies
 	const token = extractTokenFromRequest(request);
 

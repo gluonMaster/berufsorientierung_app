@@ -1,11 +1,10 @@
 <script lang="ts">
 	import { _, locale } from 'svelte-i18n';
-	import type { PageData } from './$types';
 	import { Users, Calendar, ClipboardCheck, Trash2, Clock } from 'lucide-svelte';
 	import type { DashboardData } from './+page.server';
 
-	// PageData объединяет данные из layout (user) и page (stats, recentActivity)
-	export let data: PageData & DashboardData;
+	// Данные из +page.server.ts
+	export let data: DashboardData;
 
 	// Форматирование даты и времени для логов
 	function formatDateTime(timestamp: string): string {

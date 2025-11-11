@@ -24,6 +24,10 @@
 - [ADMIN_ACTIVITYLOG.md](./fixes/ADMIN_ACTIVITYLOG.md) - Исправления в модуле логирования админов
 - [REPORT_EVENTS.md](./fixes/REPORT_EVENTS.md) - Исправления в модуле событий
 - [AUTH_CLOUDFLARE_COMPATIBILITY.md](./fixes/AUTH_CLOUDFLARE_COMPATIBILITY.md) - Совместимость Auth модуля с Cloudflare Workers
+- [NEWSLETTER_BATCHING.md](./fixes/NEWSLETTER_BATCHING.md) - Исправление батчинга в массовой email рассылке
+- [I18N_DUPLICATE_KEYS.md](./fixes/I18N_DUPLICATE_KEYS.md) - Устранение дублирующих ключей в переводах
+- [SVELTEKIT_INVALIDATION.md](./fixes/SVELTEKIT_INVALIDATION.md) - Правильное использование invalidateAll в SvelteKit
+- [NEWSLETTER_SELECT_TYPE.md](./fixes/NEWSLETTER_SELECT_TYPE.md) - Исправление типов для select элемента в newsletter форме
 
 ---
 

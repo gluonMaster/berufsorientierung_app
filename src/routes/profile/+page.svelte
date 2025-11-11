@@ -5,11 +5,32 @@
 	import FormField from '$lib/components/ui/FormField.svelte';
 	import Modal from '$lib/components/ui/Modal.svelte';
 	import Toast from '$lib/components/ui/Toast.svelte';
-	import type { PageData } from './$types';
-	import type { ActionData } from './$types';
+	import type { User } from '$lib/types';
 
-	export let data: PageData;
-	export let form: ActionData;
+	// Типы данных из +page.server.ts
+	export let data: {
+		user: User;
+		registrations: Array<{
+			id: number;
+			event_id: number;
+			registered_at: string;
+			cancelled_at: string | null;
+			cancellation_reason: string | null;
+			event_title_de: string;
+			event_title_en: string | null;
+			event_title_ru: string | null;
+			event_title_uk: string | null;
+			event_date: string;
+			event_status: string;
+		}>;
+		pendingDeletion: { user_id: number; deletion_date: string; created_at: string } | null;
+	};
+
+	// ActionData из form actions
+	export let form:
+		| { success: boolean; message: string; error?: string; type?: string; deleteDate?: string }
+		| null
+		| undefined;
 
 	// Состояние формы редактирования
 	let isEditMode = false;
@@ -445,10 +466,14 @@
 							/>
 
 							<div>
-								<label class="block text-sm font-medium text-gray-700 mb-1">
+								<label
+									for="preferred_language"
+									class="block text-sm font-medium text-gray-700 mb-1"
+								>
 									{$_('profile.language')}
 								</label>
 								<select
+									id="preferred_language"
 									name="preferred_language"
 									bind:value={formData.preferredLanguage}
 									class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"

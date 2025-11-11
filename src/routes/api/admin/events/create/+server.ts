@@ -49,6 +49,7 @@ export async function POST({ request, platform }: RequestEvent) {
 		// Приводим типы к EventCreateData
 		const eventData = {
 			...data,
+			max_participants: data.max_participants ?? null, // undefined → null
 			additional_fields: data.additional_fields?.map((field) => ({
 				field_key: field.field_key,
 				field_type: field.field_type,

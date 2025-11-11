@@ -6,10 +6,16 @@
 	import FormField from '$lib/components/ui/FormField.svelte';
 	import Modal from '$lib/components/ui/Modal.svelte';
 	import Toast from '$lib/components/ui/Toast.svelte';
-	import type { PageData } from './$types';
 	import type { EventAdditionalField } from '$lib/types/event';
+	import type { User, Event } from '$lib/types';
 
-	export let data: PageData;
+	// Типы данных из +page.server.ts
+	export let data: {
+		event: Event;
+		user: User;
+		additionalFields: EventAdditionalField[];
+		availableSpots: number;
+	};
 
 	// Интерфейс для результата успешной регистрации
 	interface RegistrationResult {
@@ -214,7 +220,19 @@
 	/**
 	 * Рендер поля в зависимости от типа
 	 */
-	function renderFieldInput(field: EventAdditionalField) {
+	function renderFieldInput(field: EventAdditionalField): {
+		type:
+			| 'text'
+			| 'textarea'
+			| 'tel'
+			| 'email'
+			| 'date'
+			| 'password'
+			| 'number'
+			| 'select'
+			| 'checkbox';
+		options?: string[];
+	} {
 		const label = getFieldLabel(field, currentLang);
 		const placeholder = getFieldPlaceholder(field, currentLang);
 
@@ -453,10 +471,36 @@
 										{/if}
 									</label>
 								</div>
+							{:else if fieldConfig.type === 'number'}
+								<div>
+									<label
+										for={field.field_key}
+										class="block text-sm font-medium text-gray-700 mb-2"
+									>
+										{label}
+										{#if field.required}
+											<span class="text-red-500">*</span>
+										{/if}
+									</label>
+									<input
+										type="number"
+										id={field.field_key}
+										bind:value={additionalData[field.field_key]}
+										{placeholder}
+										required={field.required}
+										class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+									/>
+								</div>
 							{:else}
 								<FormField
 									{label}
-									type={fieldConfig.type}
+									type={fieldConfig.type as
+										| 'text'
+										| 'textarea'
+										| 'tel'
+										| 'email'
+										| 'date'
+										| 'password'}
 									bind:value={additionalData[field.field_key]}
 									{placeholder}
 									required={field.required}
@@ -611,12 +655,7 @@
 
 <!-- Модальное окно успешной регистрации -->
 {#if showSuccessModal}
-	<Modal
-		isOpen={showSuccessModal}
-		title={$_('eventRegister.success.title')}
-		on:close={goToHome}
-		showCloseButton={false}
-	>
+	<Modal isOpen={showSuccessModal} title={$_('eventRegister.success.title')} on:close={goToHome}>
 		<div class="space-y-4">
 			<p class="text-gray-700">
 				{$_('eventRegister.success.message')}

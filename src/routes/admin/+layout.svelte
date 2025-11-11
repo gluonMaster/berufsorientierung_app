@@ -2,7 +2,6 @@
 	import { page } from '$app/stores';
 	import { _ } from 'svelte-i18n';
 	import { goto } from '$app/navigation';
-	import type { PageData } from './$types';
 	import type { ComponentType } from 'svelte';
 	import {
 		LayoutDashboard,
@@ -16,7 +15,8 @@
 		Menu,
 	} from 'lucide-svelte';
 
-	export let data: PageData;
+	// Данные наследуются из родительского layout (+layout.server.ts)
+	export let data: any;
 
 	// Состояние мобильного меню
 	let mobileMenuOpen = false;
