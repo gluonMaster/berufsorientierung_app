@@ -471,6 +471,7 @@
 				"admin_remove_admin": "Права админа отозваны",
 				"admin_add": "Администратор добавлен",
 				"admin_remove": "Администратор удалён",
+				"admin_export_user_data": "Данные пользователя экспортированы",
 				"bulk_email_sent": "Массовая рассылка отправлена"
 			}
 		},
@@ -499,7 +500,54 @@
 		"removeAdmin": "Удалить права админа",
 		"viewLogs": "Просмотр логов",
 		"cancellationReason": "Причина отмены",
-		"notifyParticipants": "Уведомить участников"
+		"notifyParticipants": "Уведомить участников",
+		"usersPage": {
+			"title": "Управление пользователями",
+			"search": "Поиск по имени или email",
+			"filter": {
+				"all": "Все",
+				"admins": "Админы",
+				"users": "Пользователи",
+				"pendingDeletion": "Запланировано удаление"
+			},
+			"reset": "Сбросить",
+			"table": {
+				"name": "Имя",
+				"email": "Email",
+				"registered": "Зарегистрирован",
+				"registrations": "Регистрации",
+				"role": "Роль",
+				"status": "Статус",
+				"actions": "Действия"
+			},
+			"role": {
+				"admin": "Админ",
+				"superadmin": "Суперадмин",
+				"user": "Пользователь"
+			},
+			"status": {
+				"active": "Активен",
+				"blocked": "Заблокирован",
+				"pendingDeletion": "Ожидает удаления"
+			},
+			"actions": {
+				"view": "Просмотр",
+				"makeAdmin": "Сделать админом",
+				"removeAdmin": "Удалить права админа",
+				"export": "Экспорт данных"
+			},
+			"pagination": {
+				"page": "Страница",
+				"of": "из",
+				"showing": "Показано",
+				"to": "до",
+				"total": "из"
+			},
+			"noResults": "Пользователи не найдены",
+			"confirmMakeAdmin": "Вы хотите дать этому пользователю права администратора?",
+			"confirmRemoveAdmin": "Вы хотите удалить права администратора у этого пользователя?",
+			"cannotRemoveSuperadmin": "Права суперадмина не могут быть удалены"
+		}
 	},
 	"errors": {
 		"generic": "Произошла ошибка",

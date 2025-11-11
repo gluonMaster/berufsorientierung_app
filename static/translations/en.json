@@ -471,6 +471,7 @@
 				"admin_remove_admin": "Admin rights revoked",
 				"admin_add": "Administrator added",
 				"admin_remove": "Administrator removed",
+				"admin_export_user_data": "User data exported",
 				"bulk_email_sent": "Bulk email sent"
 			}
 		},
@@ -499,7 +500,54 @@
 		"removeAdmin": "Remove Admin",
 		"viewLogs": "View Logs",
 		"cancellationReason": "Cancellation Reason",
-		"notifyParticipants": "Notify Participants"
+		"notifyParticipants": "Notify Participants",
+		"usersPage": {
+			"title": "User Management",
+			"search": "Search by name or email",
+			"filter": {
+				"all": "All",
+				"admins": "Admins",
+				"users": "Users",
+				"pendingDeletion": "Pending Deletion"
+			},
+			"reset": "Reset",
+			"table": {
+				"name": "Name",
+				"email": "Email",
+				"registered": "Registered",
+				"registrations": "Registrations",
+				"role": "Role",
+				"status": "Status",
+				"actions": "Actions"
+			},
+			"role": {
+				"admin": "Admin",
+				"superadmin": "Superadmin",
+				"user": "User"
+			},
+			"status": {
+				"active": "Active",
+				"blocked": "Blocked",
+				"pendingDeletion": "Pending Deletion"
+			},
+			"actions": {
+				"view": "View",
+				"makeAdmin": "Make Admin",
+				"removeAdmin": "Remove Admin",
+				"export": "Export Data"
+			},
+			"pagination": {
+				"page": "Page",
+				"of": "of",
+				"showing": "Showing",
+				"to": "to",
+				"total": "of"
+			},
+			"noResults": "No users found",
+			"confirmMakeAdmin": "Do you want to give this user admin rights?",
+			"confirmRemoveAdmin": "Do you want to remove this user's admin rights?",
+			"cannotRemoveSuperadmin": "Superadmin rights cannot be removed"
+		}
 	},
 	"errors": {
 		"generic": "An error occurred",

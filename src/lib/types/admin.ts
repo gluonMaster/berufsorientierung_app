@@ -35,6 +35,7 @@ export type ActivityLogActionType =
 	// Административные действия
 	| 'admin_add' // Выдача прав администратора
 	| 'admin_remove' // Отзыв прав администратора
+	| 'admin_export_user_data' // Экспорт данных пользователя администратором
 	| 'bulk_email_sent'; // Массовая рассылка
 
 /**

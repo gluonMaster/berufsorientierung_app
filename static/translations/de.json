@@ -481,6 +481,7 @@
 				"admin_remove_admin": "Admin-Rechte entzogen",
 				"admin_add": "Administrator hinzugefügt",
 				"admin_remove": "Administrator entfernt",
+				"admin_export_user_data": "Benutzerdaten exportiert",
 				"bulk_email_sent": "Massen-E-Mail versendet"
 			}
 		},
@@ -489,7 +490,54 @@
 		"unblockUser": "Benutzer entsperren",
 		"makeAdmin": "Zum Admin machen",
 		"removeAdmin": "Admin-Rechte entfernen",
-		"viewLogs": "Protokolle anzeigen"
+		"viewLogs": "Protokolle anzeigen",
+		"usersPage": {
+			"title": "Benutzerverwaltung",
+			"search": "Suche nach Name oder E-Mail",
+			"filter": {
+				"all": "Alle",
+				"admins": "Admins",
+				"users": "Benutzer",
+				"pendingDeletion": "Zur Löschung vorgemerkt"
+			},
+			"reset": "Zurücksetzen",
+			"table": {
+				"name": "Name",
+				"email": "E-Mail",
+				"registered": "Registriert",
+				"registrations": "Anmeldungen",
+				"role": "Rolle",
+				"status": "Status",
+				"actions": "Aktionen"
+			},
+			"role": {
+				"admin": "Admin",
+				"superadmin": "Superadmin",
+				"user": "Benutzer"
+			},
+			"status": {
+				"active": "Aktiv",
+				"blocked": "Gesperrt",
+				"pendingDeletion": "Zur Löschung vorgemerkt"
+			},
+			"actions": {
+				"view": "Ansehen",
+				"makeAdmin": "Zum Admin machen",
+				"removeAdmin": "Admin-Rechte entfernen",
+				"export": "Daten exportieren"
+			},
+			"pagination": {
+				"page": "Seite",
+				"of": "von",
+				"showing": "Zeige",
+				"to": "bis",
+				"total": "von insgesamt"
+			},
+			"noResults": "Keine Benutzer gefunden",
+			"confirmMakeAdmin": "Möchten Sie diesem Benutzer Admin-Rechte geben?",
+			"confirmRemoveAdmin": "Möchten Sie die Admin-Rechte dieses Benutzers entfernen?",
+			"cannotRemoveSuperadmin": "Superadmin-Rechte können nicht entfernt werden"
+		}
 	},
 	"errors": {
 		"generic": "Ein Fehler ist aufgetreten",

@@ -471,6 +471,7 @@
 				"admin_remove_admin": "Права адміна відкликані",
 				"admin_add": "Адміністратора додано",
 				"admin_remove": "Адміністратора видалено",
+				"admin_export_user_data": "Дані користувача експортовано",
 				"bulk_email_sent": "Масову розсилку надіслано"
 			}
 		},
@@ -499,7 +500,54 @@
 		"removeAdmin": "Видалити права адміна",
 		"viewLogs": "Перегляд логів",
 		"cancellationReason": "Причина скасування",
-		"notifyParticipants": "Повідомити учасників"
+		"notifyParticipants": "Повідомити учасників",
+		"usersPage": {
+			"title": "Керування користувачами",
+			"search": "Пошук за ім'ям або email",
+			"filter": {
+				"all": "Всі",
+				"admins": "Адміни",
+				"users": "Користувачі",
+				"pendingDeletion": "Заплановано видалення"
+			},
+			"reset": "Скинути",
+			"table": {
+				"name": "Ім'я",
+				"email": "Email",
+				"registered": "Зареєстрований",
+				"registrations": "Реєстрації",
+				"role": "Роль",
+				"status": "Статус",
+				"actions": "Дії"
+			},
+			"role": {
+				"admin": "Адмін",
+				"superadmin": "Суперадмін",
+				"user": "Користувач"
+			},
+			"status": {
+				"active": "Активний",
+				"blocked": "Заблокований",
+				"pendingDeletion": "Очікує видалення"
+			},
+			"actions": {
+				"view": "Перегляд",
+				"makeAdmin": "Зробити адміном",
+				"removeAdmin": "Видалити права адміна",
+				"export": "Експорт даних"
+			},
+			"pagination": {
+				"page": "Сторінка",
+				"of": "з",
+				"showing": "Показано",
+				"to": "до",
+				"total": "з"
+			},
+			"noResults": "Користувачів не знайдено",
+			"confirmMakeAdmin": "Ви хочете надати цьому користувачу права адміністратора?",
+			"confirmRemoveAdmin": "Ви хочете видалити права адміністратора у цього користувача?",
+			"cannotRemoveSuperadmin": "Права суперадміна не можуть бути видалені"
+		}
 	},
 	"errors": {
 		"generic": "Сталася помилка",
