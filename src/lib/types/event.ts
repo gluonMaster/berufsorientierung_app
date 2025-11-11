@@ -135,8 +135,8 @@ export interface Event extends EventTranslations {
 	/** Крайний срок регистрации (ISO 8601 format) */
 	registration_deadline: string;
 
-	/** Максимальное количество участников */
-	max_participants: number;
+	/** Максимальное количество участников (null = безлимит) */
+	max_participants: number | null;
 
 	/** Ссылка на Telegram группу/канал */
 	telegram_link: string | null;
@@ -245,8 +245,8 @@ export interface EventCreateData extends EventTranslationsCreate {
 	/** Крайний срок регистрации (ISO 8601 format) */
 	registration_deadline: string;
 
-	/** Максимальное количество участников */
-	max_participants: number;
+	/** Максимальное количество участников (null = безлимит) */
+	max_participants: number | null;
 
 	/** Ссылка на Telegram группу/канал */
 	telegram_link?: string;
@@ -272,8 +272,8 @@ export interface EventUpdateData extends Partial<EventTranslations> {
 	/** Крайний срок регистрации */
 	registration_deadline?: string;
 
-	/** Максимальное количество участников */
-	max_participants?: number;
+	/** Максимальное количество участников (null = безлимит) */
+	max_participants?: number | null;
 
 	/** Ссылка на Telegram группу/канал */
 	telegram_link?: string | null;
@@ -312,8 +312,8 @@ export interface EventListItem {
 	/** Крайний срок регистрации */
 	registration_deadline: string;
 
-	/** Максимальное количество участников */
-	max_participants: number;
+	/** Максимальное количество участников (null = безлимит) */
+	max_participants: number | null;
 
 	/** Текущее количество участников */
 	current_participants: number;

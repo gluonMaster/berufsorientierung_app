@@ -69,7 +69,7 @@ export async function POST({ request, platform }: RequestEvent) {
 		if (!event.date) validationErrors.push('Event date is required');
 		if (!event.registration_deadline)
 			validationErrors.push('Registration deadline is required');
-		if (!event.max_participants) validationErrors.push('Maximum participants is required');
+		// max_participants может быть null (безлимит) - не проверяем
 
 		// Проверка что даты корректны
 		if (event.date && event.registration_deadline) {

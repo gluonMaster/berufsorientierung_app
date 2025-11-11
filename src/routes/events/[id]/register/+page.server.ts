@@ -44,8 +44,8 @@ export async function load({ params, url, request, platform }: any) {
 		// Получаем количество уже зарегистрированных пользователей
 		const registrationsCount = await DB.registrations.getRegistrationCount(database, eventId);
 
-		// Проверяем наличие мест
-		if (registrationsCount >= event.max_participants) {
+		// Проверяем наличие мест (если max_participants не null)
+		if (event.max_participants !== null && registrationsCount >= event.max_participants) {
 			throw redirect(302, '/?error=event_full');
 		}
 
@@ -73,7 +73,10 @@ export async function load({ params, url, request, platform }: any) {
 			event,
 			user: fullUser,
 			additionalFields,
-			availableSpots: event.max_participants - registrationsCount,
+			availableSpots:
+				event.max_participants !== null
+					? event.max_participants - registrationsCount
+					: Infinity,
 		};
 	} catch (err) {
 		// Если это уже redirect или error - пробрасываем дальше

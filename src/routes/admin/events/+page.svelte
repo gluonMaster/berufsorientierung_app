@@ -74,14 +74,14 @@
 	/**
 	 * Получить локализованное название мероприятия
 	 */
-	function getEventTitle(event: EventWithStats, locale: string): string {
+	function getEventTitle(event: EventWithStats, lang: string): string {
 		const titles: Record<string, string> = {
 			de: event.title_de,
 			en: event.title_en || event.title_de,
 			ru: event.title_ru || event.title_de,
 			uk: event.title_uk || event.title_de,
 		};
-		return titles[locale] || event.title_de;
+		return titles[lang] || event.title_de;
 	}
 
 	/**
@@ -154,7 +154,6 @@
 
 	/**
 	 * Опубликовать мероприятие
-	 * TODO: Реализуется в 9.4
 	 */
 	async function publishEvent(eventId: number) {
 		try {
@@ -178,8 +177,66 @@
 	}
 
 	/**
+	 * Создать мероприятие
+	 */
+	async function handleCreateEvent(eventData: any) {
+		const response = await fetch('/api/admin/events/create', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(eventData),
+		});
+
+		if (!response.ok) {
+			const errorData = await response.json();
+			throw new Error(errorData.message || $_('admin.events.errors.saveFailed'));
+		}
+
+		return response.json();
+	}
+
+	/**
+	 * Обновить мероприятие
+	 */
+	async function handleUpdateEvent(eventData: any) {
+		const response = await fetch('/api/admin/events/update', {
+			method: 'PUT',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(eventData),
+		});
+
+		if (!response.ok) {
+			const errorData = await response.json();
+			throw new Error(errorData.message || $_('admin.events.errors.saveFailed'));
+		}
+
+		return response.json();
+	}
+
+	/**
+	 * Отменить мероприятие
+	 */
+	async function handleCancelEvent(reason: string) {
+		if (!selectedEvent) return;
+
+		const response = await fetch('/api/admin/events/cancel', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({
+				event_id: selectedEvent.id,
+				cancellation_reason: reason,
+			}),
+		});
+
+		if (!response.ok) {
+			const errorData = await response.json();
+			throw new Error(errorData.message || $_('admin.events.errors.cancelFailed'));
+		}
+
+		return response.json();
+	}
+
+	/**
 	 * Удалить мероприятие
-	 * TODO: Реализуется в 9.4
 	 */
 	async function deleteEvent() {
 		if (!selectedEvent) return;
@@ -703,9 +760,15 @@
 				{#if page === 1 || page === totalPages || (page >= currentPage - 1 && page <= currentPage + 1)}
 					<button
 						on:click={() => goToPage(page)}
-						class="relative inline-flex items-center px-4 py-2 border text-sm font-medium {isActive
-							? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
-							: 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'}"
+						class:z-10={isActive}
+						class:bg-blue-50={isActive}
+						class:border-blue-500={isActive}
+						class:text-blue-600={isActive}
+						class:bg-white={!isActive}
+						class:border-gray-300={!isActive}
+						class:text-gray-700={!isActive}
+						class:hover:bg-gray-50={!isActive}
+						class="relative inline-flex items-center px-4 py-2 border text-sm font-medium"
 					>
 						{page}
 					</button>
@@ -740,40 +803,50 @@
 <!-- Модальные окна -->
 
 <!-- Создание мероприятия -->
-{#if showCreateModal}
-	<EventFormModal
-		mode="create"
-		on:close={() => (showCreateModal = false)}
-		on:success={() => {
-			showCreateModal = false;
-			showToastMessage($_('admin.events.createSuccess'), 'success');
-			invalidateAll();
-		}}
-	/>
-{/if}
+<EventFormModal
+	isOpen={showCreateModal}
+	mode="create"
+	onClose={() => (showCreateModal = false)}
+	onSave={handleCreateEvent}
+	on:success={() => {
+		showCreateModal = false;
+		showToastMessage($_('admin.events.createSuccess'), 'success');
+		invalidateAll();
+	}}
+/>
 
 <!-- Редактирование мероприятия -->
-{#if showEditModal && selectedEvent}
-	<EventFormModal
-		mode="edit"
-		event={selectedEvent}
-		on:close={() => {
-			showEditModal = false;
-			selectedEvent = null;
-		}}
-		on:success={() => {
-			showEditModal = false;
-			selectedEvent = null;
-			showToastMessage($_('admin.events.updateSuccess'), 'success');
-			invalidateAll();
-		}}
-	/>
-{/if}
+<EventFormModal
+	isOpen={showEditModal && selectedEvent !== null}
+	mode="edit"
+	event={selectedEvent}
+	onClose={() => {
+		showEditModal = false;
+		selectedEvent = null;
+	}}
+	onSave={handleUpdateEvent}
+	on:success={() => {
+		showEditModal = false;
+		selectedEvent = null;
+		showToastMessage($_('admin.events.updateSuccess'), 'success');
+		invalidateAll();
+	}}
+/>
 
 <!-- Просмотр мероприятия -->
 {#if showViewModal && selectedEvent}
 	<EventViewModal
-		event={selectedEvent}
+		isOpen={showViewModal}
+		eventId={selectedEvent.id}
+		onClose={() => {
+			// Закрытие по программному сценарию (например, при переходе к редактированию)
+			// Не сбрасываем selectedEvent, чтобы переиспользовать его в EditModal
+			showViewModal = false;
+		}}
+		on:edit={(e) => {
+			showViewModal = false;
+			showEditModal = true;
+		}}
 		on:close={() => {
 			showViewModal = false;
 			selectedEvent = null;
@@ -784,11 +857,14 @@
 <!-- Отмена мероприятия -->
 {#if showCancelModal && selectedEvent}
 	<CancelEventModal
+		isOpen={showCancelModal}
 		event={selectedEvent}
-		on:close={() => {
+		registrationsCount={selectedEvent.registeredCount || 0}
+		onClose={() => {
 			showCancelModal = false;
 			selectedEvent = null;
 		}}
+		onCancel={handleCancelEvent}
 		on:success={() => {
 			showCancelModal = false;
 			selectedEvent = null;

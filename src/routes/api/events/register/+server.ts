@@ -122,11 +122,11 @@ export async function POST({ request, platform }: RequestEvent) {
 			);
 		}
 
-		// 3.5. Проверяем наличие свободных мест
+		// 3.5. Проверяем наличие свободных мест (если max_participants не null)
 		// Используем current_participants из Event (если есть) или запрашиваем отдельно
 		const currentCount = event.current_participants ?? 0;
 
-		if (currentCount >= event.max_participants) {
+		if (event.max_participants !== null && currentCount >= event.max_participants) {
 			throw createError(403, 'Event is full. No more spots available', 'EVENT_FULL', {
 				max_participants: event.max_participants,
 				registered_count: currentCount,

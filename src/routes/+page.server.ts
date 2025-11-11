@@ -62,8 +62,11 @@ export const load = async ({ platform, request }: { platform: any; request: Requ
 				// Получаем количество записей
 				const registeredCount = await getRegistrationCount(db, event.id);
 
-				// Вычисляем оставшиеся места
-				const spotsLeft = event.max_participants - registeredCount;
+				// Вычисляем оставшиеся места (null = безлимит)
+				const spotsLeft =
+					event.max_participants !== null
+						? event.max_participants - registeredCount
+						: Infinity;
 
 				// Проверяем истёк ли дедлайн
 				const deadline = new Date(event.registration_deadline);

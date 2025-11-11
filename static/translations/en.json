@@ -360,6 +360,10 @@
 			"exportCSV": "Export as CSV",
 			"cancelledReason": "Cancellation Reason",
 			"cancelledAt": "Cancelled on: {date}",
+			"metadata": "Metadata",
+			"createdAt": "Created At",
+			"updatedAt": "Updated At",
+			"createdBy": "Created By",
 			"deleteConfirmTitle": "Delete Event?",
 			"deleteConfirmMessage": "Do you really want to delete the event \"{title}\"?",
 			"deleteWarning": "This action cannot be undone!",
@@ -404,6 +408,7 @@
 				"additionalFields": "Additional Form Fields"
 			},
 			"addField": "Add Field",
+			"removeField": "Remove field",
 			"noAdditionalFields": "No additional fields defined",
 			"fieldNumber": "Field {number}",
 			"fieldKey": "Field Name (Key)",

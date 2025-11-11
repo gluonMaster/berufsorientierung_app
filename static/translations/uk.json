@@ -360,6 +360,10 @@
 			"exportCSV": "Експорт в CSV",
 			"cancelledReason": "Причина скасування",
 			"cancelledAt": "Скасовано: {date}",
+			"metadata": "Метадані",
+			"createdAt": "Створено",
+			"updatedAt": "Оновлено",
+			"createdBy": "Створив",
 			"deleteConfirmTitle": "Видалити захід?",
 			"deleteConfirmMessage": "Ви дійсно хочете видалити захід \"{title}\"?",
 			"deleteWarning": "Цю дію неможливо скасувати!",
@@ -404,6 +408,7 @@
 				"additionalFields": "Додаткові поля форми"
 			},
 			"addField": "Додати поле",
+			"removeField": "Видалити поле",
 			"noAdditionalFields": "Додаткові поля не визначені",
 			"fieldNumber": "Поле {number}",
 			"fieldKey": "Ім'я поля (Key)",

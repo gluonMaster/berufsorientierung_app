@@ -557,12 +557,15 @@ export const eventCreateWithFieldsSchema = z
 		registration_deadline: futureDateSchema,
 
 		// Ограничения
+		// max_participants может быть null (безлимит) или положительным числом
 		max_participants: z
 			.number()
 			.int({ message: 'Must be an integer' })
 			.positive({ message: 'Must be greater than 0' })
 			.min(1, { message: 'At least 1 participant is required' })
-			.max(1000, { message: 'Maximum 1000 participants allowed' }),
+			.max(1000, { message: 'Maximum 1000 participants allowed' })
+			.optional()
+			.nullable(),
 
 		// Ссылки на мессенджеры
 		telegram_link: urlSchema,
@@ -620,7 +623,8 @@ export const eventUpdateWithFieldsSchema = z
 		registration_deadline: futureDateSchema.optional(),
 
 		// Ограничения
-		max_participants: z.number().int().positive().min(1).max(1000).optional(),
+		// max_participants может быть null (безлимит) или положительным числом
+		max_participants: z.number().int().positive().min(1).max(1000).optional().nullable(),
 
 		// Ссылки
 		telegram_link: urlSchema,

@@ -360,6 +360,10 @@
 			"exportCSV": "Экспорт в CSV",
 			"cancelledReason": "Причина отмены",
 			"cancelledAt": "Отменено: {date}",
+			"metadata": "Метаданные",
+			"createdAt": "Создано",
+			"updatedAt": "Обновлено",
+			"createdBy": "Создал",
 			"deleteConfirmTitle": "Удалить мероприятие?",
 			"deleteConfirmMessage": "Вы действительно хотите удалить мероприятие \"{title}\"?",
 			"deleteWarning": "Это действие нельзя отменить!",
@@ -404,6 +408,7 @@
 				"additionalFields": "Дополнительные поля формы"
 			},
 			"addField": "Добавить поле",
+			"removeField": "Удалить поле",
 			"noAdditionalFields": "Дополнительные поля не определены",
 			"fieldNumber": "Поле {number}",
 			"fieldKey": "Имя поля (Key)",
