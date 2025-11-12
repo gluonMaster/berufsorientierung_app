@@ -29,24 +29,30 @@ export async function load({ params, url, request, platform }: any) {
 			throw error(404, 'Event not found');
 		}
 
-		// Проверяем статус мероприятия
-		if (event.status !== 'active') {
-			throw redirect(302, '/?error=event_not_active');
-		}
-
-		// Проверяем дедлайн регистрации
-		const now = new Date();
-		const deadline = new Date(event.registration_deadline);
-		if (now > deadline) {
-			throw redirect(302, '/?error=registration_deadline_passed');
-		}
-
 		// Получаем количество уже зарегистрированных пользователей
 		const registrationsCount = await DB.registrations.getRegistrationCount(database, eventId);
 
-		// Проверяем наличие мест (если max_participants не null)
-		if (event.max_participants !== null && registrationsCount >= event.max_participants) {
-			throw redirect(302, '/?error=event_full');
+		// Проверяем доступность регистрации через централизованную функцию
+		const isOpen = DB.events.isRegistrationOpen(event, registrationsCount);
+
+		if (!isOpen) {
+			// Определяем конкретную причину для редиректа с понятной ошибкой
+			if (event.status !== 'active') {
+				throw redirect(302, '/?error=event_not_active');
+			}
+
+			const now = new Date();
+			const deadline = new Date(event.registration_deadline);
+			if (deadline <= now) {
+				throw redirect(302, '/?error=registration_deadline_passed');
+			}
+
+			if (event.max_participants !== null && registrationsCount >= event.max_participants) {
+				throw redirect(302, '/?error=event_full');
+			}
+
+			// Fallback для неизвестной причины
+			throw redirect(302, '/?error=registration_closed');
 		}
 
 		// Проверяем, не записан ли пользователь уже

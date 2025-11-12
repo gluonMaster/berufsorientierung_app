@@ -8,9 +8,11 @@
  * 1. Проверка авторизации (requireAuth)
  * 2. Валидация входных данных через registrationCreateSchema
  * 3. Проверки бизнес-правил:
- *    - Мероприятие существует и активно (status='active')
- *    - Есть свободные места (registeredCount < max_participants)
- *    - Дедлайн не прошёл (registration_deadline >= сейчас)
+ *    - Мероприятие существует
+ *    - Регистрация открыта (проверка через DB.events.isRegistrationOpen):
+ *      * Мероприятие активно (status='active')
+ *      * Дедлайн не истёк (registration_deadline > сейчас)
+ *      * Есть свободные места (registeredCount < max_participants)
  *    - Пользователь ещё не записан
  * 4. Создание записи через registerUserForEvent
  * 5. Логирование действия через logActivity
@@ -19,7 +21,7 @@
  *
  * Обработка ошибок:
  * - 400: валидация failed
- * - 403: нет мест / дедлайн истёк / уже записан
+ * - 403: регистрация закрыта / уже записан
  * - 404: мероприятие не найдено
  * - 500: server error
  */
@@ -28,9 +30,7 @@ import { json, type RequestEvent } from '@sveltejs/kit';
 import { requireAuth, getClientIP } from '$lib/server/middleware/auth';
 import { handleApiError, createError } from '$lib/server/middleware/errorHandler';
 import { registrationCreateSchema } from '$lib/server/validation/schemas';
-import { getEventById } from '$lib/server/db/events';
-import { registerUserForEvent, isUserRegistered } from '$lib/server/db/registrations';
-import { logActivity } from '$lib/server/db/activityLog';
+import { DB as dbUtils } from '$lib/server/db';
 import { sendEmail } from '$lib/server/email';
 import { getEventRegistrationEmail } from '$lib/server/email/templates';
 import type { LanguageCode } from '$lib/types/common';
@@ -82,37 +82,61 @@ export async function POST({ request, platform }: RequestEvent) {
 		// ============================================
 
 		// 3.1. Получаем мероприятие
-		const event = await getEventById(DB, event_id);
+		const event = await dbUtils.events.getEventById(DB, event_id);
 
 		if (!event) {
 			throw createError(404, 'Event not found', 'EVENT_NOT_FOUND');
 		}
 
-		// 3.2. Проверяем, что мероприятие активно (status='active')
-		if (event.status !== 'active') {
-			throw createError(403, 'Event is not available for registration', 'EVENT_NOT_ACTIVE', {
-				status: event.status,
-			});
+		// 3.2. Проверяем доступность регистрации (централизованная проверка)
+		// Проверяет: статус active, дедлайн не истёк, есть свободные места
+		const currentCount = event.current_participants ?? 0;
+		const isOpen = dbUtils.events.isRegistrationOpen(event, currentCount);
+
+		if (!isOpen) {
+			// Определяем причину закрытия для более детального сообщения
+			if (event.status !== 'active') {
+				throw createError(
+					403,
+					'Event is not available for registration',
+					'EVENT_NOT_ACTIVE',
+					{
+						status: event.status,
+					}
+				);
+			}
+
+			const now = new Date();
+			const deadline = new Date(event.registration_deadline);
+			if (deadline <= now) {
+				throw createError(
+					403,
+					'Registration deadline has passed',
+					'REGISTRATION_DEADLINE_PASSED',
+					{
+						deadline: event.registration_deadline,
+						now: now.toISOString(),
+					}
+				);
+			}
+
+			if (event.max_participants !== null && currentCount >= event.max_participants) {
+				throw createError(403, 'Event is full. No more spots available', 'EVENT_FULL', {
+					max_participants: event.max_participants,
+					registered_count: currentCount,
+				});
+			}
+
+			// Fallback на случай неизвестной причины
+			throw createError(403, 'Registration is closed', 'REGISTRATION_CLOSED');
 		}
 
-		// 3.3. Проверяем дедлайн регистрации
-		const now = new Date();
-		const deadline = new Date(event.registration_deadline);
-
-		if (now > deadline) {
-			throw createError(
-				403,
-				'Registration deadline has passed',
-				'REGISTRATION_DEADLINE_PASSED',
-				{
-					deadline: event.registration_deadline,
-					now: now.toISOString(),
-				}
-			);
-		}
-
-		// 3.4. Проверяем, что пользователь ещё не записан (активная запись)
-		const alreadyRegistered = await isUserRegistered(DB, user.id, event_id);
+		// 3.3. Проверяем, что пользователь ещё не записан (активная запись)
+		const alreadyRegistered = await dbUtils.registrations.isUserRegistered(
+			DB,
+			user.id,
+			event_id
+		);
 
 		if (alreadyRegistered) {
 			throw createError(
@@ -122,23 +146,12 @@ export async function POST({ request, platform }: RequestEvent) {
 			);
 		}
 
-		// 3.5. Проверяем наличие свободных мест (если max_participants не null)
-		// Используем current_participants из Event (если есть) или запрашиваем отдельно
-		const currentCount = event.current_participants ?? 0;
-
-		if (event.max_participants !== null && currentCount >= event.max_participants) {
-			throw createError(403, 'Event is full. No more spots available', 'EVENT_FULL', {
-				max_participants: event.max_participants,
-				registered_count: currentCount,
-			});
-		}
-
 		// ============================================
 		// 4. СОЗДАНИЕ ЗАПИСИ В БД
 		// ============================================
 
 		// registerUserForEvent выполняет все необходимые проверки и создаёт запись
-		const registration = await registerUserForEvent(
+		const registration = await dbUtils.registrations.registerUserForEvent(
 			DB,
 			user.id,
 			event_id,
@@ -150,7 +163,7 @@ export async function POST({ request, platform }: RequestEvent) {
 		// ============================================
 		const clientIP = getClientIP(request);
 
-		await logActivity(
+		await dbUtils.activityLog.logActivity(
 			DB,
 			user.id,
 			'registration_create',
@@ -230,3 +243,4 @@ export async function POST({ request, platform }: RequestEvent) {
 		return handleApiError(error);
 	}
 }
+

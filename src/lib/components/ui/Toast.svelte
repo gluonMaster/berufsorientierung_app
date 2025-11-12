@@ -15,7 +15,7 @@
 	// error → alert (assertive) для критических сообщений
 	// success/info → status (polite) для информационных сообщений
 	$: ariaRole = type === 'error' ? 'alert' : 'status';
-	$: ariaLive = type === 'error' ? 'assertive' : 'polite';
+	$: ariaLive = (type === 'error' ? 'assertive' : 'polite') as 'assertive' | 'polite';
 
 	// Стили в зависимости от типа уведомления
 	const typeStyles = {

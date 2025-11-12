@@ -87,9 +87,9 @@
 				<div>
 					<h3 class="text-lg font-medium text-gray-700 mb-3">Типы:</h3>
 					<div class="flex flex-wrap gap-4">
-						<Button type="primary">Primary</Button>
-						<Button type="secondary">Secondary</Button>
-						<Button type="danger">Danger</Button>
+						<Button variant="primary">Primary</Button>
+						<Button variant="secondary">Secondary</Button>
+						<Button variant="danger">Danger</Button>
 					</div>
 				</div>
 
@@ -186,7 +186,7 @@
 
 			<Button on:click={openModal}>Открыть модальное окно</Button>
 
-			<Modal {isModalOpen} onClose={closeModal} title="Пример модального окна">
+			<Modal isOpen={isModalOpen} onClose={closeModal} title="Пример модального окна">
 				<div class="space-y-4">
 					<p class="text-gray-700">Это содержимое модального окна. Модал поддерживает:</p>
 					<ul class="list-disc list-inside text-gray-700 space-y-2">
@@ -198,8 +198,12 @@
 					</ul>
 
 					<div class="flex gap-4 pt-4">
-						<Button type="primary" on:click={handleModalAction}>Подтвердить</Button>
-						<Button type="secondary" on:click={closeModal}>Отмена</Button>
+						<Button variant="primary" type="button" on:click={handleModalAction}
+							>Подтвердить</Button
+						>
+						<Button variant="secondary" type="button" on:click={closeModal}
+							>Отмена</Button
+						>
 					</div>
 				</div>
 			</Modal>
@@ -214,13 +218,15 @@
 					Success Toast
 				</Button>
 				<Button
-					type="danger"
+					variant="danger"
+					type="button"
 					on:click={() => showToastNotification('Произошла ошибка!', 'error')}
 				>
 					Error Toast
 				</Button>
 				<Button
-					type="secondary"
+					variant="secondary"
+					type="button"
 					on:click={() => showToastNotification('Информационное сообщение', 'info')}
 				>
 					Info Toast

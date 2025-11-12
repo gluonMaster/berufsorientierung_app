@@ -27,8 +27,10 @@
 	// Получение переведённого места с fallback на немецкий
 	$: location = getTranslatedField('location');
 
-	// Процент заполненности мест
-	$: fillPercentage = (event.registeredCount / event.max_participants) * 100;
+	// Процент заполненности мест (безлимитные события = 0%)
+	$: fillPercentage = event.max_participants
+		? (event.registeredCount / event.max_participants) * 100
+		: 0;
 
 	// Определение статуса регистрации
 	$: registrationStatus = getRegistrationStatus();
@@ -107,15 +109,9 @@
 	}
 
 	/**
-	 * Обработчик клика по карточке (открывает модал)
+	 * Обработчик клика по оверлей-кнопке (открывает модал)
 	 */
-	function handleCardClick(e: MouseEvent) {
-		// Игнорируем клик если кликнули на кнопку
-		const target = e.target as HTMLElement;
-		if (target.tagName === 'BUTTON' || target.closest('button')) {
-			return;
-		}
-
+	function handleOverlayClick() {
 		onCardClick();
 	}
 
@@ -146,20 +142,27 @@
 
 <!-- 
 	Карточка мероприятия
-	- Клик по карточке открывает модал с деталями
+	- Клик по оверлей-кнопке открывает модал с деталями
 	- Адаптивная: полная карточка на desktop, компактная на mobile
-	- Accessibility: role, tabindex, keyboard navigation
+	- Accessibility: оверлей-кнопка для keyboard navigation
 -->
 <article
-	class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 cursor-pointer overflow-hidden"
-	on:click={handleCardClick}
-	on:keydown={handleKeyDown}
-	role="button"
-	tabindex="0"
-	aria-label="{title} - {$_('events.viewDetails')}"
+	class="relative bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden"
+	aria-label={title}
 >
-	<!-- Заголовок и дата -->
-	<div class="p-4 sm:p-6">
+	<!-- Невидимая кнопка-оверлей для клавиатурной доступности -->
+	<button
+		type="button"
+		class="absolute inset-0 w-full h-full z-0 cursor-pointer"
+		aria-label="{title} - {$_('events.viewDetails')}"
+		on:click={handleOverlayClick}
+		on:keydown={handleKeyDown}
+	>
+		<span class="sr-only">{$_('events.viewDetails')}</span>
+	</button>
+
+	<!-- Контент карточки (все интерактивные элементы должны иметь z-index выше оверлея) -->
+	<div class="relative z-10 p-4 sm:p-6 pointer-events-none">
 		<h3 class="text-lg sm:text-xl font-semibold text-gray-900 mb-2">
 			{title}
 		</h3>
@@ -281,11 +284,12 @@
 		</div>
 
 		<!-- Кнопка действия -->
-		<div class="flex gap-2">
+		<div class="flex gap-2 pointer-events-auto">
 			{#if event.isUserRegistered}
 				<!-- Пользователь уже записан - показываем badge выше, кнопка "Подробнее" -->
 				<Button
-					type="secondary"
+					variant="secondary"
+					type="button"
 					fullWidth
 					on:click={(e) => {
 						e.stopPropagation();
@@ -298,7 +302,8 @@
 				<!-- Пользователь авторизован, но не записан -->
 				{#if canRegister}
 					<Button
-						type="primary"
+						variant="primary"
+						type="button"
 						fullWidth
 						on:click={(e) => {
 							e.stopPropagation();
@@ -308,7 +313,7 @@
 						{$_('events.register')}
 					</Button>
 				{:else}
-					<Button type="secondary" fullWidth disabled>
+					<Button variant="secondary" type="button" fullWidth disabled>
 						{#if event.isDeadlinePassed}
 							{$_('events.status.deadlinePassed')}
 						{:else}
@@ -319,7 +324,8 @@
 			{:else}
 				<!-- Пользователь не авторизован -->
 				<Button
-					type="primary"
+					variant="primary"
+					type="button"
 					fullWidth
 					on:click={(e) => {
 						e.stopPropagation();
@@ -338,6 +344,7 @@
 	.line-clamp-1 {
 		display: -webkit-box;
 		-webkit-line-clamp: 1;
+		line-clamp: 1; /* Стандартное свойство для совместимости */
 		-webkit-box-orient: vertical;
 		overflow: hidden;
 	}
@@ -347,10 +354,10 @@
 		transform: translateY(-2px);
 	}
 
-	/* Фокус для accessibility */
-	article:focus {
+	/* Фокус для accessibility - применяется к оверлей-кнопке */
+	article button:focus {
 		outline: 2px solid #3b82f6;
-		outline-offset: 2px;
+		outline-offset: -2px;
 	}
 
 	/* Transition для плавности */

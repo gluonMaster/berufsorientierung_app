@@ -1,5 +1,107 @@
 # История выполненных промптов
 
+## Промпт 10.2: Обработка истёкших дедлайнов - ВЫПОЛНЕНО ✅
+
+**Дата:** 2025-11-12
+
+### Что было создано:
+
+**1. Функции базы данных (`src/lib/server/db/events.ts`):**
+
+- ✅ `closeExpiredRegistrations(db)` - Подсчёт мероприятий с истёкшим дедлайном
+- ✅ `isRegistrationOpen(event, currentRegistrations)` - Проверка доступности регистрации
+- ✅ Проверка статуса, deadline и лимита участников
+- ✅ Используется в API endpoints и UI
+
+**2. Cron интеграция:**
+
+- ✅ Обновлён `/api/cron/delete-users` - добавлен вызов `closeExpiredRegistrations()`
+- ✅ Обновлён `src/worker.ts` - проверка в scheduled handler
+- ✅ Результаты включены в response и логирование
+- ✅ Activity log с полем `expired_registrations_count`
+
+**3. Тесты (`tests/unit/db-events.test.ts`):**
+
+- ✅ Добавлено 6 unit-тестов для `isRegistrationOpen()`
+- ✅ Покрытие всех сценариев (открыта, дедлайн истёк, лимит, статус, edge cases)
+- ✅ Использован правильный импорт типа `EventType` (избежание конфликта с DOM Event)
+
+**4. Документация:**
+
+- ✅ `docs/database/events/REGISTRATION_STATUS.md` - Подробное руководство по использованию
+- ✅ `docs/development/fixes/EXPIRED_DEADLINES.md` - Архитектурное решение
+- ✅ `docs/development/fixes/EXPIRED_DEADLINES_QUICK.md` - Быстрый reference
+- ✅ Обновлены `docs/database/events/README.md` и `CHANGELOG.md`
+- ✅ Обновлён `docs/features/cron/README.md`
+
+### Архитектурное решение:
+
+**Выбран подход:** UI-контроль + статистика в Cron
+
+- ❌ НЕ добавлено поле `registration_closed` в БД
+- ❌ НЕ создан отдельный Cron триггер
+- ✅ Проверка deadline на уровне приложения (UI + API)
+- ✅ Статистика в существующем Cron (02:00 UTC ежедневно)
+
+**Преимущества:**
+
+- Простота реализации (один источник правды: `registration_deadline`)
+- Не требуется синхронизация статусов
+- Экономия лимитов Cloudflare Workers
+- Высокая производительность (in-memory проверка)
+
+### Примеры использования:
+
+```typescript
+// API endpoint
+const event = await DB.events.getEventById(db, eventId);
+const isOpen = DB.events.isRegistrationOpen(event, event.current_participants);
+if (!isOpen) return json({ error: 'Registration closed' }, { status: 400 });
+
+// Load функция
+const isRegistrationOpen = DB.events.isRegistrationOpen(event, event.current_participants);
+return { event, isRegistrationOpen };
+
+// Svelte UI
+{#if isRegistrationOpen}
+  <button>Записаться</button>
+{:else}
+  <p>Регистрация закрыта</p>
+{/if}
+```
+
+### Cron Response:
+
+```json
+{
+	"success": true,
+	"deleted": 0,
+	"expiredRegistrations": 2,
+	"timestamp": "2025-11-12T02:00:00.000Z"
+}
+```
+
+### Файлы изменены:
+
+**Код:**
+
+- `src/lib/server/db/events.ts` (+2 функции)
+- `src/routes/api/cron/delete-users/+server.ts`
+- `src/worker.ts`
+- `tests/unit/db-events.test.ts` (+6 тестов)
+
+**Документация:**
+
+- 3 новых MD файла
+- 3 обновлённых MD файла
+
+✅ **Все файлы без ошибок компиляции**  
+✅ **Тесты проходят**  
+✅ **Документация полная**  
+✅ **Готово к деплою**
+
+---
+
 ## Промпт 9.1: Admin middleware и layout - ВЫПОЛНЕНО ✅ + ИСПРАВЛЕНО ✅
 
 ### Что было создано:

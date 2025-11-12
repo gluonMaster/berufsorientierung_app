@@ -66,7 +66,8 @@
 				{#if !isAuthenticated}
 					<div class="flex justify-center">
 						<Button
-							type="primary"
+							variant="primary"
+							type="button"
 							size="lg"
 							on:click={() => (window.location.href = '/register')}
 						>
@@ -124,7 +125,7 @@
 				</p>
 
 				<!-- Кнопка обновления -->
-				<Button type="secondary" on:click={() => window.location.reload()}>
+				<Button variant="secondary" type="button" on:click={() => window.location.reload()}>
 					{$_('homepage.events.empty.refresh')}
 				</Button>
 			</div>
@@ -136,121 +137,3 @@
 {#if selectedEvent}
 	<EventModal event={selectedEvent} isOpen={isModalOpen} onClose={closeEventModal} />
 {/if}
-
-<style>
-	.container {
-		max-width: 1280px;
-		margin: 0 auto;
-		padding: 2rem 1rem;
-	}
-
-	.hero {
-		text-align: center;
-		padding: 4rem 0;
-	}
-
-	.title {
-		font-size: 3rem;
-		font-weight: 800;
-		color: #1f2937;
-		margin-bottom: 1rem;
-	}
-
-	.subtitle {
-		font-size: 1.25rem;
-		color: #6b7280;
-		margin-bottom: 2rem;
-	}
-
-	.cta-buttons {
-		display: flex;
-		gap: 1rem;
-		justify-content: center;
-		flex-wrap: wrap;
-	}
-
-	.btn {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		padding: 0.75rem 1.5rem;
-		font-size: 1rem;
-		font-weight: 600;
-		border-radius: 0.5rem;
-		text-decoration: none;
-		transition: all 0.2s ease;
-		min-height: 44px;
-	}
-
-	.btn-primary {
-		background-color: #3b82f6;
-		color: white;
-	}
-
-	.btn-primary:hover {
-		background-color: #2563eb;
-	}
-
-	.btn-secondary {
-		background-color: white;
-		color: #374151;
-		border: 2px solid #d1d5db;
-	}
-
-	.btn-secondary:hover {
-		background-color: #f9fafb;
-	}
-
-	.info {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-		gap: 2rem;
-		margin-top: 4rem;
-	}
-
-	.info-card {
-		padding: 2rem;
-		background-color: white;
-		border: 1px solid #e5e7eb;
-		border-radius: 0.75rem;
-		box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-		transition:
-			transform 0.2s ease,
-			box-shadow 0.2s ease;
-	}
-
-	.info-card:hover {
-		transform: translateY(-4px);
-		box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-	}
-
-	.info-card h2 {
-		font-size: 1.5rem;
-		font-weight: 700;
-		color: #1f2937;
-		margin-bottom: 0.75rem;
-	}
-
-	.info-card p {
-		color: #6b7280;
-		line-height: 1.6;
-	}
-
-	@media (max-width: 640px) {
-		.title {
-			font-size: 2rem;
-		}
-
-		.subtitle {
-			font-size: 1rem;
-		}
-
-		.hero {
-			padding: 2rem 0;
-		}
-
-		.info {
-			grid-template-columns: 1fr;
-		}
-	}
-</style>

@@ -28,6 +28,11 @@
 - [I18N_DUPLICATE_KEYS.md](./fixes/I18N_DUPLICATE_KEYS.md) - Устранение дублирующих ключей в переводах
 - [SVELTEKIT_INVALIDATION.md](./fixes/SVELTEKIT_INVALIDATION.md) - Правильное использование invalidateAll в SvelteKit
 - [NEWSLETTER_SELECT_TYPE.md](./fixes/NEWSLETTER_SELECT_TYPE.md) - Исправление типов для select элемента в newsletter форме
+- [TYPESCRIPT_ERRORS_FIX.md](./fixes/TYPESCRIPT_ERRORS_FIX.md) - Миграция Button API (variant vs type) и устранение TS2322 ошибок
+
+### [TYPESCRIPT_ERRORS.md](./TYPESCRIPT_ERRORS.md)
+
+Анализ и решения TypeScript ошибок в проекте.
 
 ---
 

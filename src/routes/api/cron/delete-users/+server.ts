@@ -63,6 +63,13 @@ export async function GET({ request, platform }: RequestEvent) {
 		const deletedCount = await DB.gdpr.processScheduledDeletions(database);
 		console.log(`[CRON] Completed. Deleted ${deletedCount} user(s)`);
 
+		// Проверка истёкших дедлайнов регистрации
+		console.log('[CRON] Checking expired registration deadlines...');
+		const expiredCount = await DB.events.closeExpiredRegistrations(database);
+		if (expiredCount > 0) {
+			console.log(`[CRON] Found ${expiredCount} event(s) with expired registration deadline`);
+		}
+
 		// 3. Логирование системного действия
 		await DB.activityLog.logActivity(
 			database,
@@ -70,6 +77,7 @@ export async function GET({ request, platform }: RequestEvent) {
 			'system_cron_deletion',
 			JSON.stringify({
 				deleted_count: deletedCount,
+				expired_registrations_count: expiredCount,
 				triggered_by: 'cloudflare_cron',
 				cron_schedule: '0 2 * * *', // Каждый день в 02:00 UTC
 			}),
@@ -82,8 +90,9 @@ export async function GET({ request, platform }: RequestEvent) {
 		return json({
 			success: true,
 			deleted: deletedCount,
+			expiredRegistrations: expiredCount,
 			timestamp,
-			message: `Successfully deleted ${deletedCount} user(s)`,
+			message: `Successfully deleted ${deletedCount} user(s), found ${expiredCount} event(s) with expired deadline`,
 		});
 	} catch (error) {
 		console.error('[CRON] Error during scheduled deletion:', error);

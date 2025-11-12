@@ -16,8 +16,9 @@ import {
 	getPastEvents,
 	getAllEvents,
 	getEventWithFields,
+	isRegistrationOpen,
 } from '$lib/server/db/events';
-import type { EventCreateData } from '$lib/types/event';
+import type { EventCreateData, Event as EventType } from '$lib/types/event';
 
 // Mock D1 Database (для реального тестирования нужно использовать Miniflare или Wrangler)
 const mockDb = {} as D1Database;
@@ -184,6 +185,89 @@ describe('Events Database Utilities', () => {
 			// Сортировка DESC (новые первыми)
 			const sortedDesc = [...events].sort((a, b) => b.date.localeCompare(a.date));
 			expect(sortedDesc[0].id).toBe(1);
+		});
+	});
+
+	describe('Registration status checking', () => {
+		it('should return true for open registration', () => {
+			const mockEvent = {
+				id: 1,
+				status: 'active',
+				registration_deadline: new Date(Date.now() + 86400000).toISOString(), // завтра
+				max_participants: 30,
+				current_participants: 10,
+			} as EventType;
+
+			const result = isRegistrationOpen(mockEvent, mockEvent.current_participants);
+			expect(result).toBe(true);
+		});
+
+		it('should return false if deadline expired', () => {
+			const mockEvent = {
+				id: 1,
+				status: 'active',
+				registration_deadline: new Date(Date.now() - 86400000).toISOString(), // вчера
+				max_participants: 30,
+				current_participants: 10,
+			} as EventType;
+
+			const result = isRegistrationOpen(mockEvent, mockEvent.current_participants);
+			expect(result).toBe(false);
+		});
+
+		it('should return false if max participants reached', () => {
+			const mockEvent = {
+				id: 1,
+				status: 'active',
+				registration_deadline: new Date(Date.now() + 86400000).toISOString(), // завтра
+				max_participants: 30,
+				current_participants: 30, // полностью заполнено
+			} as EventType;
+
+			const result = isRegistrationOpen(mockEvent, mockEvent.current_participants);
+			expect(result).toBe(false);
+		});
+
+		it('should return false if event not active', () => {
+			const mockEvent = {
+				id: 1,
+				status: 'cancelled',
+				registration_deadline: new Date(Date.now() + 86400000).toISOString(), // завтра
+				max_participants: 30,
+				current_participants: 10,
+			} as EventType;
+
+			const result = isRegistrationOpen(mockEvent, mockEvent.current_participants);
+			expect(result).toBe(false);
+		});
+
+		it('should return true if max_participants is null (no limit)', () => {
+			const mockEvent = {
+				id: 1,
+				status: 'active',
+				registration_deadline: new Date(Date.now() + 86400000).toISOString(), // завтра
+				max_participants: null, // без лимита
+				current_participants: 100,
+			} as EventType;
+
+			const result = isRegistrationOpen(mockEvent, mockEvent.current_participants);
+			expect(result).toBe(true);
+		});
+
+		it('should handle edge case: deadline exactly now', () => {
+			const now = new Date();
+			const mockEvent = {
+				id: 1,
+				status: 'active',
+				registration_deadline: now.toISOString(), // точно сейчас
+				max_participants: 30,
+				current_participants: 10,
+			} as EventType;
+
+			const result = isRegistrationOpen(mockEvent, mockEvent.current_participants);
+
+			// Deadline точно сейчас считается истёкшим (deadline < now)
+			expect(result).toBe(false);
 		});
 	});
 });

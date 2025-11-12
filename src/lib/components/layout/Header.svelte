@@ -46,8 +46,8 @@
 		user
 			? [{ href: '/api/auth/logout', label: $_('nav.logout'), isLogout: true }]
 			: [
-					{ href: '/login', label: $_('nav.login') },
-					{ href: '/register', label: $_('nav.register') },
+					{ href: '/login', label: $_('nav.login'), isLogout: false },
+					{ href: '/register', label: $_('nav.register'), isLogout: false },
 				]
 	);
 
@@ -103,7 +103,7 @@
 	}
 </script>
 
-<svelte:window on:keydown={handleKeydown} />
+<svelte:window onkeydown={handleKeydown} />
 
 <header class="header">
 	<div class="container">

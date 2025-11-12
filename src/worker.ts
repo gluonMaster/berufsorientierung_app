@@ -47,22 +47,28 @@ export async function scheduled(
 	ctx: ExecutionContext
 ): Promise<void> {
 	try {
-		console.log('[CRON] Starting scheduled user deletions...');
+		console.log('[CRON] Starting scheduled tasks...');
 		console.log(`[CRON] Triggered at: ${new Date(event.scheduledTime).toISOString()}`);
 		console.log(`[CRON] Cron pattern: ${event.cron}`);
 
-		// Выполнить удаление пользователей через GDPR модуль
+		// 1. Выполнить удаление пользователей через GDPR модуль
 		const deleted = await DB.gdpr.processScheduledDeletions(env.DB);
+		console.log(`[CRON] Deleted ${deleted} user(s)`);
 
-		console.log(`[CRON] Completed. Deleted ${deleted} user(s)`);
+		// 2. Проверить истёкшие дедлайны регистрации
+		const expiredCount = await DB.events.closeExpiredRegistrations(env.DB);
+		if (expiredCount > 0) {
+			console.log(`[CRON] Found ${expiredCount} event(s) with expired registration deadline`);
+		}
 
-		// Логировать системное действие в activity_log
+		// 3. Логировать системное действие в activity_log
 		await DB.activityLog.logActivity(
 			env.DB,
 			null, // userId = null (системное действие)
 			'system_cron_deletion',
 			JSON.stringify({
 				deleted_count: deleted,
+				expired_registrations_count: expiredCount,
 				triggered_by: 'cloudflare_cron',
 				cron_schedule: event.cron || '0 2 * * *',
 				scheduled_time: new Date(event.scheduledTime).toISOString(),
@@ -70,7 +76,7 @@ export async function scheduled(
 			undefined // IP address не применим для Cron
 		);
 
-		console.log('[CRON] Successfully logged to activity_log');
+		console.log('[CRON] Successfully completed all tasks and logged to activity_log');
 	} catch (error) {
 		// Логирование ошибки (не прерываем выполнение, чтобы не блокировать будущие Cron'ы)
 		console.error('[CRON] Scheduled error:', error);

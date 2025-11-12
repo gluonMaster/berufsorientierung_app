@@ -233,19 +233,26 @@
 
 			<!-- Прогресс-бар -->
 			<div class="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
-				<div
-					class="h-full transition-all duration-500 rounded-full"
-					class:bg-red-500={event.registeredCount >= event.max_participants}
-					class:bg-orange-500={event.registeredCount >= event.max_participants * 0.8 &&
-						event.registeredCount < event.max_participants}
-					class:bg-yellow-500={event.registeredCount >= event.max_participants * 0.5 &&
-						event.registeredCount < event.max_participants * 0.8}
-					class:bg-green-500={event.registeredCount < event.max_participants * 0.5}
-					style="width: {Math.min(
-						(event.registeredCount / event.max_participants) * 100,
-						100
-					)}%"
-				></div>
+				{#if event.max_participants}
+					<div
+						class="h-full transition-all duration-500 rounded-full"
+						class:bg-red-500={event.registeredCount >= event.max_participants}
+						class:bg-orange-500={event.registeredCount >=
+							event.max_participants * 0.8 &&
+							event.registeredCount < event.max_participants}
+						class:bg-yellow-500={event.registeredCount >=
+							event.max_participants * 0.5 &&
+							event.registeredCount < event.max_participants * 0.8}
+						class:bg-green-500={event.registeredCount < event.max_participants * 0.5}
+						style="width: {Math.min(
+							(event.registeredCount / event.max_participants) * 100,
+							100
+						)}%"
+					></div>
+				{:else}
+					<!-- Безлимитные события - показываем зелёный индикатор -->
+					<div class="h-full bg-green-500 rounded-full" style="width: 100%"></div>
+				{/if}
 			</div>
 
 			<!-- Дедлайн регистрации -->
@@ -288,36 +295,41 @@
 		<div class="flex flex-col sm:flex-row gap-3 pt-4">
 			{#if event.isUserRegistered}
 				<!-- Пользователь уже записан -->
-				<Button type="secondary" fullWidth on:click={onClose}>
+				<Button variant="secondary" type="button" fullWidth on:click={onClose}>
 					{$_('ui.modal.close')}
 				</Button>
 			{:else if !event.isUserRegistered && typeof event.isUserRegistered === 'boolean'}
 				<!-- Пользователь авторизован, но не записан -->
 				{#if canRegister}
-					<Button type="primary" fullWidth on:click={handleRegisterClick}>
+					<Button
+						variant="primary"
+						type="button"
+						fullWidth
+						on:click={handleRegisterClick}
+					>
 						{$_('events.register')}
 					</Button>
-					<Button type="secondary" fullWidth on:click={onClose}>
+					<Button variant="secondary" type="button" fullWidth on:click={onClose}>
 						{$_('ui.modal.close')}
 					</Button>
 				{:else}
-					<Button type="secondary" fullWidth disabled>
+					<Button variant="secondary" type="button" fullWidth disabled>
 						{#if event.isDeadlinePassed}
 							{$_('events.status.deadlinePassed')}
 						{:else}
 							{$_('events.status.full')}
 						{/if}
 					</Button>
-					<Button type="secondary" fullWidth on:click={onClose}>
+					<Button variant="secondary" type="button" fullWidth on:click={onClose}>
 						{$_('ui.modal.close')}
 					</Button>
 				{/if}
 			{:else}
 				<!-- Пользователь не авторизован -->
-				<Button type="primary" fullWidth on:click={handleLoginClick}>
+				<Button variant="primary" type="button" fullWidth on:click={handleLoginClick}>
 					{$_('events.loginToRegister')}
 				</Button>
-				<Button type="secondary" fullWidth on:click={onClose}>
+				<Button variant="secondary" type="button" fullWidth on:click={onClose}>
 					{$_('ui.modal.close')}
 				</Button>
 			{/if}

@@ -600,3 +600,84 @@ export async function getEventWithFields(
 		);
 	}
 }
+
+/**
+ * Закрывает регистрацию на мероприятия с истёкшим дедлайном
+ *
+ * Находит все активные мероприятия, у которых registration_deadline < NOW()
+ * и возвращает их количество для статистики.
+ *
+ * ПРИМЕЧАНИЕ: В приложении просто проверяем deadline при отображении кнопки регистрации.
+ * Эта функция нужна для:
+ * - Статистики (сколько мероприятий с истёкшим дедлайном)
+ * - Логирования
+ * - Потенциального добавления поля registration_closed в будущем
+ *
+ * @param db - D1 Database instance
+ * @returns Количество мероприятий с истёкшим дедлайном
+ * @throws Error если произошла ошибка запроса
+ */
+export async function closeExpiredRegistrations(db: D1Database): Promise<number> {
+	try {
+		const now = new Date().toISOString();
+
+		// Находим все активные мероприятия с истёкшим дедлайном
+		const result = await db
+			.prepare(
+				`SELECT COUNT(*) as count 
+				 FROM events 
+				 WHERE status = 'active' 
+				 AND registration_deadline < ?`
+			)
+			.bind(now)
+			.first<{ count: number }>();
+
+		const count = result?.count || 0;
+
+		if (count > 0) {
+			console.log(`[CRON] Found ${count} events with expired registration deadline`);
+		}
+
+		return count;
+	} catch (error) {
+		console.error('Error checking expired registrations:', error);
+		throw new Error(
+			`Failed to check expired registrations: ${error instanceof Error ? error.message : 'Unknown error'}`
+		);
+	}
+}
+
+/**
+ * Проверяет, открыта ли регистрация на мероприятие
+ *
+ * Регистрация считается закрытой если:
+ * - Мероприятие не в статусе 'active'
+ * - Дедлайн регистрации истёк
+ * - Достигнуто максимальное количество участников (если задано)
+ *
+ * @param event - Мероприятие для проверки
+ * @param currentRegistrations - Текущее количество записавшихся (опционально)
+ * @returns true если регистрация открыта, false если закрыта
+ */
+export function isRegistrationOpen(event: Event, currentRegistrations?: number): boolean {
+	// Проверка 1: Мероприятие должно быть активным
+	if (event.status !== 'active') {
+		return false;
+	}
+
+	// Проверка 2: Дедлайн не должен быть истёкшим (или равным текущему моменту)
+	const now = new Date();
+	const deadline = new Date(event.registration_deadline);
+	if (deadline <= now) {
+		return false;
+	}
+
+	// Проверка 3: Не достигнут лимит участников (если задан)
+	if (event.max_participants !== null && currentRegistrations !== undefined) {
+		if (currentRegistrations >= event.max_participants) {
+			return false;
+		}
+	}
+
+	return true;
+}

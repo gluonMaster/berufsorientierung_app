@@ -2,6 +2,12 @@
 
 Утилиты для работы с мероприятиями в базе данных.
 
+## Связанная документация
+
+- [EVENTFIELDS.md](EVENTFIELDS.md) - Работа с дополнительными полями мероприятий
+- [REGISTRATION_STATUS.md](REGISTRATION_STATUS.md) - Проверка статуса регистрации
+- [CHANGELOG.md](CHANGELOG.md) - История изменений модуля
+
 ## Функции
 
 ### createEvent
@@ -162,6 +168,59 @@ if (eventWithFields) {
 	console.log(eventWithFields.additionalFields); // массив дополнительных полей
 }
 ```
+
+### closeExpiredRegistrations
+
+Проверяет и подсчитывает мероприятия с истёкшим дедлайном регистрации.
+
+**Использование в Cron:**
+
+```typescript
+import { DB, getDB } from '$lib/server/db';
+
+const db = getDB(platform);
+const expiredCount = await DB.events.closeExpiredRegistrations(db);
+console.log(`Found ${expiredCount} events with expired registration deadline`);
+```
+
+**Описание:**
+
+- Находит все активные мероприятия где `registration_deadline < NOW()`
+- Возвращает количество таких мероприятий
+- Используется для статистики и логирования в Cron задачах
+
+**Примечание:** В приложении регистрация контролируется на уровне UI - кнопка регистрации не показывается если дедлайн истёк.
+
+### isRegistrationOpen
+
+Проверяет, открыта ли регистрация на мероприятие.
+
+```typescript
+import { DB } from '$lib/server/db';
+
+const event = await DB.events.getEventById(db, eventId);
+const registrationsCount = 15;
+
+const isOpen = DB.events.isRegistrationOpen(event, registrationsCount);
+
+if (!isOpen) {
+	// Регистрация закрыта
+	console.log('Registration is closed');
+}
+```
+
+**Проверки:**
+
+1. Мероприятие должно быть в статусе `active`
+2. Дедлайн регистрации не должен быть истёкшим
+3. Не достигнут лимит участников (если `max_participants` задан)
+
+**Параметры:**
+
+- `event` - объект мероприятия
+- `currentRegistrations` - текущее количество записавшихся (опционально)
+
+**Возвращает:** `true` если регистрация открыта, `false` если закрыта
 
 ## Обработка ошибок
 
