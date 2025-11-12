@@ -36,7 +36,9 @@ export type ActivityLogActionType =
 	| 'admin_add' // Выдача прав администратора
 	| 'admin_remove' // Отзыв прав администратора
 	| 'admin_export_user_data' // Экспорт данных пользователя администратором
-	| 'bulk_email_sent'; // Массовая рассылка
+	| 'bulk_email_sent' // Массовая рассылка
+	// Системные действия
+	| 'system_cron_deletion'; // Автоматическое удаление через Cloudflare Cron
 
 /**
  * @deprecated Используйте ActivityLogActionType вместо ActivityLogAction

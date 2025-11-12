@@ -32,9 +32,9 @@ binding = "R2_BUCKET"
 bucket_name = "berufsorientierung-qr-codes"
 preview_bucket_name = "berufsorientierung-qr-codes-preview"
 
-# Cron триггер для автоматического удаления профилей (выполняется каждый день в 02:00)
-# [triggers]
-# crons = ["0 2 * * *"]
+# Cron триггер для автоматического удаления профилей (выполняется каждый день в 02:00 UTC)
+[triggers]
+crons = ["0 2 * * *"]
 
 # Секреты (устанавливаются через wrangler secret put)
 # JWT_SECRET
