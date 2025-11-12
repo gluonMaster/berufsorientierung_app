@@ -127,6 +127,54 @@ describe('Auth Utils - JWT Tokens', () => {
 		expect(payload.exp).toBeDefined();
 		expect(payload.exp).toBeGreaterThan(payload.iat!);
 	});
+
+	it('должен использовать алгоритм HS256', async () => {
+		const token = await generateToken(TEST_USER_ID, TEST_EMAIL, TEST_SECRET);
+
+		// Декодируем заголовок токена
+		const [headerBase64] = token.split('.');
+		const header = JSON.parse(atob(headerBase64));
+
+		// jose использует алгоритм HS256
+		expect(header.alg).toBe('HS256');
+		// Поле typ опционально в jose и может отсутствовать
+	});
+
+	it('должен устанавливать exp на 7 дней вперёд', async () => {
+		const token = await generateToken(TEST_USER_ID, TEST_EMAIL, TEST_SECRET);
+		const payload = decodeJwt(token);
+
+		const expectedExpiry = payload.iat! + 7 * 24 * 60 * 60; // 7 дней в секундах
+		expect(payload.exp).toBe(expectedExpiry);
+	});
+
+	it('должен отклонять истёкший токен', async () => {
+		// Создаём токен с истёкшим сроком (exp в прошлом)
+		// Для этого нужно создать токен вручную с устаревшим exp
+		const { SignJWT } = await import('jose');
+
+		const key = await crypto.subtle.importKey(
+			'raw',
+			new TextEncoder().encode(TEST_SECRET),
+			{ name: 'HMAC', hash: 'SHA-256' },
+			false,
+			['sign']
+		);
+
+		const now = Math.floor(Date.now() / 1000);
+		const expiredTime = now - 3600; // 1 час назад
+
+		const expiredToken = await new SignJWT({ userId: TEST_USER_ID, email: TEST_EMAIL })
+			.setProtectedHeader({ alg: 'HS256' })
+			.setIssuedAt(expiredTime - 86400) // Выпущен 1 день назад
+			.setExpirationTime(expiredTime) // Истёк 1 час назад
+			.sign(key);
+
+		// Пытаемся проверить истёкший токен
+		const payload = await verifyToken(expiredToken, TEST_SECRET);
+
+		expect(payload).toBeNull(); // Токен должен быть отклонён
+	});
 });
 
 describe('Auth Utils - Cookie Management', () => {
