@@ -8,7 +8,7 @@
 	import favicon from '$lib/assets/favicon.svg';
 	import { onMount } from 'svelte';
 	import { initializeI18n, isI18nInitialized } from '$lib/stores/language';
-	import { waitLocale, _ } from 'svelte-i18n';
+	import { waitLocale, locale } from 'svelte-i18n';
 	import { Header, Footer } from '$lib/components/layout';
 
 	// Данные из +layout.server.ts
@@ -17,8 +17,15 @@
 	// Пользователь из server load
 	const user = $derived(data?.user || null);
 
+	// Язык с сервера
+	const serverLocale = $derived((data as any)?.locale || 'de');
+
 	// Инициализация i18n при монтировании
 	onMount(async () => {
+		// Используем locale с сервера как начальный
+		if (serverLocale) {
+			locale.set(serverLocale);
+		}
 		await initializeI18n();
 		await waitLocale();
 	});
@@ -55,7 +62,7 @@
 {:else}
 	<div class="loading-screen">
 		<div class="spinner"></div>
-		<p>{$_('common.loading')}</p>
+		<p>Laden...</p>
 	</div>
 {/if}
 

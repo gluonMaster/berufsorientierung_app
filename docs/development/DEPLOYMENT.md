@@ -173,7 +173,7 @@ preview_bucket_name = "berufsorientierung-qr-codes-preview"
 Сохраните Public URL для следующего шага (добавление секретов):
 
 ```
-https://pub-xxxxx.r2.dev
+https://pub-39e255af03de4d09a88851b299e3bf52.r2.dev
 ```
 
 ⚠️ **ОБЯЗАТЕЛЬНО:** Публичный URL нужен для отображения QR-кодов в email. Он будет добавлен в secrets как `R2_PUBLIC_URL`.
@@ -392,6 +392,7 @@ wrangler secret put CRON_SECRET
 ```
 
 ⚠️ **Сохраните значение!** Оно понадобится для тестирования HTTP fallback endpoint (см. Шаг 8.7).
+7xHLcUba2Vqp40iuQvJwkZFP3z6fsIB8
 
 ### 5.6. Setup Token (для создания первого админа)
 
@@ -401,6 +402,8 @@ wrangler secret put CRON_SECRET
 wrangler secret put SETUP_TOKEN
 # Введите случайную строку (сохраните в надежном месте)
 ```
+
+SolomonWise-11!
 
 ⚠️ **ВАЖНО:** Этот токен используется только для тестирования email endpoint. После production его можно удалить.
 

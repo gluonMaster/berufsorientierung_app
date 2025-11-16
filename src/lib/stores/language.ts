@@ -129,6 +129,18 @@ export async function initializeI18n(): Promise<void> {
 		return; // Already initialized
 	}
 
+	// На сервере (SSR) устанавливаем дефолтный язык без загрузки переводов
+	if (!browser) {
+		init({
+			fallbackLocale: DEFAULT_LANGUAGE,
+			initialLocale: DEFAULT_LANGUAGE,
+		});
+		currentLanguage.set(DEFAULT_LANGUAGE);
+		locale.set(DEFAULT_LANGUAGE);
+		isI18nInitialized.set(true);
+		return;
+	}
+
 	const preferredLanguage = detectPreferredLanguage();
 
 	// Load all translations (for instant switching later)

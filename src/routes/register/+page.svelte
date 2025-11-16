@@ -38,6 +38,9 @@
 	let showPassword = false;
 	let showPasswordConfirm = false;
 
+	// Ссылка на Turnstile компонент для сброса
+	let turnstileComponent: any;
+
 	// Вычисляемое свойство: возраст пользователя
 	let userAge = -1;
 	$: {
@@ -125,6 +128,11 @@
 			const result = await response.json();
 
 			if (!response.ok) {
+				// Сбрасываем Turnstile виджет после ошибки (токен использован)
+				if (turnstileComponent?.reset) {
+					turnstileComponent.reset();
+				}
+
 				// Обработка ошибок с сервера
 				if (result.errors && Array.isArray(result.errors)) {
 					// Ошибки валидации
@@ -158,6 +166,11 @@
 			// Редирект в профиль
 			await goto('/profile');
 		} catch (err: any) {
+			// Сбрасываем Turnstile виджет после ошибки
+			if (turnstileComponent?.reset) {
+				turnstileComponent.reset();
+			}
+
 			if (err.errors) {
 				// Ошибки валидации Zod
 				err.errors.forEach((error: any) => {
@@ -642,7 +655,11 @@
 
 				<!-- Cloudflare Turnstile (защита от ботов) -->
 				{#if data.turnstileSiteKey}
-					<Turnstile siteKey={data.turnstileSiteKey} action="register" />
+					<Turnstile
+						bind:this={turnstileComponent}
+						siteKey={data.turnstileSiteKey}
+						action="register"
+					/>
 				{/if}
 
 				<!-- Кнопки действий -->

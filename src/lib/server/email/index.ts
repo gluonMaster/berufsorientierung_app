@@ -87,47 +87,39 @@ function parseEmailAddress(emailString: string): { email: string; name?: string 
 
 /**
  * Получение DKIM конфигурации из environment variables
+ * Форматирует приватный ключ для MailChannels API
  */
 function getDKIMConfig(env: App.Platform['env']): DKIMConfig | null {
 	const domain = env.DKIM_DOMAIN;
 	const selector = env.DKIM_SELECTOR;
-	const privateKey = env.DKIM_PRIVATE_KEY;
+	let privateKey = env.DKIM_PRIVATE_KEY;
 
 	if (!domain || !selector || !privateKey) {
+		console.warn('[Email] DKIM not configured - emails may be marked as spam');
 		return null;
 	}
 
-	return { domain, selector, privateKey };
+	// MailChannels требует ключ БЕЗ заголовков BEGIN/END и в одну строку с \n
+	// Удаляем заголовки и лишние пробелы
+	privateKey = privateKey
+		.replace(/-----BEGIN (RSA )?PRIVATE KEY-----/g, '')
+		.replace(/-----END (RSA )?PRIVATE KEY-----/g, '')
+		.replace(/\\n/g, '\n') // Заменяем экранированные \n на настоящие
+		.trim();
+
+	// Убираем все переносы строк и пробелы, затем разбиваем на строки по 64 символа
+	// и склеиваем обратно с \n (стандарт PEM формата)
+	const cleanKey = privateKey.replace(/\s+/g, '');
+	const formattedKey = cleanKey.match(/.{1,64}/g)?.join('\n') || cleanKey;
+
+	return { domain, selector, privateKey: formattedKey };
 }
 
 /**
- * Отправка одиночного email через MailChannels
- *
- * @param to - Email получателя
- * @param subject - Тема письма
- * @param text - Текст письма (plain text)
- * @param env - Environment variables (Cloudflare Workers)
- *
- * ⚠️ ВАЖНО: env параметр обязателен (Cloudflare Workers best practice)
- * В Workers окружении нет глобального process.env, поэтому env передаётся явно
- * через event.platform.env из RequestEvent. Это делает функцию чистой и тестируемой.
- *
- * @returns Promise<void>
- *
- * @throws Error если отправка не удалась
- *
- * @example
- * // В API route (SvelteKit)
- * export async function POST({ platform }: RequestEvent) {
- *   await sendEmail(
- *     'user@example.com',
- *     'Welcome!',
- *     'Hello, welcome to our platform!',
- *     platform!.env
- *   );
- * }
+ * Отправка email через MailChannels API
+ * Внутренняя функция для MailChannels провайдера
  */
-export async function sendEmail(
+async function sendEmailViaMailChannels(
 	to: string,
 	subject: string,
 	text: string,
@@ -200,6 +192,129 @@ export async function sendEmail(
 		console.error('[Email] Failed to send email:', error);
 		throw error;
 	}
+}
+
+/**
+ * Отправка email через Resend API
+ * Внутренняя функция для Resend провайдера
+ */
+async function sendEmailViaResend(
+	to: string,
+	subject: string,
+	text: string,
+	env: App.Platform['env']
+): Promise<void> {
+	const RESEND_ENDPOINT = 'https://api.resend.com/emails';
+
+	// Проверка наличия API ключа
+	if (!env.RESEND_API_KEY) {
+		throw new Error('[Email][Resend] RESEND_API_KEY not configured');
+	}
+
+	// Парсинг и валидация email получателя
+	const toAddress = parseEmailAddress(to);
+	const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+	if (!emailRegex.test(toAddress.email)) {
+		console.warn('[Email][Resend] Invalid email format:', toAddress.email);
+		throw new Error(
+			`[Email][Resend] Некорректный формат email адреса получателя: ${toAddress.email}`
+		);
+	}
+
+	// Формирование payload для Resend API
+	const payload = {
+		from: env.EMAIL_FROM, // Resend принимает строку "Name <email@example.com>"
+		to: [toAddress.email], // Массив из одного email без имени
+		subject,
+		text,
+	};
+
+	// Отправка через Resend
+	try {
+		const response = await fetch(RESEND_ENDPOINT, {
+			method: 'POST',
+			headers: {
+				Authorization: `Bearer ${env.RESEND_API_KEY}`,
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify(payload),
+		});
+
+		if (!response.ok) {
+			const errorText = await response.text();
+			console.error('[Email][Resend] Resend error:', {
+				status: response.status,
+				statusText: response.statusText,
+				body: errorText,
+				to: toAddress.email,
+				subject,
+			});
+			throw new Error(
+				`Failed to send email via Resend: ${response.status} ${response.statusText}`
+			);
+		}
+
+		console.log('[Email][Resend] Successfully sent to:', toAddress.email);
+	} catch (error) {
+		console.error('[Email][Resend] Failed to send email:', error);
+		throw error;
+	}
+}
+
+/**
+ * Отправка одиночного email
+ *
+ * Универсальная функция отправки, которая автоматически выбирает провайдера
+ * на основе переменной окружения EMAIL_PROVIDER.
+ *
+ * @param to - Email получателя
+ * @param subject - Тема письма
+ * @param text - Текст письма (plain text)
+ * @param env - Environment variables (Cloudflare Workers)
+ *
+ * ⚠️ ВАЖНО: env параметр обязателен (Cloudflare Workers best practice)
+ * В Workers окружении нет глобального process.env, поэтому env передаётся явно
+ * через event.platform.env из RequestEvent. Это делает функцию чистой и тестируемой.
+ *
+ * @returns Promise<void>
+ *
+ * @throws Error если отправка не удалась
+ *
+ * Поддерживаемые провайдеры (env.EMAIL_PROVIDER):
+ * - mailchannels (по умолчанию) - через Cloudflare Workers
+ * - resend - через Resend API
+ *
+ * @example
+ * // В API route (SvelteKit)
+ * export async function POST({ platform }: RequestEvent) {
+ *   await sendEmail(
+ *     'user@example.com',
+ *     'Welcome!',
+ *     'Hello, welcome to our platform!',
+ *     platform!.env
+ *   );
+ * }
+ */
+export async function sendEmail(
+	to: string,
+	subject: string,
+	text: string,
+	env: App.Platform['env']
+): Promise<void> {
+	// Переключатель провайдера email на основе настроек окружения
+	const provider = (env.EMAIL_PROVIDER || 'mailchannels').toLowerCase();
+
+	if (provider === 'mailchannels') {
+		return sendEmailViaMailChannels(to, subject, text, env);
+	}
+
+	if (provider === 'resend') {
+		return sendEmailViaResend(to, subject, text, env);
+	}
+
+	// Неподдерживаемый провайдер
+	throw new Error(`[Email] Unsupported EMAIL_PROVIDER: ${provider}`);
 }
 
 /**

@@ -22,6 +22,16 @@ declare global {
 			csrfToken?: string;
 		}
 
+		// Данные из root layout
+		interface PageData {
+			user?: {
+				id: number;
+				email: string;
+				isAdmin: boolean;
+			} | null;
+			locale?: string;
+		}
+
 		// Cloudflare Workers bindings
 		interface Platform {
 			env: {
@@ -36,6 +46,7 @@ declare global {
 				DKIM_DOMAIN?: string;
 				DKIM_SELECTOR?: string;
 				DKIM_PRIVATE_KEY?: string;
+				RESEND_API_KEY?: string; // API-ключ Resend для отправки почты (альтернатива MailChannels)
 				R2_PUBLIC_URL: string;
 				SETUP_TOKEN?: string;
 				CRON_SECRET?: string;

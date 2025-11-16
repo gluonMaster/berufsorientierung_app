@@ -74,9 +74,12 @@ export async function POST(event: RequestEvent) {
 			await verifyTurnstile(platform?.env, turnstileToken, ipAddress || undefined);
 		} catch (error) {
 			console.error('[Register] Turnstile verification failed:', error);
-			throw errors.forbidden(
-				error instanceof Error ? error.message : 'Turnstile verification failed'
-			);
+			// Дружественное сообщение об ошибке Turnstile
+			const errorMsg =
+				error instanceof Error && error.message.includes('timeout-or-duplicate')
+					? 'Проверка истекла. Пожалуйста, попробуйте ещё раз'
+					: 'Не удалось подтвердить, что вы не робот. Попробуйте обновить страницу';
+			throw errors.forbidden(errorMsg);
 		}
 
 		// Шаг 2: Валидируем данные через Zod схему

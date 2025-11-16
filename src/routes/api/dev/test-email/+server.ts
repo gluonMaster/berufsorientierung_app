@@ -104,10 +104,13 @@ export async function POST({ request, platform }: RequestEvent) {
 		}
 
 		// Шаг 3: Отправка email
+		// Определяем текущий email-провайдер из настроек окружения
+		const provider = (platform?.env?.EMAIL_PROVIDER || 'mailchannels').toLowerCase();
+
 		console.log('[Test Email] Sending test email:', {
 			to,
 			subject,
-			provider: platform?.env?.EMAIL_PROVIDER || 'mailchannels',
+			provider, // Текущий email-провайдер (mailchannels/resend)
 		});
 
 		await sendEmail(to, subject, text, platform!.env);
@@ -117,7 +120,7 @@ export async function POST({ request, platform }: RequestEvent) {
 			{
 				success: true,
 				message: 'Test email sent successfully',
-				provider: platform?.env?.EMAIL_PROVIDER || 'mailchannels',
+				provider, // Текущий email-провайдер
 				to,
 				subject,
 			},

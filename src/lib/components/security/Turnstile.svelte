@@ -35,6 +35,19 @@
 	let widgetId: string | undefined;
 
 	/**
+	 * Экспортируем функцию сброса виджета для родительского компонента
+	 */
+	export function reset() {
+		if (widgetId !== undefined && window.turnstile) {
+			try {
+				window.turnstile.reset(widgetId);
+			} catch (error) {
+				console.error('Error resetting Turnstile widget:', error);
+			}
+		}
+	}
+
+	/**
 	 * Загружает Turnstile SDK скрипт
 	 */
 	function loadTurnstileScript(): Promise<void> {

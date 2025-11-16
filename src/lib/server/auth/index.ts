@@ -84,14 +84,8 @@ export async function generateToken(
 	secret: string
 ): Promise<string> {
 	try {
-		// Создаём криптографический ключ из секрета
-		const key = await crypto.subtle.importKey(
-			'raw',
-			new TextEncoder().encode(secret),
-			{ name: 'HMAC', hash: 'SHA-256' },
-			false,
-			['sign']
-		);
+		// jose ожидает Uint8Array для секрета (не CryptoKey!)
+		const secretKey = new TextEncoder().encode(secret);
 
 		// Текущее время и время истечения
 		const now = Math.floor(Date.now() / 1000);
@@ -102,7 +96,7 @@ export async function generateToken(
 			.setProtectedHeader({ alg: JWT_ALGORITHM })
 			.setIssuedAt(now)
 			.setExpirationTime(exp)
-			.sign(key);
+			.sign(secretKey);
 
 		return token;
 	} catch (error) {
@@ -130,17 +124,11 @@ export async function verifyToken(
 	secret: string
 ): Promise<{ userId: number; email: string } | null> {
 	try {
-		// Создаём криптографический ключ из секрета
-		const key = await crypto.subtle.importKey(
-			'raw',
-			new TextEncoder().encode(secret),
-			{ name: 'HMAC', hash: 'SHA-256' },
-			false,
-			['verify']
-		);
+		// jose ожидает Uint8Array для секрета (не CryptoKey!)
+		const secretKey = new TextEncoder().encode(secret);
 
 		// Проверяем и декодируем токен
-		const { payload } = await jwtVerify(token, key);
+		const { payload } = await jwtVerify(token, secretKey);
 
 		// Валидируем структуру payload
 		if (typeof payload.userId === 'number' && typeof payload.email === 'string') {
