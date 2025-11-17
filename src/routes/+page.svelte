@@ -52,7 +52,7 @@
 
 <main class="min-h-screen bg-gray-50">
 	<!-- Hero секция -->
-	<section class="bg-gradient-to-br from-blue-600 to-blue-800 text-white">
+	<section class="bg-linear-to-br from-blue-600 to-blue-800 text-white">
 		<div class="container mx-auto px-4 py-12 sm:py-16 lg:py-20">
 			<div class="max-w-3xl mx-auto text-center">
 				<h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">

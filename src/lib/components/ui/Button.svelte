@@ -7,17 +7,13 @@
 	export let size: 'sm' | 'md' | 'lg' = 'md';
 	export let fullWidth = false;
 
+	// Дополнительные классы через class prop
+	let className = '';
+	export { className as class };
+
 	// Базовые стили кнопки
 	const baseClasses =
 		'inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
-
-	// Стили в зависимости от варианта кнопки
-	const variantClasses = {
-		primary: 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500 active:bg-blue-800',
-		secondary:
-			'bg-gray-200 text-gray-900 hover:bg-gray-300 focus:ring-gray-500 active:bg-gray-400',
-		danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 active:bg-red-800',
-	};
 
 	// Размеры кнопки (минимум 44px для тач-экранов)
 	const sizeClasses = {
@@ -29,14 +25,31 @@
 	// Ширина кнопки
 	const widthClass = fullWidth ? 'w-full' : '';
 
-	// Объединение всех классов
-	$: classes = `${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${widthClass}`;
-
 	// Автоматическая блокировка при загрузке
 	$: isDisabled = disabled || loading;
+
+	// Фильтруем class из restProps, чтобы не было дублирования
+	$: restPropsWithoutClass = Object.fromEntries(
+		Object.entries($$restProps).filter(([key]) => key !== 'class')
+	);
 </script>
 
-<button class={classes} disabled={isDisabled} aria-busy={loading} {type} on:click {...$$restProps}>
+<!-- Явные классы для каждого варианта, чтобы Tailwind видел их при tree-shaking -->
+<button
+	class={`${baseClasses} ${sizeClasses[size]} ${widthClass}
+		${variant === 'primary' ? 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500 active:bg-blue-800' : ''}
+		${variant === 'secondary' ? 'bg-gray-200 text-gray-900 hover:bg-gray-300 focus:ring-gray-500 active:bg-gray-400' : ''}
+		${variant === 'danger' ? 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 active:bg-red-800' : ''}
+		${className}
+	`
+		.trim()
+		.replace(/\s+/g, ' ')}
+	disabled={isDisabled}
+	aria-busy={loading}
+	{type}
+	on:click
+	{...restPropsWithoutClass}
+>
 	{#if loading}
 		<!-- Спиннер загрузки -->
 		<svg
