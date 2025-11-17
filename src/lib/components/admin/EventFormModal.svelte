@@ -19,43 +19,96 @@
 	const languages = ['de', 'en', 'ru', 'uk'] as const;
 	let activeLanguage: (typeof languages)[number] = 'de';
 
-	// Форма мероприятия
+	/**
+	 * Привести дату к формату для datetime-local input (YYYY-MM-DDTHH:MM)
+	 */
+	function formatDateTimeForInput(value: string | null | undefined): string {
+		if (!value) return '';
+		try {
+			const date = new Date(value);
+			if (isNaN(date.getTime())) {
+				// если в БД уже лежит строка вида "YYYY-MM-DDTHH:MM", просто возвращаем первые 16 символов
+				return value.slice(0, 16);
+			}
+			// ISO‑строка: "YYYY-MM-DDTHH:MM:SS.sssZ" → берём "YYYY-MM-DDTHH:MM"
+			return date.toISOString().slice(0, 16);
+		} catch {
+			return '';
+		}
+	}
+
+	// Форма мероприятия (начальная инициализация для создания)
 	let formData = {
 		// Мультиязычные поля (вкладки)
 		title: {
-			de: event?.title_de || '',
-			en: event?.title_en || '',
-			ru: event?.title_ru || '',
-			uk: event?.title_uk || '',
+			de: '',
+			en: '',
+			ru: '',
+			uk: '',
 		},
 		description: {
-			de: event?.description_de || '',
-			en: event?.description_en || '',
-			ru: event?.description_ru || '',
-			uk: event?.description_uk || '',
+			de: '',
+			en: '',
+			ru: '',
+			uk: '',
 		},
 		requirements: {
-			de: event?.requirements_de || '',
-			en: event?.requirements_en || '',
-			ru: event?.requirements_ru || '',
-			uk: event?.requirements_uk || '',
+			de: '',
+			en: '',
+			ru: '',
+			uk: '',
 		},
 		location: {
-			de: event?.location_de || '',
-			en: event?.location_en || '',
-			ru: event?.location_ru || '',
-			uk: event?.location_uk || '',
+			de: '',
+			en: '',
+			ru: '',
+			uk: '',
 		},
 
 		// Основные поля
-		date: event?.date || '',
-		registration_deadline: event?.registration_deadline || '',
-		max_participants: event?.max_participants || null,
+		date: '',
+		registration_deadline: '',
+		max_participants: null as number | null,
 
 		// Ссылки на мессенджеры
-		telegram_link: event?.telegram_link || '',
-		whatsapp_link: event?.whatsapp_link || '',
+		telegram_link: '',
+		whatsapp_link: '',
 	};
+
+	// Реактивное заполнение formData при открытии модалки в режиме edit
+	$: if (mode === 'edit' && event) {
+		formData = {
+			title: {
+				de: event.title_de || '',
+				en: event.title_en || '',
+				ru: event.title_ru || '',
+				uk: event.title_uk || '',
+			},
+			description: {
+				de: event.description_de || '',
+				en: event.description_en || '',
+				ru: event.description_ru || '',
+				uk: event.description_uk || '',
+			},
+			requirements: {
+				de: event.requirements_de || '',
+				en: event.requirements_en || '',
+				ru: event.requirements_ru || '',
+				uk: event.requirements_uk || '',
+			},
+			location: {
+				de: event.location_de || '',
+				en: event.location_en || '',
+				ru: event.location_ru || '',
+				uk: event.location_uk || '',
+			},
+			date: formatDateTimeForInput(event.date),
+			registration_deadline: formatDateTimeForInput(event.registration_deadline),
+			max_participants: event.max_participants ?? null,
+			telegram_link: event.telegram_link || '',
+			whatsapp_link: event.whatsapp_link || '',
+		};
+	}
 
 	// Дополнительные поля для формы регистрации
 	interface AdditionalFieldUI {
@@ -74,6 +127,13 @@
 		placeholder_uk: string;
 	}
 	let additionalFields: AdditionalFieldUI[] = [];
+	let additionalFieldsLoaded = false;
+
+	// Реактивная загрузка дополнительных полей при редактировании
+	$: if (mode === 'edit' && event?.id && !additionalFieldsLoaded) {
+		additionalFieldsLoaded = true;
+		loadAdditionalFields();
+	}
 
 	// Загрузка дополнительных полей при редактировании
 	onMount(async () => {
@@ -316,6 +376,8 @@
 	function handleClose() {
 		onClose();
 		dispatch('close');
+		additionalFields = [];
+		additionalFieldsLoaded = false;
 	}
 
 	// Состояние
