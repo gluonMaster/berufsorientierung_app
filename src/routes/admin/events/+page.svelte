@@ -188,6 +188,16 @@
 
 		if (!response.ok) {
 			const errorData = await response.json();
+
+			// Если это ошибка валидации с деталями - форматируем читаемо
+			if (errorData.error === 'Validation failed' && errorData.details) {
+				const detailsMessage = errorData.details
+					.map((d: any) => `${d.field}: ${d.message}`)
+					.join('; ');
+				throw new Error(detailsMessage);
+			}
+
+			// Иначе показываем общее сообщение об ошибке
 			throw new Error(errorData.message || $_('admin.events.errors.saveFailed'));
 		}
 
@@ -206,6 +216,16 @@
 
 		if (!response.ok) {
 			const errorData = await response.json();
+
+			// Если это ошибка валидации с деталями - форматируем читаемо
+			if (errorData.error === 'Validation failed' && errorData.details) {
+				const detailsMessage = errorData.details
+					.map((d: any) => `${d.field}: ${d.message}`)
+					.join('; ');
+				throw new Error(detailsMessage);
+			}
+
+			// Иначе показываем общее сообщение об ошибке
 			throw new Error(errorData.message || $_('admin.events.errors.saveFailed'));
 		}
 

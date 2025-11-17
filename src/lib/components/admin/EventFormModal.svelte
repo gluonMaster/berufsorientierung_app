@@ -291,8 +291,9 @@
 				date: formData.date,
 				registration_deadline: formData.registration_deadline,
 				max_participants: formData.max_participants || null,
-				telegram_link: formData.telegram_link.trim() || null,
-				whatsapp_link: formData.whatsapp_link.trim() || null,
+				// ✅ ИСПРАВЛЕНО: отправляем пустую строку вместо null для соответствия urlSchema
+				telegram_link: formData.telegram_link.trim(),
+				whatsapp_link: formData.whatsapp_link.trim(),
 				additional_fields: processedAdditionalFields,
 			};
 

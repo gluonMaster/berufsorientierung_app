@@ -94,6 +94,12 @@
 		"accountBlocked": "Your account has been blocked. Please contact us"
 	},
 	"events": {
+		"page": {
+			"title": "Events",
+			"description": "Overview of all available career orientation events",
+			"heading": "All Events",
+			"subtitle": "Find the right event for your career orientation"
+		},
 		"upcomingEvents": "Upcoming Events",
 		"pastEvents": "Past Events",
 		"myEvents": "My Events",

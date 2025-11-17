@@ -7,9 +7,7 @@
 
 import type { ServerLoad } from '@sveltejs/kit';
 import type { User } from '$lib/types';
-import { extractTokenFromRequest, verifyToken } from '$lib/server/auth';
 import { getUserById } from '$lib/server/db/users';
-import { isAdmin } from '$lib/server/db/admin';
 
 /**
  * Тип данных, возвращаемых layout
@@ -28,7 +26,7 @@ const DEFAULT_LANGUAGE = 'de';
  * Проверяет авторизацию пользователя и возвращает его данные
  * НЕ редиректит неавторизованных - это публичное приложение
  */
-export const load: ServerLoad = async ({ request, platform, cookies }) => {
+export const load: ServerLoad = async ({ locals, platform, cookies }) => {
 	// Шаг 1: Проверяем cookie с языком
 	const storedLanguage = cookies.get('berufsorientierung_language');
 	let locale: string;
@@ -41,79 +39,59 @@ export const load: ServerLoad = async ({ request, platform, cookies }) => {
 		locale = DEFAULT_LANGUAGE;
 	}
 
-	// Извлекаем токен из cookies
-	const token = extractTokenFromRequest(request);
-
-	// Если токена нет - возвращаем null user с языком из cookie или дефолтным
-	if (!token) {
-		return {
-			user: null,
-			locale,
-		} satisfies RootLayoutData;
-	}
-
-	try {
-		// Проверяем JWT токен
-		const jwtSecret = platform?.env?.JWT_SECRET;
-		if (!jwtSecret) {
-			console.error('JWT_SECRET не настроен');
-			return { user: null, locale } satisfies RootLayoutData;
-		}
-
-		const payload = await verifyToken(token, jwtSecret);
-		if (!payload) {
-			// Токен невалидный или просрочен
-			return { user: null, locale } satisfies RootLayoutData;
-		}
-
-		// Получаем полные данные пользователя из БД
+	// Шаг 2: Проверяем, есть ли пользователь в locals (заполнен в hooks.server.ts)
+	if (locals.user) {
+		// Используем уже готовые данные из hooks.server.ts
+		// Но нам нужны полные данные пользователя (включая preferred_language)
+		// Поэтому загружаем полный профиль из БД
 		const db = platform?.env?.DB;
 		if (!db) {
 			console.error('DB не настроена');
 			return { user: null, locale } satisfies RootLayoutData;
 		}
 
-		const user = await getUserById(db, payload.userId);
-		if (!user) {
-			// Пользователь не найден (возможно удалён)
+		try {
+			const fullUser = await getUserById(db, locals.user.id);
+			if (!fullUser) {
+				// Пользователь не найден (возможно удалён)
+				return { user: null, locale } satisfies RootLayoutData;
+			}
+
+			// Проверяем заблокирован ли пользователь (дополнительная проверка)
+			if (fullUser.is_blocked) {
+				return { user: null, locale } satisfies RootLayoutData;
+			}
+
+			// Если cookie не было, но у пользователя есть preferred_language - используем его
+			if (!storedLanguage && fullUser.preferred_language) {
+				locale = fullUser.preferred_language;
+
+				// Сохраняем язык пользователя в cookie для следующих запросов
+				cookies.set('berufsorientierung_language', locale, {
+					path: '/',
+					maxAge: 60 * 60 * 24 * 365, // 1 год
+					sameSite: 'lax',
+				});
+			}
+
+			// Возвращаем данные пользователя с флагом admin из locals (уже проверен в hooks)
+			return {
+				user: {
+					...fullUser,
+					isAdmin: locals.user.isAdmin,
+				},
+				locale,
+			} satisfies RootLayoutData;
+		} catch (error) {
+			console.error('Ошибка загрузки полного профиля пользователя:', error);
 			return { user: null, locale } satisfies RootLayoutData;
 		}
-
-		// Проверяем заблокирован ли пользователь
-		if (user.is_blocked) {
-			// Пользователь заблокирован - не возвращаем данные
-			return { user: null, locale } satisfies RootLayoutData;
-		}
-
-		// Шаг 2: Если cookie не было, но у пользователя есть preferred_language - используем его
-		if (!storedLanguage && user.preferred_language) {
-			locale = user.preferred_language;
-
-			// Сохраняем язык пользователя в cookie для следующих запросов
-			cookies.set('berufsorientierung_language', locale, {
-				path: '/',
-				maxAge: 60 * 60 * 24 * 365, // 1 год
-				sameSite: 'lax',
-			});
-		}
-
-		// Проверяем является ли пользователь админом
-		const userIsAdmin = await isAdmin(db, user.id);
-
-		// Возвращаем данные пользователя с флагом admin и правильным locale
-		return {
-			user: {
-				...user,
-				isAdmin: userIsAdmin,
-			},
-			locale,
-		} satisfies RootLayoutData;
-	} catch (error) {
-		// При любой ошибке возвращаем null user
-		console.error('Ошибка загрузки данных пользователя:', error);
-		return {
-			user: null,
-			locale,
-		} satisfies RootLayoutData;
 	}
+
+	// Шаг 3: Если locals.user нет - пользователь не авторизован
+	// Возвращаем null user с языком из cookie или дефолтным
+	return {
+		user: null,
+		locale,
+	} satisfies RootLayoutData;
 };

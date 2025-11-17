@@ -10,6 +10,7 @@
 	import { onMount } from 'svelte';
 	import { initializeI18n, isI18nInitialized } from '$lib/stores/language';
 	import { waitLocale, locale } from 'svelte-i18n';
+	import { page } from '$app/stores';
 	import { Header, Footer } from '$lib/components/layout';
 	import { setUser, clearUser } from '$lib/stores/user';
 
@@ -21,6 +22,10 @@
 
 	// Язык с сервера
 	const serverLocale = $derived((data as any)?.locale || 'de');
+
+	// Определяем, находимся ли мы в админ-панели
+	// Если путь начинается с /admin - скрываем Header и Footer
+	const isAdminRoute = $derived($page.url.pathname.startsWith('/admin'));
 
 	// Реактивная синхронизация серверного пользователя с клиентским store
 	// SSR-safe: не использует window или другие browser-only API
@@ -56,9 +61,12 @@
 </svelte:head>
 
 {#if $isI18nInitialized}
-	<div class="app-layout">
+	<div class="app-layout" class:admin-mode={isAdminRoute}>
 		<!-- Header с данными пользователя (для SSR синхронизации) -->
-		<Header user={serverUser} />
+		<!-- Скрываем Header и Footer для админ-панели -->
+		{#if !isAdminRoute}
+			<Header user={serverUser} />
+		{/if}
 
 		<!-- Основной контент -->
 		<main class="main-content">
@@ -66,7 +74,9 @@
 		</main>
 
 		<!-- Footer -->
-		<Footer />
+		{#if !isAdminRoute}
+			<Footer />
+		{/if}
 
 		<!-- Toast Container для уведомлений -->
 		<div class="toast-container">
@@ -88,10 +98,20 @@
 		min-height: 100vh;
 	}
 
+	/* Для админ-панели убираем flex-направление (admin-layout управляет своей сеткой) */
+	.app-layout.admin-mode {
+		display: block;
+	}
+
 	/* Main Content */
 	.main-content {
 		flex: 1;
 		width: 100%;
+	}
+
+	/* Для админ-режима main-content не должен иметь flex */
+	.admin-mode .main-content {
+		flex: none;
 	}
 
 	/* Toast Container */

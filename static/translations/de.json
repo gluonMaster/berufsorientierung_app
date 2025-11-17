@@ -96,6 +96,12 @@
 		"accountBlocked": "Ihr Konto wurde gesperrt. Bitte kontaktieren Sie uns"
 	},
 	"events": {
+		"page": {
+			"title": "Veranstaltungen",
+			"description": "Übersicht aller verfügbaren Veranstaltungen zur beruflichen Orientierung",
+			"heading": "Alle Veranstaltungen",
+			"subtitle": "Finden Sie die passende Veranstaltung für Ihre berufliche Orientierung"
+		},
 		"upcomingEvents": "Kommende Veranstaltungen",
 		"pastEvents": "Vergangene Veranstaltungen",
 		"myEvents": "Meine Veranstaltungen",

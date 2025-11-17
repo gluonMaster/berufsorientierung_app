@@ -175,6 +175,17 @@
 			grid-template-columns: 280px 1fr;
 			grid-template-rows: 1fr;
 		}
+
+		/* Явное позиционирование элементов в grid */
+		.admin-layout > .sidebar {
+			grid-column: 1;
+			grid-row: 1;
+		}
+
+		.admin-layout > .main-content {
+			grid-column: 2;
+			grid-row: 1;
+		}
 	}
 
 	/* Mobile Header */
@@ -188,6 +199,13 @@
 		position: sticky;
 		top: 0;
 		z-index: 40;
+	}
+
+	/* Скрываем mobile-header на десктопе */
+	@media (min-width: 768px) {
+		.mobile-header {
+			display: none;
+		}
 	}
 
 	.mobile-menu-button {
@@ -236,7 +254,7 @@
 		}
 	}
 
-	/* Sidebar */
+	/* Sidebar - базовое состояние для мобильных */
 	.sidebar {
 		position: fixed;
 		top: 0;
@@ -257,12 +275,18 @@
 		transform: translateX(0);
 	}
 
+	/* Десктопное поведение - полное переопределение */
 	@media (min-width: 768px) {
 		.sidebar {
 			position: sticky;
 			top: 0;
+			left: 0;
+			bottom: auto;
 			height: 100vh;
-			transform: translateX(0);
+			width: 280px;
+			transform: none;
+			transition: none;
+			z-index: auto;
 		}
 	}
 
@@ -382,7 +406,8 @@
 
 	@media (min-width: 768px) {
 		.main-content {
-			min-height: auto;
+			min-height: 100vh;
+			overflow-y: auto;
 		}
 	}
 
