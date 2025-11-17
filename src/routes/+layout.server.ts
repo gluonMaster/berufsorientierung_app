@@ -2,6 +2,7 @@
  * Root Layout Server Load
  * Загружает данные текущего пользователя для всех страниц приложения
  * + инициализирует язык для SSR
+ * Язык: cookie → user.preferred_language → DEFAULT_LANGUAGE
  */
 
 import type { ServerLoad } from '@sveltejs/kit';
@@ -23,47 +24,27 @@ const SUPPORTED_LANGUAGES = ['de', 'en', 'ru', 'uk'] as const;
 const DEFAULT_LANGUAGE = 'de';
 
 /**
- * Определяет предпочитаемый язык из заголовка Accept-Language
- */
-function detectLanguageFromHeaders(request: Request): string {
-	try {
-		const acceptLanguage = request.headers.get('Accept-Language');
-		if (!acceptLanguage) return DEFAULT_LANGUAGE;
-
-		// Парсим Accept-Language заголовок (например: "de-DE,de;q=0.9,en;q=0.8")
-		const languages = acceptLanguage
-			.split(',')
-			.map((lang) => {
-				const parts = lang.trim().split(';');
-				const code = parts[0].split('-')[0].toLowerCase();
-				return code;
-			})
-			.filter((code) => SUPPORTED_LANGUAGES.includes(code as any));
-
-		// Возвращаем первый поддерживаемый язык или дефолтный
-		return languages[0] || DEFAULT_LANGUAGE;
-	} catch (error) {
-		console.error('Ошибка определения языка:', error);
-		return DEFAULT_LANGUAGE;
-	}
-}
-
-/**
  * Load функция для корневого layout
  * Проверяет авторизацию пользователя и возвращает его данные
  * НЕ редиректит неавторизованных - это публичное приложение
  */
 export const load: ServerLoad = async ({ request, platform, cookies }) => {
-	// Определяем язык: из cookie > из заголовка > дефолтный
+	// Шаг 1: Проверяем cookie с языком
 	const storedLanguage = cookies.get('berufsorientierung_language');
-	const locale =
-		storedLanguage && SUPPORTED_LANGUAGES.includes(storedLanguage as any)
-			? storedLanguage
-			: detectLanguageFromHeaders(request);
+	let locale: string;
+
+	if (storedLanguage && SUPPORTED_LANGUAGES.includes(storedLanguage as any)) {
+		// Если в cookie есть валидный язык - используем его
+		locale = storedLanguage;
+	} else {
+		// Иначе - временно устанавливаем дефолт, но можем переопределить из профиля
+		locale = DEFAULT_LANGUAGE;
+	}
+
 	// Извлекаем токен из cookies
 	const token = extractTokenFromRequest(request);
 
-	// Если токена нет - возвращаем null user
+	// Если токена нет - возвращаем null user с языком из cookie или дефолтным
 	if (!token) {
 		return {
 			user: null,
@@ -104,10 +85,22 @@ export const load: ServerLoad = async ({ request, platform, cookies }) => {
 			return { user: null, locale } satisfies RootLayoutData;
 		}
 
+		// Шаг 2: Если cookie не было, но у пользователя есть preferred_language - используем его
+		if (!storedLanguage && user.preferred_language) {
+			locale = user.preferred_language;
+
+			// Сохраняем язык пользователя в cookie для следующих запросов
+			cookies.set('berufsorientierung_language', locale, {
+				path: '/',
+				maxAge: 60 * 60 * 24 * 365, // 1 год
+				sameSite: 'lax',
+			});
+		}
+
 		// Проверяем является ли пользователь админом
 		const userIsAdmin = await isAdmin(db, user.id);
 
-		// Возвращаем данные пользователя с флагом admin
+		// Возвращаем данные пользователя с флагом admin и правильным locale
 		return {
 			user: {
 				...user,

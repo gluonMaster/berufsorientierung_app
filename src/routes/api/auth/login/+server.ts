@@ -20,6 +20,7 @@ import { json, type RequestEvent } from '@sveltejs/kit';
 import { userLoginSchema } from '$lib/validation/schemas';
 import { verifyPassword, generateToken, setAuthCookie } from '$lib/server/auth';
 import { getUserByEmail } from '$lib/server/db/users';
+import { isAdmin } from '$lib/server/db/admin';
 import { logActivity } from '$lib/server/db/activityLog';
 import { getClientIP } from '$lib/server/middleware/auth';
 import { handleApiError, errors } from '$lib/server/middleware/errorHandler';
@@ -203,8 +204,11 @@ export async function POST(event: RequestEvent) {
 			throw errors.internal('Failed to generate authentication token');
 		}
 
-		// Шаг 9: Создаём профиль пользователя для ответа (без пароля)
-		const userProfile: UserProfile = {
+		// Шаг 9: Проверяем является ли пользователь админом
+		const userIsAdmin = await isAdmin(DB, user.id);
+
+		// Шаг 10: Создаём профиль пользователя для ответа (без пароля, но с isAdmin)
+		const userProfile: UserProfile & { isAdmin: boolean } = {
 			id: user.id,
 			email: user.email,
 			first_name: user.first_name,
@@ -223,9 +227,10 @@ export async function POST(event: RequestEvent) {
 			is_blocked: user.is_blocked,
 			created_at: user.created_at,
 			updated_at: user.updated_at,
+			isAdmin: userIsAdmin,
 		};
 
-		// Шаг 10: Возвращаем успешный ответ с установкой cookie
+		// Шаг 11: Возвращаем успешный ответ с установкой cookie
 		// В production используем Secure cookie, в dev - нет (для локального HTTP)
 		const cookieValue = setAuthCookie(authToken, !dev);
 

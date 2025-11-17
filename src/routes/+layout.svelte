@@ -2,6 +2,7 @@
 	/**
 	 * Root Layout Component
 	 * Главный layout приложения с Header, Footer и инициализацией i18n
+	 * + синхронизация серверного состояния пользователя с клиентским store
 	 */
 
 	import '../app.css';
@@ -10,15 +11,28 @@
 	import { initializeI18n, isI18nInitialized } from '$lib/stores/language';
 	import { waitLocale, locale } from 'svelte-i18n';
 	import { Header, Footer } from '$lib/components/layout';
+	import { setUser, clearUser } from '$lib/stores/user';
 
 	// Данные из +layout.server.ts
 	let { data, children } = $props();
 
-	// Пользователь из server load
-	const user = $derived(data?.user || null);
+	// Пользователь с сервера (синхронизируется с store)
+	const serverUser = $derived((data as any)?.user || null);
 
 	// Язык с сервера
 	const serverLocale = $derived((data as any)?.locale || 'de');
+
+	// Реактивная синхронизация серверного пользователя с клиентским store
+	// SSR-safe: не использует window или другие browser-only API
+	$effect(() => {
+		if (serverUser) {
+			// Если с сервера пришел пользователь - обновляем store
+			setUser(serverUser);
+		} else {
+			// Если пользователь разлогинился на сервере - очищаем store
+			clearUser();
+		}
+	});
 
 	// Инициализация i18n при монтировании
 	onMount(async () => {
@@ -43,8 +57,8 @@
 
 {#if $isI18nInitialized}
 	<div class="app-layout">
-		<!-- Header с данными пользователя -->
-		<Header {user} />
+		<!-- Header с данными пользователя (для SSR синхронизации) -->
+		<Header user={serverUser} />
 
 		<!-- Основной контент -->
 		<main class="main-content">

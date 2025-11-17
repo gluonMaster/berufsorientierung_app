@@ -1,10 +1,11 @@
 /**
  * Language Store
- * Manages i18n initialization and language switching with localStorage persistence
+ * Manages i18n initialization and language switching with localStorage + cookie persistence
+ * Дефолт: строго 'de', без автоматического определения по браузеру
  */
 
 import { writable, derived, get } from 'svelte/store';
-import { init, locale, locales, getLocaleFromNavigator, _, addMessages } from 'svelte-i18n';
+import { init, locale, _, addMessages } from 'svelte-i18n';
 import { browser } from '$app/environment';
 
 // Supported languages
@@ -17,11 +18,14 @@ export const SUPPORTED_LANGUAGES = {
 
 export type LanguageCode = keyof typeof SUPPORTED_LANGUAGES;
 
-// Default language
+// Default language (строго немецкий, без автоопределения)
 const DEFAULT_LANGUAGE: LanguageCode = 'de';
 
 // LocalStorage key
 const LANGUAGE_STORAGE_KEY = 'berufsorientierung_language';
+
+// Cookie name (синхронизация с сервером)
+const LANGUAGE_COOKIE_NAME = 'berufsorientierung_language';
 
 /**
  * Gets the stored language from localStorage or returns default
@@ -55,31 +59,36 @@ function saveLanguage(lang: LanguageCode): void {
 }
 
 /**
- * Detects the user's preferred language from browser or localStorage
+ * Saves the language to cookie for server-side consistency
+ * Max-Age: 1 year, Path: /, SameSite: Lax
+ */
+function saveLanguageToCookie(lang: LanguageCode): void {
+	if (!browser) return; // На SSR cookie не трогаем
+
+	try {
+		// Max-Age: 365 дней = 31536000 секунд
+		const maxAge = 365 * 24 * 60 * 60;
+		document.cookie = `${LANGUAGE_COOKIE_NAME}=${lang}; Path=/; Max-Age=${maxAge}; SameSite=Lax`;
+	} catch (error) {
+		console.error('Error saving language to cookie:', error);
+	}
+}
+
+/**
+ * Detects the user's preferred language
+ * Только из localStorage, без автоопределения по браузеру
+ * Fallback: строго DEFAULT_LANGUAGE ('de')
  */
 function detectPreferredLanguage(): LanguageCode {
-	// First, check localStorage
+	// Проверяем localStorage
 	const stored = getStoredLanguage();
-	if (stored !== DEFAULT_LANGUAGE) {
+
+	// Если в localStorage есть валидный язык (не дефолтный) - используем его
+	if (stored !== DEFAULT_LANGUAGE && stored in SUPPORTED_LANGUAGES) {
 		return stored;
 	}
 
-	// Then, check browser language
-	if (browser) {
-		try {
-			const browserLang = getLocaleFromNavigator();
-			if (browserLang) {
-				// Extract the language code (e.g., 'de' from 'de-DE')
-				const langCode = browserLang.split('-')[0].toLowerCase();
-				if (langCode in SUPPORTED_LANGUAGES) {
-					return langCode as LanguageCode;
-				}
-			}
-		} catch (error) {
-			console.error('Error detecting browser language:', error);
-		}
-	}
-
+	// Если в localStorage дефолтный язык или его нет - возвращаем дефолт
 	return DEFAULT_LANGUAGE;
 }
 
@@ -163,6 +172,7 @@ export async function initializeI18n(): Promise<void> {
 
 /**
  * Changes the current language
+ * Сохраняет в localStorage и cookie для синхронизации с сервером
  */
 export async function changeLanguage(lang: LanguageCode): Promise<void> {
 	if (!(lang in SUPPORTED_LANGUAGES)) {
@@ -178,6 +188,9 @@ export async function changeLanguage(lang: LanguageCode): Promise<void> {
 
 	// Save to localStorage
 	saveLanguage(lang);
+
+	// Save to cookie (для синхронизации с сервером)
+	saveLanguageToCookie(lang);
 }
 
 /**

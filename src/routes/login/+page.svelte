@@ -5,6 +5,7 @@
 	import { userLoginSchema } from '$lib/validation/schemas';
 	import type { UserLoginData } from '$lib/types/user';
 	import { setUser } from '$lib/stores/user';
+	import { changeLanguage } from '$lib/stores/language';
 	import { _ } from 'svelte-i18n';
 
 	// Данные из server load функции (включая CSRF токен и Turnstile site key)
@@ -122,6 +123,11 @@
 			// Успешный вход
 			if (result.user) {
 				setUser(result.user);
+
+				// Переключаем язык на предпочитаемый пользователем
+				if (result.user.preferred_language) {
+					await changeLanguage(result.user.preferred_language);
+				}
 			}
 
 			// Редирект на главную
@@ -182,7 +188,7 @@
 				{#if errorMessage}
 					<div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg" role="alert">
 						<div class="flex">
-							<div class="flex-shrink-0">
+							<div class="shrink-0">
 								<svg
 									class="h-5 w-5 text-red-400"
 									viewBox="0 0 20 20"

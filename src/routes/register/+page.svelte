@@ -5,6 +5,7 @@
 	import { userRegistrationSchema, calculateAge } from '$lib/validation/schemas';
 	import type { UserRegistrationData } from '$lib/types/user';
 	import { setUser } from '$lib/stores/user';
+	import { changeLanguage } from '$lib/stores/language';
 	import { locale, _ } from 'svelte-i18n';
 
 	// Данные из server load функции (включая CSRF токен и Turnstile site key)
@@ -161,6 +162,11 @@
 			// Успешная регистрация
 			if (result.user) {
 				setUser(result.user);
+
+				// Переключаем язык на предпочитаемый пользователем
+				if (result.user.preferred_language) {
+					await changeLanguage(result.user.preferred_language);
+				}
 			}
 
 			// Редирект в профиль

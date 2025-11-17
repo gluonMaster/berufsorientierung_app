@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { _, locale } from 'svelte-i18n';
+	import { changeLanguage } from '$lib/stores/language';
 	import Button from '$lib/components/ui/Button.svelte';
 	import FormField from '$lib/components/ui/FormField.svelte';
 	import Modal from '$lib/components/ui/Modal.svelte';
@@ -77,6 +78,9 @@
 	// Обработка результата form action
 	$: if (form) {
 		if (form.success) {
+			// Запоминаем новый язык ДО перезаписи formData (важно!)
+			const newLanguage = formData.preferredLanguage;
+
 			toastMessage = $_('profile.updateSuccess');
 			toastType = 'success';
 			showToast = true;
@@ -102,6 +106,9 @@
 					parentalConsent: data.user.parental_consent || false,
 				};
 			}
+
+			// Переключаем язык на новый (выбранный пользователем в форме)
+			changeLanguage(newLanguage as any);
 		} else if (form.error) {
 			toastMessage = form.error;
 			toastType = 'error';

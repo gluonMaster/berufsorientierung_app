@@ -3,31 +3,37 @@
 	 * Header Component
 	 * Sticky navigation с логотипом, меню и языковым переключателем
 	 * Мобильное бургер-меню для экранов <768px
+	 *
+	 * Источник правды: user store (синхронизируется с сервером в +layout.svelte)
 	 */
 
 	import { page } from '$app/stores';
 	import { _ } from 'svelte-i18n';
 	import { clickOutside } from '$lib/utils/clickOutside';
 	import LanguageSwitcher from './LanguageSwitcher.svelte';
+	import { user as userStore, clearUser } from '$lib/stores/user';
 	import type { User } from '$lib/types';
 
 	// Типы
 	type HeaderUser = User & { isAdmin: boolean };
 
-	// Пропсы
+	// Пропсы (используются только для SSR рендеринга, синхронизация происходит в layout)
 	let { user = null } = $props<{ user: HeaderUser | null }>();
+
+	// Источник правды - store, автоматически реагирует на изменения
+	const currentUser = $derived($userStore as HeaderUser | null);
 
 	// Состояние мобильного меню
 	let isMobileMenuOpen = $state(false);
 
-	// Ссылки навигации
+	// Ссылки навигации (теперь зависят от currentUser из стора)
 	const navLinks = $derived([
 		{ href: '/', label: $_('nav.home'), requireAuth: false },
 		{ href: '/events', label: $_('nav.events'), requireAuth: false },
-		...(user
+		...(currentUser
 			? [
 					{ href: '/profile', label: $_('nav.profile'), requireAuth: true },
-					...(user.isAdmin
+					...(currentUser.isAdmin
 						? [
 								{
 									href: '/admin',
@@ -41,9 +47,9 @@
 			: []),
 	]);
 
-	// Кнопки авторизации
+	// Кнопки авторизации (теперь зависят от currentUser из стора)
 	const authButtons = $derived(
-		user
+		currentUser
 			? [{ href: '/api/auth/logout', label: $_('nav.logout'), isLogout: true }]
 			: [
 					{ href: '/login', label: $_('nav.login'), isLogout: false },
@@ -76,6 +82,8 @@
 		try {
 			const response = await fetch('/api/auth/logout', { method: 'POST' });
 			if (response.ok) {
+				// Очищаем store перед редиректом
+				clearUser();
 				// Перезагружаем страницу для обновления состояния
 				window.location.href = '/';
 			}

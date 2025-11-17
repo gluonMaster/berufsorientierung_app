@@ -10,10 +10,15 @@ import { writable, derived } from 'svelte/store';
 import type { UserProfile } from '$lib/types/user';
 
 /**
+ * Расширенный профиль пользователя с флагом isAdmin
+ */
+export type UserProfileWithAdmin = UserProfile & { isAdmin?: boolean };
+
+/**
  * Store с данными текущего пользователя
  * null - если пользователь не залогинен
  */
-const userStore = writable<UserProfile | null>(null);
+const userStore = writable<UserProfileWithAdmin | null>(null);
 
 /**
  * Derived store - является ли пользователь залогиненным
@@ -25,7 +30,7 @@ export const isLoggedInStore = derived(userStore, ($user) => $user !== null);
  * Возвращает текущее состояние без подписки на изменения
  */
 export function isLoggedIn(): boolean {
-	let currentUser: UserProfile | null = null;
+	let currentUser: UserProfileWithAdmin | null = null;
 	const unsubscribe = userStore.subscribe((value) => {
 		currentUser = value;
 	});
@@ -50,7 +55,7 @@ export const fullName = derived(userStore, ($user) =>
  *
  * @param user - Профиль пользователя
  */
-export function setUser(user: UserProfile): void {
+export function setUser(user: UserProfileWithAdmin): void {
 	userStore.set(user);
 }
 
@@ -66,7 +71,7 @@ export function clearUser(): void {
  *
  * @param updates - Частичные данные для обновления
  */
-export function updateUser(updates: Partial<UserProfile>): void {
+export function updateUser(updates: Partial<UserProfileWithAdmin>): void {
 	userStore.update((currentUser) => {
 		if (!currentUser) return null;
 		return { ...currentUser, ...updates };
