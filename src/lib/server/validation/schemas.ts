@@ -41,14 +41,28 @@ function isValidUrl(url: string): boolean {
 }
 
 /**
- * Проверяет формат телефонного номера (немецкий формат)
- * Разрешены форматы: +49..., 0..., с пробелами и дефисами
+ * Проверяет формат телефонного номера (немецкий и международный формат)
+ * Разрешены форматы:
+ * - Немецкие: +49... или 0... (минимум 7 цифр после кода)
+ * - Международные: +<код страны><номер> (от 8 до 15 цифр всего, E.164)
+ * Пробелы и дефисы игнорируются
  */
 function isValidPhone(phone: string): boolean {
 	// Удаляем пробелы и дефисы для проверки
 	const cleaned = phone.replace(/[\s\-]/g, '');
-	// Разрешаем: +49... или 0... (минимум 10 цифр после кода)
-	return /^(\+49|0)\d{9,}$/.test(cleaned);
+
+	// Немецкий формат: +49... или 0... (минимум 7 цифр после кода для разумной длины)
+	if (/^(\+49|0)\d{7,}$/.test(cleaned)) {
+		return true;
+	}
+
+	// Общий международный формат E.164: +<код><номер>, от 8 до 15 цифр всего
+	// Это покрывает все страны мира (например: +380675594122, +48..., +371..., +7...)
+	if (/^\+\d{8,15}$/.test(cleaned)) {
+		return true;
+	}
+
+	return false;
 }
 
 /**
@@ -153,7 +167,8 @@ const phoneSchema = z
 	.min(1, { message: 'Phone number is required' })
 	.trim()
 	.refine(isValidPhone, {
-		message: 'Invalid phone number format. Use +49... or 0...',
+		message:
+			'Invalid phone number format. Use an international format like +49..., +380..., or 0... for local.',
 	});
 
 /**
@@ -276,6 +291,27 @@ export const userLoginSchema = z.object({
 	email: emailSchema,
 	password: z.string().min(1, { message: 'Password is required' }),
 });
+
+/**
+ * Схема запроса на восстановление пароля
+ */
+export const forgotPasswordRequestSchema = z.object({
+	email: emailSchema,
+});
+
+/**
+ * Схема сброса пароля по токену
+ */
+export const passwordResetSchema = z
+	.object({
+		token: z.string().min(1, { message: 'Token is required' }),
+		new_password: passwordSchema,
+		new_password_confirm: z.string().min(1, { message: 'Password confirmation is required' }),
+	})
+	.refine((data) => data.new_password === data.new_password_confirm, {
+		message: 'New passwords do not match',
+		path: ['new_password_confirm'],
+	});
 
 /**
  * Схема обновления профиля пользователя
@@ -742,6 +778,8 @@ export const bulkEmailSchema = z
 export type UserRegistrationInput = z.infer<typeof userRegistrationSchema>;
 export type UserLoginInput = z.infer<typeof userLoginSchema>;
 export type UserUpdateInput = z.infer<typeof userUpdateSchema>;
+export type ForgotPasswordRequestInput = z.infer<typeof forgotPasswordRequestSchema>;
+export type PasswordResetInput = z.infer<typeof passwordResetSchema>;
 
 export type EventCreateInput = z.infer<typeof eventCreateSchema>;
 export type EventUpdateInput = z.infer<typeof eventUpdateSchema>;
@@ -806,6 +844,18 @@ const errorTranslations: Record<string, { de: string; en: string; ru: string; uk
 		ru: 'Пароли не совпадают',
 		uk: 'Паролі не збігаються',
 	},
+	'New passwords do not match': {
+		de: 'Neue Passwörter stimmen nicht überein',
+		en: 'New passwords do not match',
+		ru: 'Новые пароли не совпадают',
+		uk: 'Нові паролі не збігаються',
+	},
+	'Token is required': {
+		de: 'Token ist erforderlich',
+		en: 'Token is required',
+		ru: 'Токен обязателен',
+		uk: "Токен обов'язковий",
+	},
 	'This field is required': {
 		de: 'Dieses Feld ist erforderlich',
 		en: 'This field is required',
@@ -818,12 +868,13 @@ const errorTranslations: Record<string, { de: string; en: string; ru: string; uk
 		ru: 'Имя должно содержать только буквы',
 		uk: "Ім'я повинно містити лише літери",
 	},
-	'Invalid phone number format. Use +49... or 0...': {
-		de: 'Ungültiges Telefonnummernformat. Verwenden Sie +49... oder 0...',
-		en: 'Invalid phone number format. Use +49... or 0...',
-		ru: 'Неверный формат телефона. Используйте +49... или 0...',
-		uk: 'Невірний формат телефону. Використовуйте +49... або 0...',
-	},
+	'Invalid phone number format. Use an international format like +49..., +380..., or 0... for local.':
+		{
+			de: 'Ungültiges Telefonnummernformat. Verwenden Sie ein internationales Format wie +49..., +380... oder 0... für lokale Nummern.',
+			en: 'Invalid phone number format. Use an international format like +49..., +380..., or 0... for local.',
+			ru: 'Неверный формат телефона. Используйте международный формат, например +49..., +380... или 0... для местных номеров.',
+			uk: 'Невірний формат телефону. Використовуйте міжнародний формат, наприклад +49..., +380... або 0... для місцевих номерів.',
+		},
 	'ZIP code must be 5 digits': {
 		de: 'Die Postleitzahl muss 5 Ziffern haben',
 		en: 'ZIP code must be 5 digits',

@@ -124,6 +124,8 @@ export const actions = {
 			return fail(500, { error: 'Server configuration error' });
 		}
 
+		let result: any;
+
 		try {
 			// Проверяем аутентификацию
 			await requireAuth(request, platform.env.DB, platform.env.JWT_SECRET);
@@ -133,35 +135,17 @@ export const actions = {
 				method: 'POST',
 			});
 
-			const result = await response.json();
+			result = await response.json();
 
 			if (!response.ok) {
 				return fail(response.status, {
 					error: result.error || 'Failed to delete profile',
 				});
 			}
-
-			// Если удаление немедленное - делаем редирект
-			if (result.immediate) {
-				throw redirect(303, '/?deleted=true');
-			}
-
-			// Если запланированное - возвращаем дату
-			return {
-				success: true,
-				type: 'scheduled',
-				deleteDate: result.deletionDate,
-				message: result.message,
-			};
 		} catch (err: any) {
 			console.error('Error in delete action:', err);
 
-			// Если это редирект, пробрасываем его
-			if (err instanceof Response && err.status === 303) {
-				throw err;
-			}
-
-			if (err.status === 401) {
+			if (err?.status === 401) {
 				return fail(401, { error: 'Unauthorized' });
 			}
 
@@ -169,5 +153,18 @@ export const actions = {
 				error: 'An error occurred while deleting profile',
 			});
 		}
+
+		// ВАЖНО: redirect больше не в try/catch — он не превращается в ошибку
+		if (result.immediate) {
+			throw redirect(303, '/?deleted=true');
+		}
+
+		// Отложенное удаление — обычный success-ответ для формы
+		return {
+			success: true,
+			type: 'scheduled',
+			deleteDate: result.deletionDate,
+			message: result.message,
+		};
 	},
 };

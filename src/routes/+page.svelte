@@ -11,18 +11,18 @@
 	 */
 
 	import { _ } from 'svelte-i18n';
-	import { page } from '$app/stores';
 	import EventCard from '$lib/components/events/EventCard.svelte';
 	import EventModal from '$lib/components/events/EventModal.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
+	import { user as userStore } from '$lib/stores/user';
 	import type { EventWithStats } from './+page.server';
 
 	// Получаем данные из +page.server.ts
-	export let data: { events: EventWithStats[] };
+	let { data } = $props<{ data: { events: EventWithStats[] } }>();
 
 	// Состояние модального окна
-	let selectedEvent: EventWithStats | null = null;
-	let isModalOpen = false;
+	let selectedEvent: EventWithStats | null = $state(null);
+	let isModalOpen = $state(false);
 
 	/**
 	 * Открывает модальное окно с деталями мероприятия
@@ -44,37 +44,39 @@
 	}
 
 	/**
-	 * Определяем есть ли авторизованный пользователь из page store
-	 * Надёжнее чем проверка через события (работает даже если событий нет)
+	 * Определяем есть ли авторизованный пользователь из user store
+	 * Синхронизируется с Header и автоматически обновляется при логине/логауте
 	 */
-	$: isAuthenticated = !!$page.data.user;
+	const isAuthenticated = $derived($userStore !== null);
 </script>
 
 <main class="min-h-screen bg-gray-50">
 	<!-- Hero секция -->
-	<section class="bg-linear-to-br from-blue-600 to-blue-800 text-white">
-		<div class="container mx-auto px-4 py-12 sm:py-16 lg:py-20">
-			<div class="max-w-3xl mx-auto text-center">
-				<h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">
-					{$_('homepage.hero.title')}
-				</h1>
-				<p class="text-lg sm:text-xl text-blue-100 mb-8">
-					{$_('homepage.hero.subtitle')}
-				</p>
+	<section class="hero-pattern text-white">
+		<div class="hero-overlay">
+			<div class="container mx-auto px-4 py-12 sm:py-16 lg:py-20">
+				<div class="max-w-3xl mx-auto text-center">
+					<h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">
+						{$_('homepage.hero.title')}
+					</h1>
+					<p class="text-lg sm:text-xl text-blue-100 mb-8">
+						{$_('homepage.hero.subtitle')}
+					</p>
 
-				<!-- CTA кнопка если пользователь не авторизован -->
-				{#if !isAuthenticated}
-					<div class="flex justify-center">
-						<Button
-							variant="primary"
-							type="button"
-							size="lg"
-							on:click={() => (window.location.href = '/register')}
-						>
-							{$_('homepage.hero.registerCta')}
-						</Button>
-					</div>
-				{/if}
+					<!-- CTA кнопка если пользователь не авторизован -->
+					{#if !isAuthenticated}
+						<div class="flex justify-center">
+							<Button
+								variant="primary"
+								type="button"
+								size="lg"
+								on:click={() => (window.location.href = '/register')}
+							>
+								{$_('homepage.hero.registerCta')}
+							</Button>
+						</div>
+					{/if}
+				</div>
 			</div>
 		</div>
 	</section>
@@ -137,3 +139,47 @@
 {#if selectedEvent}
 	<EventModal event={selectedEvent} isOpen={isModalOpen} onClose={closeEventModal} />
 {/if}
+
+<style>
+	/* Hero-секция с SVG-паттерном и градиентным фоном */
+	.hero-pattern {
+		/* Базовый цвет на случай, если градиент не применится */
+		background-color: #1d4ed8; /* близко к blue-700 */
+		/* Сначала паттерн, затем градиент позади него */
+		background-image:
+			url('/img/hero-pattern.svg'), linear-gradient(to bottom right, #2563eb, #1e3a8a); /* Более тёмный градиент для читаемости */
+		background-repeat: repeat, no-repeat;
+		background-size:
+			100px 100px,
+			cover; /* Базовый размер паттерна */
+		background-position:
+			top left,
+			center;
+	}
+
+	/* Мягкий overlay для улучшения читаемости текста */
+	.hero-overlay {
+		/* Высветление верхней левой области для заголовка, затемнение нижней правой для контраста */
+		background:
+			radial-gradient(ellipse at 30% 20%, rgba(255, 255, 255, 0.12), transparent 50%),
+			radial-gradient(circle at 80% 90%, rgba(0, 0, 0, 0.2), transparent 55%);
+	}
+
+	/* Мобильные устройства: более крупный паттерн */
+	@media (max-width: 640px) {
+		.hero-pattern {
+			background-size:
+				120px 120px,
+				cover; /* Крупнее, чтобы не дробился мелкой сеткой */
+		}
+	}
+
+	/* Десктоп: более тонкий и деликатный паттерн */
+	@media (min-width: 1024px) {
+		.hero-pattern {
+			background-size:
+				80px 80px,
+				cover; /* Мельче и менее навязчиво */
+		}
+	}
+</style>

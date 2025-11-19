@@ -110,7 +110,18 @@
 			// Переключаем язык на новый (выбранный пользователем в форме)
 			changeLanguage(newLanguage as any);
 		} else if (form.error) {
-			toastMessage = form.error;
+			// Более информативные сообщения об ошибках для delete action
+			if (form.type === 'scheduled' && form.error) {
+				// Ошибка при планировании отложенного удаления
+				toastMessage = $_('profile.deleteErrorScheduled') || form.error;
+			} else if (form.error.includes('delete') || form.error.includes('Delete')) {
+				// Ошибка при немедленном удалении (если immediate не установлен)
+				toastMessage = $_('profile.deleteErrorImmediate') || form.error;
+			} else {
+				// Общая ошибка (update или другие)
+				toastMessage = form.error;
+			}
+
 			toastType = 'error';
 			showToast = true;
 			isUpdating = false;
@@ -353,6 +364,49 @@
 							<p class="text-sm text-gray-600">{$_('profile.language')}</p>
 							<p class="font-medium">{data.user.preferred_language.toUpperCase()}</p>
 						</div>
+
+						<!-- Данные опекуна (если есть) -->
+						{#if data.user.guardian_first_name}
+							<div class="pt-4 mt-4 border-t">
+								<h3 class="text-lg font-semibold mb-3 text-gray-900">
+									{$_('auth.guardianSectionTitle', {
+										default: 'Данные родителя/опекуна',
+									})}
+								</h3>
+								<div class="space-y-3">
+									<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+										<div>
+											<p class="text-sm text-gray-600">
+												{$_('form.guardianFirstName', {
+													default: 'Имя опекуна',
+												})}
+											</p>
+											<p class="font-medium">
+												{data.user.guardian_first_name}
+											</p>
+										</div>
+										<div>
+											<p class="text-sm text-gray-600">
+												{$_('form.guardianLastName', {
+													default: 'Фамилия опекуна',
+												})}
+											</p>
+											<p class="font-medium">
+												{data.user.guardian_last_name || '-'}
+											</p>
+										</div>
+									</div>
+									<div>
+										<p class="text-sm text-gray-600">
+											{$_('form.guardianPhone', {
+												default: 'Телефон опекуна',
+											})}
+										</p>
+										<p class="font-medium">{data.user.guardian_phone || '-'}</p>
+									</div>
+								</div>
+							</div>
+						{/if}
 
 						<div class="pt-4 border-t">
 							<label class="flex items-center space-x-2">

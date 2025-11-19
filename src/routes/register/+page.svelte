@@ -30,6 +30,10 @@
 		parental_consent: false,
 		gdpr_consent: false,
 		preferred_language: ($locale as 'de' | 'en' | 'ru' | 'uk') || 'de',
+		guardian_first_name: '',
+		guardian_last_name: '',
+		guardian_phone: '',
+		guardian_consent: false,
 	};
 
 	// Состояние валидации
@@ -222,6 +226,28 @@
 					default: 'Создайте аккаунт для участия в мероприятиях Berufsorientierung',
 				})}
 			</p>
+		</div>
+
+		<!-- DSGVO Информационный баннер -->
+		<div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 flex items-start gap-3">
+			<svg
+				class="w-6 h-6 text-blue-600 shrink-0 mt-0.5"
+				fill="none"
+				stroke="currentColor"
+				viewBox="0 0 24 24"
+			>
+				<path
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					stroke-width="2"
+					d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+				/>
+			</svg>
+			<div class="flex-1">
+				<p class="text-sm text-blue-800 leading-relaxed">
+					{$_('auth.dsgvoNotice')}
+				</p>
+			</div>
 		</div>
 
 		<!-- Форма регистрации -->
@@ -432,6 +458,93 @@
 						{/if}
 					</div>
 				</fieldset>
+
+				<!-- Секция: Данные родителя/опекуна (только для несовершеннолетних) -->
+				{#if needsParentalConsent}
+					<fieldset class="mb-8 bg-yellow-50 p-6 rounded-lg border border-yellow-200">
+						<legend class="text-lg font-semibold text-gray-900 mb-4">
+							{$_('auth.guardianSectionTitle')}
+						</legend>
+
+						<div class="space-y-4">
+							<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+								<FormField
+									label={$_('form.guardianFirstName')}
+									type="text"
+									name="guardian_first_name"
+									bind:value={formData.guardian_first_name}
+									error={errors.guardian_first_name}
+									required
+									autocomplete="off"
+									on:blur={() => validateField('guardian_first_name')}
+									placeholder="Anna"
+								/>
+
+								<FormField
+									label={$_('form.guardianLastName')}
+									type="text"
+									name="guardian_last_name"
+									bind:value={formData.guardian_last_name}
+									error={errors.guardian_last_name}
+									required
+									autocomplete="off"
+									on:blur={() => validateField('guardian_last_name')}
+									placeholder="Müller"
+								/>
+							</div>
+
+							<FormField
+								label={$_('form.guardianPhone')}
+								type="tel"
+								name="guardian_phone"
+								bind:value={formData.guardian_phone}
+								error={errors.guardian_phone}
+								required
+								autocomplete="tel"
+								on:blur={() => validateField('guardian_phone')}
+								placeholder="+49 123 456789"
+							/>
+
+							<!-- Согласие опекуна -->
+							<div class="flex items-start mt-4">
+								<div class="flex items-center h-5">
+									<input
+										id="guardian_consent"
+										name="guardian_consent"
+										type="checkbox"
+										bind:checked={formData.guardian_consent}
+										class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+										required
+										aria-describedby="guardian_consent_description"
+									/>
+								</div>
+								<div class="ml-3">
+									<label
+										for="guardian_consent"
+										class="text-sm font-medium text-gray-900"
+									>
+										{$_('auth.guardianConsentLabel')}
+										<span class="text-red-500">*</span>
+									</label>
+									<p
+										id="guardian_consent_description"
+										class="text-xs text-gray-600 mt-1"
+									>
+										{$_('auth.guardianConsentDescription', {
+											default:
+												'Я, как законный представитель, даю согласие на регистрацию и участие в мероприятиях',
+										})}.
+									</p>
+									{#if errors.guardian_consent}
+										<p class="text-xs text-red-600 mt-1" role="alert">
+											{errors.guardian_consent}
+										</p>
+									{/if}
+								</div>
+							</div>
+						</div>
+					</fieldset>
+				{/if}
 
 				<!-- Секция: Адрес -->
 				<fieldset class="mb-8">

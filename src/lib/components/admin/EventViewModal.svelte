@@ -23,6 +23,11 @@
 	let loading = true;
 	let error = '';
 
+	// Флаги для индикации процесса перегенерации QR
+	let isRegeneratingTelegram = false;
+	let isRegeneratingWhatsapp = false;
+	let regenerateError = '';
+
 	/**
 	 * Загрузить данные мероприятия и список участников при открытии
 	 */
@@ -163,6 +168,51 @@
 	function handleEdit() {
 		dispatch('edit', { eventId });
 		onClose();
+	}
+
+	/**
+	 * Перегенерировать QR-код для Telegram или WhatsApp
+	 */
+	async function regenerateQr(type: 'telegram' | 'whatsapp') {
+		regenerateError = '';
+
+		// Устанавливаем флаг загрузки
+		if (type === 'telegram') {
+			isRegeneratingTelegram = true;
+		} else {
+			isRegeneratingWhatsapp = true;
+		}
+
+		try {
+			const response = await fetch('/api/admin/events/regenerate-qr', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					eventId,
+					type,
+				}),
+			});
+
+			if (!response.ok) {
+				const errorData = await response.json();
+				throw new Error(errorData.error || $_('admin.events.errors.regenerateQrFailed'));
+			}
+
+			// Успешная перегенерация - перезагружаем данные события
+			await loadEventData();
+		} catch (err: any) {
+			console.error('QR regeneration failed:', err);
+			regenerateError = err.message || $_('admin.events.errors.regenerateQrFailed');
+		} finally {
+			// Сбрасываем флаги загрузки
+			if (type === 'telegram') {
+				isRegeneratingTelegram = false;
+			} else {
+				isRegeneratingWhatsapp = false;
+			}
+		}
 	}
 
 	/**
@@ -337,6 +387,16 @@
 					<h3 class="text-lg font-semibold text-gray-900 mb-3">
 						{$_('admin.events.messengerLinks')}
 					</h3>
+
+					<!-- Ошибка перегенерации -->
+					{#if regenerateError}
+						<div
+							class="mb-4 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-md"
+						>
+							{regenerateError}
+						</div>
+					{/if}
+
 					<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 						{#if event.telegram_link}
 							<div class="border border-gray-200 rounded-md p-4">
@@ -369,6 +429,56 @@
 										/>
 									</div>
 								{/if}
+								<!-- Кнопка перегенерации Telegram QR -->
+								<div class="mt-3">
+									<Button
+										on:click={() => regenerateQr('telegram')}
+										variant="secondary"
+										size="sm"
+										disabled={isRegeneratingTelegram}
+										class="w-full"
+									>
+										{#if isRegeneratingTelegram}
+											<svg
+												class="animate-spin h-4 w-4 mr-2"
+												xmlns="http://www.w3.org/2000/svg"
+												fill="none"
+												viewBox="0 0 24 24"
+											>
+												<circle
+													class="opacity-25"
+													cx="12"
+													cy="12"
+													r="10"
+													stroke="currentColor"
+													stroke-width="4"
+												></circle>
+												<path
+													class="opacity-75"
+													fill="currentColor"
+													d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+												></path>
+											</svg>
+											{$_('admin.events.regeneratingQr')}
+										{:else}
+											<svg
+												class="w-4 h-4 mr-1"
+												fill="none"
+												stroke="currentColor"
+												viewBox="0 0 24 24"
+												xmlns="http://www.w3.org/2000/svg"
+											>
+												<path
+													stroke-linecap="round"
+													stroke-linejoin="round"
+													stroke-width="2"
+													d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+												/>
+											</svg>
+											{$_('admin.events.regenerateQrTelegram')}
+										{/if}
+									</Button>
+								</div>
 							</div>
 						{/if}
 
@@ -403,6 +513,56 @@
 										/>
 									</div>
 								{/if}
+								<!-- Кнопка перегенерации WhatsApp QR -->
+								<div class="mt-3">
+									<Button
+										on:click={() => regenerateQr('whatsapp')}
+										variant="secondary"
+										size="sm"
+										disabled={isRegeneratingWhatsapp}
+										class="w-full"
+									>
+										{#if isRegeneratingWhatsapp}
+											<svg
+												class="animate-spin h-4 w-4 mr-2"
+												xmlns="http://www.w3.org/2000/svg"
+												fill="none"
+												viewBox="0 0 24 24"
+											>
+												<circle
+													class="opacity-25"
+													cx="12"
+													cy="12"
+													r="10"
+													stroke="currentColor"
+													stroke-width="4"
+												></circle>
+												<path
+													class="opacity-75"
+													fill="currentColor"
+													d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+												></path>
+											</svg>
+											{$_('admin.events.regeneratingQr')}
+										{:else}
+											<svg
+												class="w-4 h-4 mr-1"
+												fill="none"
+												stroke="currentColor"
+												viewBox="0 0 24 24"
+												xmlns="http://www.w3.org/2000/svg"
+											>
+												<path
+													stroke-linecap="round"
+													stroke-linejoin="round"
+													stroke-width="2"
+													d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+												/>
+											</svg>
+											{$_('admin.events.regenerateQrWhatsapp')}
+										{/if}
+									</Button>
+								</div>
 							</div>
 						{/if}
 					</div>

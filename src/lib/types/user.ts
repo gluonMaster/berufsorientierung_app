@@ -58,8 +58,26 @@ export interface User {
 	/** Согласие родителей (требуется для пользователей младше 18 лет) */
 	parental_consent: boolean;
 
+	/** Имя родителя/опекуна (для несовершеннолетних) */
+	guardian_first_name: string | null;
+
+	/** Фамилия родителя/опекуна (для несовершеннолетних) */
+	guardian_last_name: string | null;
+
+	/** Телефон родителя/опекуна (для несовершеннолетних) */
+	guardian_phone: string | null;
+
+	/** Согласие родителя/опекуна на регистрацию и участие */
+	guardian_consent: boolean;
+
 	/** Флаг блокировки аккаунта (например, при запланированном удалении) */
 	is_blocked: boolean;
+
+	/** SHA-256 хеш токена сброса пароля (hex-формат, 64 символа) */
+	password_reset_token_hash: string | null;
+
+	/** Время истечения токена сброса пароля (ISO 8601 format: YYYY-MM-DDTHH:MM:SS) */
+	password_reset_expires_at: string | null;
 
 	/** Дата создания аккаунта */
 	created_at: string;
@@ -118,8 +136,26 @@ export interface UserProfile {
 	/** Согласие родителей */
 	parental_consent: boolean;
 
+	/** Имя родителя/опекуна (для несовершеннолетних) */
+	guardian_first_name: string | null;
+
+	/** Фамилия родителя/опекуна (для несовершеннолетних) */
+	guardian_last_name: string | null;
+
+	/** Телефон родителя/опекуна (для несовершеннолетних) */
+	guardian_phone: string | null;
+
+	/** Согласие родителя/опекуна на регистрацию и участие */
+	guardian_consent: boolean;
+
 	/** Флаг блокировки аккаунта */
 	is_blocked: boolean;
+
+	/** SHA-256 хеш токена сброса пароля (hex, 64 символа) - НЕ передаётся клиенту в обычных случаях */
+	password_reset_token_hash?: string | null;
+
+	/** Время истечения токена сброса пароля - НЕ передаётся клиенту в обычных случаях */
+	password_reset_expires_at?: string | null;
 
 	/** Дата создания аккаунта */
 	created_at: string;
@@ -180,6 +216,18 @@ export interface UserRegistrationData {
 	/** Согласие родителей (обязательно для пользователей младше 18 лет) */
 	parental_consent: boolean;
 
+	/** Имя родителя/опекуна (обязательно для несовершеннолетних) */
+	guardian_first_name?: string;
+
+	/** Фамилия родителя/опекуна (обязательно для несовершеннолетних) */
+	guardian_last_name?: string;
+
+	/** Телефон родителя/опекуна (обязательно для несовершеннолетних) */
+	guardian_phone?: string;
+
+	/** Согласие родителя/опекуна на регистрацию и участие */
+	guardian_consent?: boolean;
+
 	/** Согласие на обработку персональных данных (GDPR) */
 	gdpr_consent: boolean;
 }
@@ -233,6 +281,18 @@ export interface UserUpdateData {
 
 	/** Согласие родителей (может обновляться если пользователь достиг 18 лет) */
 	parental_consent?: boolean;
+
+	/** Имя родителя/опекуна */
+	guardian_first_name?: string | null;
+
+	/** Фамилия родителя/опекуна */
+	guardian_last_name?: string | null;
+
+	/** Телефон родителя/опекуна */
+	guardian_phone?: string | null;
+
+	/** Согласие родителя/опекуна на регистрацию и участие */
+	guardian_consent?: boolean;
 
 	/** Флаг блокировки аккаунта (только для админов) */
 	is_blocked?: boolean;

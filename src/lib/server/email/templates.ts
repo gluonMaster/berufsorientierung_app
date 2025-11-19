@@ -244,6 +244,61 @@ ${team}
 }
 
 /**
+ * 5. PASSWORD RESET EMAIL
+ *
+ * Письмо для восстановления пароля
+ *
+ * @param user - Объект пользователя
+ * @param language - Код языка
+ * @param resetLink - Ссылка для сброса пароля
+ * @returns Объект с темой и текстом письма
+ */
+export function getPasswordResetEmail(
+	user: User,
+	language: LanguageCode,
+	resetLink: string
+): { subject: string; text: string } {
+	const t = loadTranslations(language);
+
+	const subject = translate(t, 'email.subjects.passwordReset');
+
+	const greeting = translate(t, 'email.greeting', { name: user.first_name });
+	const footer = translate(t, 'email.footer');
+	const thankYou = translate(t, 'email.thankYou');
+	const team = translate(t, 'email.team');
+
+	// Получаем переводы для содержимого письма
+	const intro = translate(t, 'email.passwordReset.intro');
+	const instructions = translate(t, 'email.passwordReset.instructions');
+	const linkNotice = translate(t, 'email.passwordReset.linkNotice');
+	const ignoreIfNotYou = translate(t, 'email.passwordReset.ignoreIfNotYou');
+	const securityNote = translate(t, 'email.passwordReset.securityNote');
+
+	// Формируем текст письма
+	const text = `
+${greeting},
+
+${wrapText(intro)}
+
+${instructions}
+${resetLink}
+
+${wrapText(linkNotice)}
+
+${wrapText(ignoreIfNotYou)}
+
+${wrapText(securityNote)}
+
+${footer}
+
+${thankYou},
+${team}
+`.trim();
+
+	return { subject, text };
+}
+
+/**
  * 2. EVENT REGISTRATION EMAIL
  *
  * Подтверждение записи на мероприятие

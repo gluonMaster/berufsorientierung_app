@@ -154,6 +154,10 @@ export async function POST(event: RequestEvent) {
 				photo_video_consent: data.photo_video_consent,
 				parental_consent: data.parental_consent,
 				preferred_language: preferredLanguage,
+				guardian_first_name: data.guardian_first_name,
+				guardian_last_name: data.guardian_last_name,
+				guardian_phone: data.guardian_phone,
+				guardian_consent: data.guardian_consent || false,
 			});
 		} catch (error) {
 			console.error('[Register] User creation failed:', error);
@@ -211,6 +215,10 @@ export async function POST(event: RequestEvent) {
 			telegram: newUser.telegram,
 			photo_video_consent: newUser.photo_video_consent,
 			parental_consent: newUser.parental_consent,
+			guardian_first_name: newUser.guardian_first_name,
+			guardian_last_name: newUser.guardian_last_name,
+			guardian_phone: newUser.guardian_phone,
+			guardian_consent: newUser.guardian_consent,
 			preferred_language: newUser.preferred_language,
 			is_blocked: newUser.is_blocked,
 			created_at: newUser.created_at,

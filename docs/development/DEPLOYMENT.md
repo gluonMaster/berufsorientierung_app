@@ -110,6 +110,18 @@ wrangler d1 execute berufsorientierung-db --remote --file=./migrations/0001_init
 wrangler d1 execute berufsorientierung-db --remote --file=./migrations/0002_make_max_participants_nullable.sql
 ```
 
+**Миграция 3: Добавление полей опекуна**
+
+```bash
+wrangler d1 execute berufsorientierung-db --remote --file=./migrations/0003_add_guardian_fields.sql
+```
+
+**Миграция 4: Добавление полей сброса пароля**
+
+```bash
+wrangler d1 execute berufsorientierung-db --remote --file=./migrations/0004_add_password_reset_fields.sql
+```
+
 **Проверка:**
 
 ```bash
@@ -981,10 +993,10 @@ npm run deploy
 
 **Применение новых миграций:**
 
-Если есть новая миграция (`migrations/0003_*.sql`):
+Если есть новая миграция (`migrations/0005_*.sql` и далее):
 
 ```bash
-wrangler d1 execute berufsorientierung-db --remote --file=./migrations/0003_*.sql
+wrangler d1 execute berufsorientierung-db --remote --file=./migrations/0005_*.sql
 ```
 
 ---

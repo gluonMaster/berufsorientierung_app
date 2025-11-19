@@ -33,7 +33,13 @@ interface DBUserRow {
 	photo_video_consent: number; // SQLite boolean как 0/1
 	preferred_language: string; // 'de' | 'en' | 'ru' | 'uk'
 	parental_consent: number; // SQLite boolean как 0/1
+	guardian_first_name: string | null;
+	guardian_last_name: string | null;
+	guardian_phone: string | null;
+	guardian_consent: number; // SQLite boolean как 0/1
 	is_blocked: number; // SQLite boolean как 0/1
+	password_reset_token_hash: string | null; // SHA-256 хеш токена сброса пароля (hex, 64 символа)
+	password_reset_expires_at: string | null; // Время истечения токена ISO-8601
 	created_at: string;
 	updated_at: string;
 }
@@ -116,7 +122,13 @@ function rowToUser(row: DBUserRow): User {
 		photo_video_consent: Boolean(row.photo_video_consent),
 		preferred_language: row.preferred_language as 'de' | 'en' | 'ru' | 'uk',
 		parental_consent: Boolean(row.parental_consent),
+		guardian_first_name: row.guardian_first_name,
+		guardian_last_name: row.guardian_last_name,
+		guardian_phone: row.guardian_phone,
+		guardian_consent: Boolean(row.guardian_consent),
 		is_blocked: Boolean(row.is_blocked),
+		password_reset_token_hash: row.password_reset_token_hash,
+		password_reset_expires_at: row.password_reset_expires_at,
 		created_at: normalizeTimestamp(row.created_at),
 		updated_at: normalizeTimestamp(row.updated_at),
 	};
@@ -156,12 +168,14 @@ export async function createUser(
 					address_street, address_number, address_zip, address_city,
 					phone, whatsapp, telegram,
 					photo_video_consent, parental_consent, preferred_language,
+					guardian_first_name, guardian_last_name, guardian_phone, guardian_consent,
 					is_blocked, created_at, updated_at
 				) VALUES (
 					?, ?, ?, ?, ?,
 					?, ?, ?, ?,
 					?, ?, ?,
 					?, ?, ?,
+					?, ?, ?, ?,
 					?, ?, ?
 				)`
 			)
@@ -181,6 +195,10 @@ export async function createUser(
 				data.photo_video_consent ? 1 : 0,
 				data.parental_consent ? 1 : 0,
 				data.preferred_language,
+				data.guardian_first_name || null,
+				data.guardian_last_name || null,
+				data.guardian_phone || null,
+				data.guardian_consent ? 1 : 0,
 				0, // is_blocked по умолчанию false
 				now,
 				now
@@ -314,6 +332,10 @@ export async function updateUser(
 		preferred_language: 'preferred_language',
 		is_blocked: 'is_blocked',
 		parental_consent: 'parental_consent',
+		guardian_first_name: 'guardian_first_name',
+		guardian_last_name: 'guardian_last_name',
+		guardian_phone: 'guardian_phone',
+		guardian_consent: 'guardian_consent',
 	};
 
 	// Формируем SET часть запроса
@@ -327,7 +349,8 @@ export async function updateUser(
 			if (
 				key === 'photo_video_consent' ||
 				key === 'is_blocked' ||
-				key === 'parental_consent'
+				key === 'parental_consent' ||
+				key === 'guardian_consent'
 			) {
 				values.push(value ? 1 : 0);
 			} else {
@@ -633,4 +656,82 @@ export async function emailExists(db: D1Database, email: string): Promise<boolea
 		.first();
 
 	return result !== null;
+}
+
+/**
+ * Устанавливает токен сброса пароля для пользователя
+ * Используется в процессе восстановления пароля
+ *
+ * @param db - D1 Database инстанс
+ * @param userId - ID пользователя
+ * @param tokenHash - SHA-256 хеш токена в hex-формате (64 символа)
+ * @param expiresAt - Время истечения токена в формате ISO-8601 (YYYY-MM-DDTHH:MM:SS)
+ * @throws Error если пользователь не найден или операция не удалась
+ *
+ * @example
+ * const expiresAt = new Date(Date.now() + 3600000).toISOString().slice(0, 19);
+ * await setPasswordResetToken(db, 123, hashedToken, expiresAt);
+ */
+export async function setPasswordResetToken(
+	db: D1Database,
+	userId: number,
+	tokenHash: string,
+	expiresAt: string
+): Promise<void> {
+	// Проверяем существование пользователя
+	const user = await getUserById(db, userId);
+	if (!user) {
+		throw new Error('User not found');
+	}
+
+	// Обновляем поля токена сброса пароля
+	const result = await db
+		.prepare(
+			`UPDATE users 
+			SET password_reset_token_hash = ?, 
+			    password_reset_expires_at = ?,
+			    updated_at = ?
+			WHERE id = ?`
+		)
+		.bind(tokenHash, expiresAt, nowSql(), userId)
+		.run();
+
+	if (!result.success) {
+		throw new Error('Failed to set password reset token');
+	}
+}
+
+/**
+ * Очищает токен сброса пароля для пользователя
+ * Используется после успешного сброса пароля или при истечении токена
+ *
+ * @param db - D1 Database инстанс
+ * @param userId - ID пользователя
+ * @throws Error если пользователь не найден или операция не удалась
+ *
+ * @example
+ * await clearPasswordResetToken(db, 123);
+ */
+export async function clearPasswordResetToken(db: D1Database, userId: number): Promise<void> {
+	// Проверяем существование пользователя
+	const user = await getUserById(db, userId);
+	if (!user) {
+		throw new Error('User not found');
+	}
+
+	// Очищаем поля токена сброса пароля
+	const result = await db
+		.prepare(
+			`UPDATE users 
+			SET password_reset_token_hash = NULL, 
+			    password_reset_expires_at = NULL,
+			    updated_at = ?
+			WHERE id = ?`
+		)
+		.bind(nowSql(), userId)
+		.run();
+
+	if (!result.success) {
+		throw new Error('Failed to clear password reset token');
+	}
 }

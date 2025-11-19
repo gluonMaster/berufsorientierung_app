@@ -29,14 +29,60 @@ export function calculateAge(birthDate: string): number {
 }
 
 /**
- * Проверяет формат телефонного номера (немецкий формат)
- * Разрешены форматы: +49..., 0..., с пробелами и дефисами
+ * Проверяет формат телефонного номера (немецкий и международный формат)
+ * Разрешены форматы:
+ * - Немецкие: +49... или 0... (минимум 7 цифр после кода)
+ * - Международные: +<код страны><номер> (от 8 до 15 цифр всего, E.164)
+ * Пробелы и дефисы игнорируются
  */
 function isValidPhone(phone: string): boolean {
 	// Удаляем пробелы и дефисы для проверки
 	const cleaned = phone.replace(/[\s\-]/g, '');
-	// Разрешаем: +49... или 0... (минимум 10 цифр после кода)
-	return /^(\+49|0)\d{9,}$/.test(cleaned);
+
+	// Немецкий формат: +49... или 0... (минимум 7 цифр после кода для разумной длины)
+	if (/^(\+49|0)\d{7,}$/.test(cleaned)) {
+		return true;
+	}
+
+	// Общий международный формат E.164: +<код><номер>, от 8 до 15 цифр всего
+	// Это покрывает все страны мира (например: +380675594122, +48..., +371..., +7...)
+	if (/^\+\d{8,15}$/.test(cleaned)) {
+		return true;
+	}
+
+	return false;
+}
+
+/**
+ * Проверяет формат телефонного номера для опекуна (расширенная валидация)
+ * Разрешены форматы: +49... (Германия), +38... (Украина), +7... (Россия), 0... (локальный немецкий)
+ * Также разрешены номера стран ЕС
+ */
+function isValidGuardianPhone(phone: string): boolean {
+	// Удаляем пробелы и дефисы для проверки
+	const cleaned = phone.replace(/[\s\-]/g, '');
+
+	// Разрешаем немецкие номера (локальные и международные)
+	if (/^(\+49|0)\d{9,}$/.test(cleaned)) {
+		return true;
+	}
+
+	// Разрешаем украинские номера (+380...)
+	if (/^\+380\d{9}$/.test(cleaned)) {
+		return true;
+	}
+
+	// Разрешаем российские номера (+7...)
+	if (/^\+7\d{10}$/.test(cleaned)) {
+		return true;
+	}
+
+	// Разрешаем номера других стран ЕС (упрощенная проверка: +XX где XX = 2-3 цифры, затем минимум 9 цифр)
+	if (/^\+\d{2,3}\d{9,}$/.test(cleaned)) {
+		return true;
+	}
+
+	return false;
 }
 
 /**
@@ -189,6 +235,12 @@ export const userRegistrationSchema = z
 		whatsapp: optionalPhoneSchema,
 		telegram: z.string().trim().optional(),
 
+		// Данные опекуна (для несовершеннолетних)
+		guardian_first_name: z.string().trim().optional(),
+		guardian_last_name: z.string().trim().optional(),
+		guardian_phone: z.string().trim().optional(),
+		guardian_consent: z.boolean().optional(),
+
 		// Согласия
 		photo_video_consent: z.boolean(),
 		parental_consent: z.boolean(),
@@ -215,6 +267,55 @@ export const userRegistrationSchema = z
 			path: ['parental_consent'],
 		}
 	)
+	.refine(
+		(data) => {
+			const age = calculateAge(data.birth_date);
+			// Если возраст < 18, то все поля опекуна должны быть заполнены
+			if (age < 18) {
+				return (
+					data.guardian_first_name &&
+					data.guardian_first_name.trim().length > 0 &&
+					data.guardian_last_name &&
+					data.guardian_last_name.trim().length > 0 &&
+					data.guardian_phone &&
+					data.guardian_phone.trim().length > 0
+				);
+			}
+			return true;
+		},
+		{
+			message: 'validation.guardianDataRequired',
+			path: ['guardian_first_name'],
+		}
+	)
+	.refine(
+		(data) => {
+			const age = calculateAge(data.birth_date);
+			// Если возраст < 18 и указан телефон опекуна, проверяем формат
+			if (age < 18 && data.guardian_phone && data.guardian_phone.trim().length > 0) {
+				return isValidGuardianPhone(data.guardian_phone);
+			}
+			return true;
+		},
+		{
+			message: 'validation.guardianPhoneInvalid',
+			path: ['guardian_phone'],
+		}
+	)
+	.refine(
+		(data) => {
+			const age = calculateAge(data.birth_date);
+			// Если возраст < 18, то guardian_consent должно быть true
+			if (age < 18) {
+				return data.guardian_consent === true;
+			}
+			return true;
+		},
+		{
+			message: 'validation.guardianConsentRequired',
+			path: ['guardian_consent'],
+		}
+	)
 	.refine((data) => data.gdpr_consent === true, {
 		message: 'validation.gdprConsentRequired',
 		path: ['gdpr_consent'],
@@ -226,6 +327,13 @@ export const userRegistrationSchema = z
 export const userLoginSchema = z.object({
 	email: emailSchema,
 	password: z.string().min(1, { message: 'validation.passwordRequired' }),
+});
+
+/**
+ * Схема запроса на восстановление пароля
+ */
+export const forgotPasswordRequestSchema = z.object({
+	email: emailSchema,
 });
 
 /**
@@ -295,3 +403,4 @@ export const userUpdateSchema = z
 export type UserRegistrationInput = z.infer<typeof userRegistrationSchema>;
 export type UserLoginInput = z.infer<typeof userLoginSchema>;
 export type UserUpdateInput = z.infer<typeof userUpdateSchema>;
+export type ForgotPasswordRequestInput = z.infer<typeof forgotPasswordRequestSchema>;

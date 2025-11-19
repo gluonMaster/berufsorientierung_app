@@ -16,6 +16,7 @@ export type ActivityLogActionType =
 	| 'user_login_failed' // Неудачная попытка входа
 	| 'user_logout' // Выход из системы
 	| 'user_update_profile' // Обновление профиля
+	| 'password_reset' // Сброс пароля
 	| 'user_delete_request' // Запрос на удаление аккаунта
 	| 'user_deleted' // Аккаунт удален
 	| 'profile_deleted_immediate' // Профиль удален немедленно (GDPR)
@@ -27,6 +28,7 @@ export type ActivityLogActionType =
 	| 'event_delete' // Удаление мероприятия
 	| 'event_publish' // Публикация мероприятия
 	| 'event_cancel' // Отмена мероприятия
+	| 'event_regenerate_qr' // Перегенерация QR-кодов мероприятия
 	| 'event_export' // Экспорт мероприятий в JSON
 	| 'event_import' // Импорт мероприятий из JSON
 	// Действия с записями

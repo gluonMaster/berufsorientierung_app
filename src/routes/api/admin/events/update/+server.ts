@@ -19,7 +19,8 @@ import { eventUpdateWithFieldsSchema } from '$lib/server/validation/schemas';
 import { getEventById, updateEvent } from '$lib/server/db/events';
 import { setEventFields } from '$lib/server/db/eventFields';
 import { logActivity } from '$lib/server/db/activityLog';
-import { generateAndUploadQR, deleteEventQRs } from '$lib/server/storage/qr';
+import { generateAndUploadQR } from '$lib/server/storage/qr';
+import { deleteFileByUrl } from '$lib/server/storage/r2';
 import type { EventUpdateData } from '$lib/types/event';
 
 export async function PUT({ request, platform }: RequestEvent) {
@@ -63,17 +64,14 @@ export async function PUT({ request, platform }: RequestEvent) {
 		// Шаг 4: Обработка QR-кодов (если изменились ссылки)
 		let qrTelegramUrl: string | null | undefined = undefined;
 		let qrWhatsappUrl: string | null | undefined = undefined;
-		let needQrUpdate = false;
 
 		// Проверяем, изменилась ли ссылка на Telegram
 		if (
 			data.telegram_link !== undefined &&
 			data.telegram_link !== existingEvent.telegram_link
 		) {
-			needQrUpdate = true;
-
 			if (data.telegram_link) {
-				// Генерируем новый QR
+				// Генерируем новый QR (bucket.put перезапишет старый файл по тому же ключу)
 				try {
 					qrTelegramUrl = await generateAndUploadQR(
 						platform!.env.R2_BUCKET,
@@ -84,10 +82,22 @@ export async function PUT({ request, platform }: RequestEvent) {
 					);
 				} catch (error) {
 					console.error('[UPDATE EVENT] Failed to generate Telegram QR:', error);
+					// При ошибке генерации оставляем старый QR (не затираем qr_telegram_url)
+					// qrTelegramUrl остаётся undefined, поэтому БД не будет обновлена
 				}
 			} else {
-				// Удаляем QR если ссылка удалена
+				// Ссылка удалена: устанавливаем NULL в БД и удаляем файл из R2
 				qrTelegramUrl = null;
+				if (existingEvent.qr_telegram_url) {
+					try {
+						await deleteFileByUrl(
+							platform!.env.R2_BUCKET,
+							existingEvent.qr_telegram_url
+						);
+					} catch (error) {
+						console.error('[UPDATE EVENT] Failed to delete Telegram QR:', error);
+					}
+				}
 			}
 		}
 
@@ -96,10 +106,8 @@ export async function PUT({ request, platform }: RequestEvent) {
 			data.whatsapp_link !== undefined &&
 			data.whatsapp_link !== existingEvent.whatsapp_link
 		) {
-			needQrUpdate = true;
-
 			if (data.whatsapp_link) {
-				// Генерируем новый QR
+				// Генерируем новый QR (bucket.put перезапишет старый файл по тому же ключу)
 				try {
 					qrWhatsappUrl = await generateAndUploadQR(
 						platform!.env.R2_BUCKET,
@@ -110,20 +118,22 @@ export async function PUT({ request, platform }: RequestEvent) {
 					);
 				} catch (error) {
 					console.error('[UPDATE EVENT] Failed to generate WhatsApp QR:', error);
+					// При ошибке генерации оставляем старый QR (не затираем qr_whatsapp_url)
+					// qrWhatsappUrl остаётся undefined, поэтому БД не будет обновлена
 				}
 			} else {
-				// Удаляем QR если ссылка удалена
+				// Ссылка удалена: устанавливаем NULL в БД и удаляем файл из R2
 				qrWhatsappUrl = null;
-			}
-		}
-
-		// Если QR нужно обновить, удаляем старые файлы из R2
-		if (needQrUpdate) {
-			try {
-				await deleteEventQRs(platform!.env.R2_BUCKET, eventId);
-			} catch (error) {
-				console.error('[UPDATE EVENT] Failed to delete old QR codes:', error);
-				// Не прерываем обновление из-за ошибки удаления
+				if (existingEvent.qr_whatsapp_url) {
+					try {
+						await deleteFileByUrl(
+							platform!.env.R2_BUCKET,
+							existingEvent.qr_whatsapp_url
+						);
+					} catch (error) {
+						console.error('[UPDATE EVENT] Failed to delete WhatsApp QR:', error);
+					}
+				}
 			}
 		}
 
@@ -142,32 +152,30 @@ export async function PUT({ request, platform }: RequestEvent) {
 		// Шаг 6: Обновление мероприятия в БД
 		let event = await updateEvent(platform!.env.DB, eventId, updateData);
 
-		// Шаг 7: Обновление QR URLs в БД (если были изменены)
-		if (needQrUpdate) {
-			const qrUpdateSql = [];
-			const qrUpdateBindings = [];
+		// Шаг 7: Обновление QR URLs в БД (если были изменены ссылки)
+		const qrUpdateSql = [];
+		const qrUpdateBindings = [];
 
-			if (qrTelegramUrl !== undefined) {
-				qrUpdateSql.push('qr_telegram_url = ?');
-				qrUpdateBindings.push(qrTelegramUrl);
-			}
-			if (qrWhatsappUrl !== undefined) {
-				qrUpdateSql.push('qr_whatsapp_url = ?');
-				qrUpdateBindings.push(qrWhatsappUrl);
-			}
+		if (qrTelegramUrl !== undefined) {
+			qrUpdateSql.push('qr_telegram_url = ?');
+			qrUpdateBindings.push(qrTelegramUrl);
+		}
+		if (qrWhatsappUrl !== undefined) {
+			qrUpdateSql.push('qr_whatsapp_url = ?');
+			qrUpdateBindings.push(qrWhatsappUrl);
+		}
 
-			if (qrUpdateSql.length > 0) {
-				qrUpdateBindings.push(eventId);
-				await platform!.env.DB.prepare(
-					`UPDATE events SET ${qrUpdateSql.join(', ')}, updated_at = datetime('now') WHERE id = ?`
-				)
-					.bind(...qrUpdateBindings)
-					.run();
+		if (qrUpdateSql.length > 0) {
+			qrUpdateBindings.push(eventId);
+			await platform!.env.DB.prepare(
+				`UPDATE events SET ${qrUpdateSql.join(', ')}, updated_at = datetime('now') WHERE id = ?`
+			)
+				.bind(...qrUpdateBindings)
+				.run();
 
-				// Обновляем локальную копию
-				if (qrTelegramUrl !== undefined) event.qr_telegram_url = qrTelegramUrl;
-				if (qrWhatsappUrl !== undefined) event.qr_whatsapp_url = qrWhatsappUrl;
-			}
+			// Обновляем локальную копию
+			if (qrTelegramUrl !== undefined) event.qr_telegram_url = qrTelegramUrl;
+			if (qrWhatsappUrl !== undefined) event.qr_whatsapp_url = qrWhatsappUrl;
 		}
 
 		// Шаг 8: Обновление additional_fields (если указаны)

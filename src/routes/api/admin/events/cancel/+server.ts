@@ -9,9 +9,10 @@
  * 3. Проверка существования мероприятия
  * 4. Проверка что мероприятие активно (не отменено ранее)
  * 5. Получение списка всех зарегистрированных пользователей
- * 6. Обновление статуса мероприятия на 'cancelled'
- * 7. Логирование действия
- * 8. Массовая рассылка уведомлений всем участникам (с батчингом)
+ * 6. Обновление всех активных регистраций (отметка как cancelled)
+ * 7. Обновление статуса мероприятия на 'cancelled'
+ * 8. Логирование действия
+ * 9. Массовая рассылка уведомлений всем участникам (с батчингом)
  *
  * @returns 200 OK с результатами рассылки
  */
@@ -132,6 +133,33 @@ export async function POST({ request, platform }: RequestEvent) {
 		console.log(
 			`[Admin Cancel Event] Found ${activeRegistrations.length} active registrations for event ${eventId}`
 		);
+
+		// Помечаем все активные регистрации этого события как отменённые
+		if (activeRegistrations.length > 0) {
+			try {
+				await DB.prepare(
+					`UPDATE registrations
+					 SET cancelled_at = datetime('now'), cancellation_reason = ?
+					 WHERE event_id = ? AND cancelled_at IS NULL`
+				)
+					.bind(cancellationReason, eventId)
+					.run();
+
+				console.log(
+					`[Admin Cancel Event] Marked ${activeRegistrations.length} registrations as cancelled for event ${eventId}`
+				);
+			} catch (updateError) {
+				console.error(
+					'[Admin Cancel Event] Failed to mark registrations as cancelled:',
+					updateError
+				);
+				// Используем стандартный helper для 500-й ошибки
+				throw errors.internal('Failed to cancel registrations for this event', {
+					eventId,
+					error: updateError instanceof Error ? updateError.message : String(updateError),
+				});
+			}
+		}
 
 		// Шаг 6: Обновление статуса мероприятия на 'cancelled'
 		await cancelEvent(DB, eventId, cancellationReason, admin.id);
