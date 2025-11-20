@@ -320,7 +320,7 @@ wrangler secret put SETUP_TOKEN
 
 ```toml
 [vars]
-EMAIL_PROVIDER = "resend"  # Рекомендуется: "resend" для надёжной доставки. Используйте "mailchannels" только если домен управляется в этом Cloudflare аккаунте.
+EMAIL_PROVIDER = "mailchannels"
 EMAIL_FROM = "Berufsorientierung <Berufsorientierung@kolibri-dresden.de>"
 EMAIL_REPLY_TO = "Berufsorientierung <Berufsorientierung@kolibri-dresden.de>"
 EMAIL_BULK_CHUNK = "50"

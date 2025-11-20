@@ -53,9 +53,12 @@
 - `validation.zipInvalid` - Почтовый индекс должен состоять из 5 цифр
 - `validation.cityRequired` - Город обязателен
 
-### Согласия (GDPR, Parental)
+### Согласия (GDPR, Parental, Guardian)
 
 - `validation.parentalConsentRequired` - Согласие родителей обязательно для пользователей младше 18 лет
+- `validation.guardianDataRequired` - Данные родителя/опекуна обязательны для пользователей младше 18 лет
+- `validation.guardianConsentRequired` - Согласие родителя/опекуна обязательно
+- `validation.guardianPhoneInvalid` - Неверный номер телефона родителя/опекуна (ЕС/UA/RU)
 - `validation.gdprConsentRequired` - Согласие с политикой обработки данных обязательно
 
 ### Обновление профиля

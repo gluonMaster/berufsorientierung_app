@@ -28,7 +28,8 @@ import bcrypt from 'bcryptjs';
 
 const passwordHash = await bcrypt.hash('password123', 10);
 
-const user = await createUser(platform.env.DB, {
+// Пример 1: Совершеннолетний пользователь
+const adultUser = await createUser(platform.env.DB, {
 	email: 'user@example.com',
 	password_hash: passwordHash,
 	first_name: 'John',
@@ -40,7 +41,28 @@ const user = await createUser(platform.env.DB, {
 	address_city: 'Dresden',
 	phone: '+49123456789',
 	photo_video_consent: true,
-	parental_consent: false,
+	parental_consent: false, // Не требуется для совершеннолетних
+	preferred_language: 'de',
+});
+
+// Пример 2: Несовершеннолетний пользователь (требуются данные опекуна)
+const minorUser = await createUser(platform.env.DB, {
+	email: 'teenager@example.com',
+	password_hash: passwordHash,
+	first_name: 'Anna',
+	last_name: 'Schmidt',
+	birth_date: '2010-05-15',
+	address_street: 'Hauptstraße',
+	address_number: '42',
+	address_zip: '01067',
+	address_city: 'Dresden',
+	phone: '+49987654321',
+	photo_video_consent: true,
+	parental_consent: true, // ОБЯЗАТЕЛЬНО для возраста < 18
+	guardian_first_name: 'Maria',
+	guardian_last_name: 'Schmidt',
+	guardian_phone: '+49123456789',
+	guardian_consent: true, // Согласие конкретного опекуна
 	preferred_language: 'de',
 });
 ```
