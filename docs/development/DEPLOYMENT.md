@@ -265,6 +265,17 @@ node scripts/check-dns.mjs kolibri-dresden.de mailchannels
 
 Скрипт автоматически проверит SPF, DKIM и DMARC записи.
 
+```toml
+[vars]
+# Recommended: set EMAIL_PROVIDER to "resend" for reliable delivery (see docs/features/email)
+EMAIL_PROVIDER = "resend"
+EMAIL_FROM = "Berufsorientierung <Berufsorientierung@kolibri-dresden.de>"
+EMAIL_REPLY_TO = "Berufsorientierung <Berufsorientierung@kolibri-dresden.de>"
+EMAIL_BULK_CHUNK = "50"
+EMAIL_BULK_PAUSE_MS = "60000"
+TURNSTILE_SITE_KEY = "your_turnstile_site_key_here"  # <-- Add your Turnstile site key
+```
+
 ---
 
 ## Шаг 4: Настройка Cloudflare Turnstile
@@ -273,13 +284,27 @@ Turnstile — защита от ботов на формах регистрац�
 
 ### 4.1. Создание Turnstile Site
 
+```bash
+wrangler secret put CRON_SECRET
+# Enter the generated secret when prompted
+```
+
+⚠️ **Сохраните значение!** Оно понадобится для тестирования HTTP fallback endpoint (см. Шаг 8.7).
+
 1. Откройте [Cloudflare Dashboard](https://dash.cloudflare.com/)
 2. Выберите ваш аккаунт → **Turnstile**
 3. Нажмите **Add Site**
 4. Заполните:
    - **Site name**: `Berufsorientierung App`
-   - **Domain**: `your-app.workers.dev` или ваш кастомный домен
-   - **Widget Mode**: `Managed` (рекомендуется)
+
+```bash
+wrangler secret put SETUP_TOKEN
+# Enter a one-time setup token value when prompted and store it securely
+```
+
+- **Domain**: `your-app.workers.dev` или ваш кастомный домен
+- **Widget Mode**: `Managed` (рекомендуется)
+
 5. Нажмите **Create**
 
 ### 4.2. Получение ключей
@@ -295,7 +320,7 @@ Turnstile — защита от ботов на формах регистрац�
 
 ```toml
 [vars]
-EMAIL_PROVIDER = "mailchannels"
+EMAIL_PROVIDER = "resend"  # Рекомендуется: "resend" для надёжной доставки. Используйте "mailchannels" только если домен управляется в этом Cloudflare аккаунте.
 EMAIL_FROM = "Berufsorientierung <Berufsorientierung@kolibri-dresden.de>"
 EMAIL_REPLY_TO = "Berufsorientierung <Berufsorientierung@kolibri-dresden.de>"
 EMAIL_BULK_CHUNK = "50"

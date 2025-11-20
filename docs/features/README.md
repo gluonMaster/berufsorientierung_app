@@ -81,12 +81,12 @@
 - Плавные анимации и transitions
 - Консистентный дизайн (Tailwind CSS)
 
-### [email/](./email/) - Email система
+-### [email/](./email/) - Email система
 
-Отправка email через MailChannels HTTP API.
+Email sending via `Resend` (recommended) or `MailChannels` (Cloudflare-only).
 
 - [README.md](./email/README.md) - Основная документация модуля
-- [MAILCHANNELS.md](./email/MAILCHANNELS.md) - Настройка DNS (SPF/DKIM/DMARC), troubleshooting
+- [MAILCHANNELS.md](./email/MAILCHANNELS.md) - Настройка MailChannels, DNS (SPF/DKIM/DMARC), troubleshooting
 - [DEVIATIONS.md](./email/DEVIATIONS.md) - Отклонения от спецификации и обоснование
 - [CHANGELOG.md](./email/CHANGELOG.md) - История изменений
 

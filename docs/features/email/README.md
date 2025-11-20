@@ -10,18 +10,18 @@
 
 Модуль поддерживает несколько email провайдеров с единым API:
 
-- **MailChannels** - бесплатная отправка через Cloudflare Workers (требует домен в Cloudflare)
-- **Resend** - современный API с отличной deliverability (работает с любым доменом)
+- **Resend** - современный API с высокой deliverability (рекомендуется, работает с любым доменом)
+- **MailChannels** - бесплатная отправка через Cloudflare Workers (опционально; требует, чтобы домен был добавлен в тот же Cloudflare аккаунт)
 
-**Выбор провайдера** осуществляется через переменную окружения `EMAIL_PROVIDER`:
+**Выбор провайдера** осуществляется через переменную окружения `EMAIL_PROVIDER`.
 
 ```bash
-# MailChannels (по умолчанию)
-EMAIL_PROVIDER=mailchannels
-
-# Resend (требует RESEND_API_KEY)
+# Рекомендуется Resend
 EMAIL_PROVIDER=resend
 RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxxxxxxxx
+
+# Опция: MailChannels (требует домен в Cloudflare)
+EMAIL_PROVIDER=mailchannels
 ```
 
 **Реализация:** `src/lib/server/email/index.ts` автоматически выбирает провайдера на основе `EMAIL_PROVIDER` и вызывает соответствующую функцию отправки (`sendEmailViaMailChannels` или `sendEmailViaResend`).
@@ -141,8 +141,8 @@ export async function POST({ platform }: RequestEvent) {
 **Обязательные:**
 
 ```bash
-# Выбор провайдера (mailchannels или resend)
-EMAIL_PROVIDER=mailchannels
+# Рекомендация: используйте Resend для более надёжной доставки
+EMAIL_PROVIDER=resend
 EMAIL_FROM=Berufsorientierung <Berufsorientierung@kolibri-dresden.de>
 ```
 

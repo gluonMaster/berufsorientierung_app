@@ -2,8 +2,8 @@
 
 ## Введение
 
-Berufsorientierung использует **MailChannels** как дефолтный провайдер отправки email через
-Cloudflare Workers. Отправка идёт по HTTP API, без SMTP.
+Berufsorientierung поддерживает **MailChannels** как один из провайдеров для отправки email через
+Cloudflare Workers. Для надёжной доставляемости рекомендуется использовать **Resend** по умолчанию; MailChannels остаётся опцией, когда домен управления (DNS) находится в том же Cloudflare аккаунте.
 
 В этом документе:
 
@@ -94,11 +94,14 @@ DMARC помогает контролировать, как принимающи
 
 ### 3.1 `wrangler.toml`
 
-Файл `wrangler.toml` уже содержит базовые переменные:
+Файл `wrangler.toml` уже содержит базовые переменные.
+
+Рекомендуется выставить `EMAIL_PROVIDER = "resend"` в качестве дефолтного провайдера для production, а `mailchannels` — только в случае, если домен полностью управляется в Cloudflare и вы хотите использовать интеграцию MailChannels:
 
 ```toml
 [vars]
-EMAIL_PROVIDER = "mailchannels"
+# Recommended: use Resend for reliable delivery
+EMAIL_PROVIDER = "resend"
 EMAIL_FROM = "Berufsorientierung <Berufsorientierung@kolibri-dresden.de>"
 EMAIL_REPLY_TO = "Berufsorientierung <Berufsorientierung@kolibri-dresden.de>"
 EMAIL_BULK_CHUNK = "50"
@@ -152,9 +155,9 @@ node scripts/check-dns.mjs kolibri-dresden.de mailchannels
 
 ```json
 {
-  "to": "you@example.com",
-  "subject": "Test email",
-  "text": "Hello from Berufsorientierung!"
+	"to": "you@example.com",
+	"subject": "Test email",
+	"text": "Hello from Berufsorientierung!"
 }
 ```
 
@@ -231,7 +234,6 @@ Resend — современный email‑провайдер с простым H
 ### 8.2 Шаги настройки Resend
 
 1. **Регистрация и домен**
-
    - Зарегистрироваться на <https://resend.com>.
    - В Dashboard → **Domains** добавить `kolibri-dresden.de`.
    - Resend покажет список DNS‑записей для домена.
@@ -241,7 +243,6 @@ Resend — современный email‑провайдер с простым H
    Важно: всегда копируйте значения **из Dashboard Resend**, а не из этого документа.
 
    Для текущей конфигурации используются:
-
    - TXT для верификации домена (DKIM):
 
      ```text
@@ -266,7 +267,6 @@ Resend — современный email‑провайдер с простым H
      ```
 
      При этом:
-
      - существующие `MX @` для основной почты IONOS **не изменяются**;
      - SPF для `@` может оставаться своим (IONOS + MailChannels);
        Resend использует SPF именно для поддомена `send`.
@@ -277,8 +277,7 @@ Resend — современный email‑провайдер с простым H
      Используйте уже существующую (в проекте — `p=none; rua=mailto:postmaster@kolibri-dresden.de`).
 
 3. **API key**
-
-   - В Dashboard → **API Keys** создать ключ с правами *Sending access*.
+   - В Dashboard → **API Keys** создать ключ с правами _Sending access_.
    - Сразу сохранить значение (`re_xxxxxxxxxxxxxxxxxxxxxxxxxx`) в менеджер паролей.
 
 4. **Переменные окружения**
@@ -302,7 +301,6 @@ Resend — современный email‑провайдер с простым H
    ```
 
 5. **Проверка**
-
    - Подождать 15–30 минут после изменения DNS (propagation).
    - В Resend Dashboard убедиться, что домен **Verified** и **Sending enabled**.
    - Вызвать `/api/dev/test-email` с заголовком `X-Setup-Token` и проверить,
@@ -312,9 +310,8 @@ Resend — современный email‑провайдер с простым H
 
 ## 9. Итоги
 
-- MailChannels остаётся основным провайдером, если `EMAIL_PROVIDER=mailchannels`.
+- MailChannels остаётся опцией, если `EMAIL_PROVIDER=mailchannels` и ваш домен добавлен в тот же Cloudflare аккаунт. В остальных случаях рекомендуется `EMAIL_PROVIDER=resend`.
 - Resend может быть включён одной переменной `EMAIL_PROVIDER=resend` и требует
   только DNS‑записей на IONOS и одного API‑ключа.
 - Выбор провайдера и логика отправки централизованы в
   `src/lib/server/email/index.ts`.
-

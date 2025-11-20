@@ -28,7 +28,7 @@
 - bcryptjs (хеширование паролей)
 - jose (JWT токены)
 - qrcode (генерация QR-кодов)
-- MailChannels (отправка email)
+- Resend / MailChannels (отправка email)
 
 ## 📦 Установка
 
@@ -87,7 +87,7 @@ npm run check
 
 ```bash
 # Создать базу данных в Cloudflare
-wrangler d1 create berufsorientierung_db
+wrangler d1 create berufsorientierung-db
 
 # Скопировать database_id из вывода в wrangler.toml
 ```
@@ -96,10 +96,16 @@ wrangler d1 create berufsorientierung_db
 
 ```bash
 # Применить миграции локально (для разработки)
-wrangler d1 execute berufsorientierung_db --local --file=./migrations/0001_initial.sql
+wrangler d1 execute berufsorientierung-db --local --file=./migrations/0001_initial.sql
+wrangler d1 execute berufsorientierung-db --local --file=./migrations/0002_make_max_participants_nullable.sql
+wrangler d1 execute berufsorientierung-db --local --file=./migrations/0003_add_guardian_fields.sql
+wrangler d1 execute berufsorientierung-db --local --file=./migrations/0004_add_password_reset_fields.sql
 
 # Применить миграции в продакшн
-wrangler d1 execute berufsorientierung_db --file=./migrations/0001_initial.sql
+wrangler d1 execute berufsorientierung-db --file=./migrations/0001_initial.sql
+wrangler d1 execute berufsorientierung-db --file=./migrations/0002_make_max_participants_nullable.sql
+wrangler d1 execute berufsorientierung-db --file=./migrations/0003_add_guardian_fields.sql
+wrangler d1 execute berufsorientierung-db --file=./migrations/0004_add_password_reset_fields.sql
 ```
 
 ## 📦 R2 Storage
@@ -122,6 +128,7 @@ wrangler secret put DKIM_PRIVATE_KEY
 wrangler secret put SETUP_TOKEN
 wrangler secret put CRON_SECRET
 wrangler secret put TURNSTILE_SECRET_KEY
+wrangler secret put RESEND_API_KEY  # Если используете Resend
 ```
 
 ### CRON_SECRET
@@ -327,7 +334,28 @@ wrangler deploy
 
 ## 📧 Email настройки
 
-### MailChannels (бесплатно через Cloudflare Workers)
+### Рекомендуется: Resend (бесплатно 3000 писем/месяц)
+
+1. Зарегистрируйтесь на https://resend.com
+2. Получите API ключ в Dashboard → API Keys
+3. Установите секрет:
+
+```bash
+wrangler secret put RESEND_API_KEY
+```
+
+4. Обновите `wrangler.toml`:
+
+```toml
+[vars]
+EMAIL_PROVIDER = "resend"
+```
+
+5. Верифицируйте домен в Resend Dashboard для отправки с вашего домена
+
+### Альтернатива: MailChannels (только для доменов в Cloudflare)
+
+⚠️ **ВАЖНО:** MailChannels работает только если домен добавлен как зона (site) в том же Cloudflare аккаунте, где развёрнут Worker. Если домен на внешнем DNS (IONOS и т.д.) - используйте Resend.
 
 1. Настроить SPF запись в DNS:
 
@@ -346,6 +374,8 @@ v=spf1 a mx include:relay.mailchannels.net ~all
 ```
 v=DMARC1; p=quarantine; rua=mailto:dmarc@kolibri-dresden.de
 ```
+
+Подробнее: [📧 Email Setup Guide](./docs/features/email/DEPLOYMENT.md)
 
 ## 📁 Структура проекта
 
@@ -382,11 +412,24 @@ berufsorientierung-app/
 
 ## 🔒 GDPR Compliance
 
-- Пользователи могут удалить свой профиль
+- Пользователи могут удалить свой профиль в любое время
 - Автоматическое удаление через 28 дней после последнего мероприятия
-- Минимальная архивация данных для отчетности
-- Явное согласие на обработку данных
+- Минимальная архивация данных для отчетности (только имя и даты участия)
+- Явное согласие на обработку данных при регистрации
 - Согласие на фото/видео съемку (опционально)
+- Для несовершеннолетних (<18 лет) требуется согласие родителя/опекуна
+- Все данные об удалениях логируются в activity_log
+
+## 🔐 Безопасность
+
+- JWT токены для аутентификации (httpOnly cookies)
+- CSRF защита для всех мутирующих операций
+- Cloudflare Turnstile для защиты от ботов на формах регистрации
+- bcrypt для хеширования паролей пользователей
+- SHA-256 для токенов сброса пароля (одноразовые, с истечением через 1 час)
+- Prepared statements для защиты от SQL injection
+- Rate limiting через Cloudflare Workers
+- Защита админ-эндпоинтов (требуется запись в таблице admins)
 
 ## 📱 Мобильная адаптация
 
@@ -397,8 +440,31 @@ berufsorientierung-app/
 
 ## 👥 Команда
 
-Разработано для **Kolibri Dresden**
+Разработано проекта профориентации молодежи с миграционным прошлым и является собственностью **Kinder- und Elternzentrum Kolibri e.V. Dresden**,
+Softwarentwikler Dr. Shakun K.S.
 
 ## 📄 Лицензия
 
-[Указать лицензию]
+© 2025 Kinder- und Elternzentrum Kolibri e.V. Dresden. Все права защищены.
+
+Данное программное обеспечение является собственностью **Kinder- und Elternzentrum Kolibri e.V. Dresden**.
+
+**Использование кода:**
+
+- ✅ Разрешено для некоммерческих образовательных целей с письменного разрешения
+- ✅ Разрешено для аналогичных социальных проектов с письменного разрешения
+- ❌ Запрещено коммерческое использование без разрешения
+- ❌ Запрещено распространение без указания авторства
+
+**Для получения разрешения на использование обращайтесь:**
+
+- Email: info@kolibri-dresden.de
+- Адрес: Ritzenbergstrasse 3 • 01067 Dresden
+  Villa der Kulturen
+  Kraftwerk Mitte 2 • 01067 Dresden
+  Tel. : +49 176 84235979 (Sekretariat)
+
+При использовании кода с разрешения обязательно указание:
+Based on Berufsorientierung App
+© Kinder- und Elternzentrum Kolibri e.V. Dresden
+Used with permission
