@@ -385,19 +385,33 @@ berufsorientierung-app/
 │   ├── routes/              # SvelteKit роуты
 │   ├── lib/
 │   │   ├── components/      # Svelte компоненты
-│   │   ├── server/          # Серверный код
+│   │   ├── server/          # Серверный код (БД, email, auth)
 │   │   ├── types/           # TypeScript типы
-│   │   └── stores/          # Svelte stores
-│   └── app.d.ts             # TypeScript декларации
+│   │   ├── stores/          # Svelte stores
+│   │   ├── validation/      # Zod схемы валидации
+│   │   ├── utils/           # Утилиты
+│   │   └── assets/          # Статические ассеты
+│   ├── app.d.ts             # TypeScript декларации
+│   ├── hooks.server.ts      # SvelteKit server hooks
+│   └── worker.ts            # Cloudflare Worker entry point
 ├── static/
-│   └── translations/        # i18n переводы
-├── migrations/              # SQL миграции
-├── tests/                   # Тесты
+│   ├── translations/        # i18n переводы (de/en/ru/uk)
+│   └── image/               # Изображения
+├── migrations/              # SQL миграции (D1 database)
+├── tests/                   # Vitest тесты (unit + integration)
 ├── docs/                    # 📚 Документация проекта
 │   ├── development/         # Для разработчиков
-│   ├── database/            # Документация БД
-│   └── features/            # Функционал приложения
+│   ├── database/            # Документация модулей БД
+│   └── features/            # Функциональные возможности
+├── scripts/                 # Build и deployment скрипты
+├── keys/                    # DKIM ключи для email
 ├── wrangler.toml           # Cloudflare конфиг
+├── package.json            # NPM зависимости
+├── tsconfig.json           # TypeScript конфиг
+├── vite.config.ts          # Vite конфиг
+├── svelte.config.js        # SvelteKit конфиг
+├── tailwind.config.js      # Tailwind CSS конфиг
+├── ADMIN_GUIDE.md          # Руководство администратора
 └── .env.example            # Пример переменных окружения
 ```
 
