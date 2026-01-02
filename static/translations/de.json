@@ -263,7 +263,35 @@
 		"deletePoint2": "Ihre aktiven Anmeldungen werden storniert",
 		"deletePoint3": "Diese Aktion kann nicht rückgängig gemacht werden",
 		"confirmDelete": "Löschung bestätigen",
-		"eventTitle": "Veranstaltung"
+		"eventTitle": "Veranstaltung",
+		"reviews": {
+			"add": "Bewertung schreiben",
+			"addShort": "Bewerten",
+			"status": {
+				"pending": "Ausstehend",
+				"approved": "Veröffentlicht",
+				"rejected": "Abgelehnt"
+			}
+		}
+	},
+	"reviews": {
+		"form": {
+			"title": "Bewertung schreiben",
+			"rating": "Bewertung",
+			"ratingHint": "Wählen Sie eine Bewertung von 1 bis 10",
+			"comment": "Ihre Bewertung",
+			"commentPlaceholder": "Teilen Sie Ihre Erfahrungen von dieser Veranstaltung...",
+			"anonymous": "Anonym absenden",
+			"anonymousHint": "Ihr Name wird nicht mit der Bewertung angezeigt",
+			"submit": "Bewertung absenden",
+			"success": "Bewertung zur Moderation eingereicht",
+			"successDescription": "Ihre Bewertung wurde eingereicht und wird nach der Moderation sichtbar sein.",
+			"alreadySubmitted": "Sie haben bereits eine Bewertung für diese Veranstaltung abgegeben",
+			"submittedOn": "Eingereicht am {date}"
+		},
+		"window": {
+			"notAvailable": "Der Bewertungszeitraum für diese Veranstaltung ist nicht verfügbar"
+		}
 	},
 	"gdpr": {
 		"dataProcessing": "Ich stimme der Verarbeitung meiner personenbezogenen Daten gemäß der Datenschutzerklärung zu",

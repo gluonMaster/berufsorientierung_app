@@ -7,6 +7,7 @@ import { error, fail, redirect } from '@sveltejs/kit';
 import { requireAuth } from '$lib/server/middleware/auth';
 import { DB } from '$lib/server/db';
 import type { RequestEvent } from '@sveltejs/kit';
+import type { ReviewStatus } from '$lib/types/review';
 
 /**
  * Load функция - загружает данные профиля
@@ -15,6 +16,7 @@ import type { RequestEvent } from '@sveltejs/kit';
  * Загружает:
  * - Данные пользователя
  * - Список регистраций пользователя с информацией о мероприятиях
+ * - Статусы отзывов для каждого мероприятия
  * - Информацию о запланированном удалении (если есть)
  */
 export const load = async ({ request, platform }: RequestEvent) => {
@@ -33,13 +35,31 @@ export const load = async ({ request, platform }: RequestEvent) => {
 		// 1. Загружаем регистрации пользователя
 		const registrations = await DB.registrations.getUserRegistrations(platform.env.DB, user.id);
 
-		// 2. Проверяем есть ли запланированное удаление
+		// 2. Получаем статусы отзывов для всех мероприятий
+		const eventIds = registrations.map((r) => r.event_id);
+		const reviewsMap = await DB.reviews.getUserReviewsByEventIds(
+			platform.env.DB,
+			user.id,
+			eventIds
+		);
+
+		// 3. Расширяем registrations информацией об отзывах
+		const registrationsWithReviews = registrations.map((r) => {
+			const reviewInfo = reviewsMap.get(r.event_id);
+			return {
+				...r,
+				review_id: reviewInfo?.review_id || null,
+				review_status: (reviewInfo?.status || null) as ReviewStatus | null,
+			};
+		});
+
+		// 4. Проверяем есть ли запланированное удаление
 		const allScheduled = await DB.gdpr.getScheduledDeletions(platform.env.DB);
 		const pendingDeletion = allScheduled.find((item) => item.user_id === user.id) || null;
 
 		return {
 			user,
-			registrations,
+			registrations: registrationsWithReviews,
 			pendingDeletion,
 		};
 	} catch (err) {

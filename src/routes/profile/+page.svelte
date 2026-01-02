@@ -7,6 +7,7 @@
 	import Modal from '$lib/components/ui/Modal.svelte';
 	import Toast from '$lib/components/ui/Toast.svelte';
 	import type { User } from '$lib/types';
+	import type { ReviewStatus } from '$lib/types/review';
 
 	// Типы данных из +page.server.ts
 	export let data: {
@@ -22,7 +23,10 @@
 			event_title_ru: string | null;
 			event_title_uk: string | null;
 			event_date: string;
+			event_end_date: string | null;
 			event_status: string;
+			review_id: number | null;
+			review_status: ReviewStatus | null;
 		}>;
 		pendingDeletion: { user_id: number; deletion_date: string; created_at: string } | null;
 	};
@@ -270,6 +274,73 @@
 
 		// Иначе возвращаем немецкий заголовок (он всегда есть)
 		return registration.event_title_de;
+	}
+
+	// ====== ФУНКЦИИ ДЛЯ ОТЗЫВОВ ======
+
+	/**
+	 * Вычисляет окно возможности оставить отзыв
+	 * Правила: старт = end_date - 45 минут, конец = start + 7 дней
+	 */
+	function getReviewWindow(endDate: string): { start: Date; end: Date } {
+		const endDateTime = new Date(endDate);
+		const start = new Date(endDateTime.getTime() - 45 * 60 * 1000);
+		const end = new Date(start.getTime() + 7 * 24 * 60 * 60 * 1000);
+		return { start, end };
+	}
+
+	/**
+	 * Проверяет, находится ли текущее время внутри окна отзывов
+	 */
+	function isNowWithinReviewWindow(endDate: string): boolean {
+		const now = new Date();
+		const window = getReviewWindow(endDate);
+		return now >= window.start && now <= window.end;
+	}
+
+	/**
+	 * Проверяет, можно ли показать кнопку "Добавить отзыв"
+	 */
+	function canShowReviewButton(registration: (typeof data.registrations)[0]): boolean {
+		// Не показываем если регистрация отменена
+		if (registration.cancelled_at) return false;
+
+		// Не показываем если мероприятие отменено
+		if (registration.event_status === 'cancelled') return false;
+
+		// Не показываем если нет end_date
+		if (!registration.event_end_date) return false;
+
+		// Не показываем если уже есть отзыв
+		if (registration.review_status) return false;
+
+		// Показываем только если внутри окна отзывов
+		return isNowWithinReviewWindow(registration.event_end_date);
+	}
+
+	/**
+	 * Получает бейдж статуса отзыва
+	 */
+	function getReviewStatusBadge(status: ReviewStatus): { label: string; colorClass: string } {
+		switch (status) {
+			case 'pending':
+				return {
+					label: $_('profile.reviews.status.pending'),
+					colorClass: 'bg-yellow-100 text-yellow-800',
+				};
+			case 'approved':
+				return {
+					label: $_('profile.reviews.status.approved'),
+					colorClass: 'bg-green-100 text-green-800',
+				};
+			case 'rejected':
+				return {
+					label: $_('profile.reviews.status.rejected'),
+					colorClass: 'bg-red-100 text-red-800',
+				};
+			default:
+				return { label: String(status), colorClass: 'bg-gray-100 text-gray-800' };
+		}
 	}
 </script>
 
@@ -650,6 +721,7 @@
 								{#each data.registrations as registration}
 									{@const status = getRegistrationStatus(registration)}
 									{@const canCancel = canCancelRegistration(registration)}
+									{@const canReview = canShowReviewButton(registration)}
 									<tr>
 										<td class="px-4 py-4 text-sm">
 											{displayTitle(registration)}
@@ -661,22 +733,42 @@
 											<span class={status.color}>{status.label}</span>
 										</td>
 										<td class="px-4 py-4 text-sm">
-											{#if canCancel}
-												<button
-													type="button"
-													on:click={() =>
-														openCancelModal(registration.id)}
-													class="text-red-600 hover:text-red-700 font-medium"
-												>
-													{$_('common.cancel')}
-												</button>
-											{:else if !registration.cancelled_at && new Date(registration.event_date) > new Date()}
-												<span class="text-gray-400"
-													>{$_('profile.cannotCancel')}</span
-												>
-											{:else}
-												<span class="text-gray-400">-</span>
-											{/if}
+											<div class="flex flex-wrap items-center gap-2">
+												{#if canReview}
+													<a
+														href={`/events/${registration.event_id}/review`}
+														class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors"
+													>
+														{$_('profile.reviews.add')}
+													</a>
+												{/if}
+												{#if registration.review_status}
+													{@const badge = getReviewStatusBadge(
+														registration.review_status
+													)}
+													<span
+														class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {badge.colorClass}"
+													>
+														{badge.label}
+													</span>
+												{/if}
+												{#if canCancel}
+													<button
+														type="button"
+														on:click={() =>
+															openCancelModal(registration.id)}
+														class="text-red-600 hover:text-red-700 font-medium"
+													>
+														{$_('common.cancel')}
+													</button>
+												{:else if !registration.cancelled_at && new Date(registration.event_date) > new Date() && !canReview && !registration.review_status}
+													<span class="text-gray-400"
+														>{$_('profile.cannotCancel')}</span
+													>
+												{:else if !canReview && !registration.review_status && !registration.cancelled_at}
+													<span class="text-gray-400">-</span>
+												{/if}
+											</div>
 										</td>
 									</tr>
 								{/each}
@@ -689,6 +781,7 @@
 						{#each data.registrations as registration}
 							{@const status = getRegistrationStatus(registration)}
 							{@const canCancel = canCancelRegistration(registration)}
+							{@const canReview = canShowReviewButton(registration)}
 							<div class="border border-gray-200 rounded-lg p-4">
 								<h3 class="font-semibold mb-2">{displayTitle(registration)}</h3>
 								<p class="text-sm text-gray-600 mb-2">
@@ -698,19 +791,44 @@
 									<span class="font-medium">{$_('profile.status')}:</span>
 									<span class={status.color}>{status.label}</span>
 								</p>
-								{#if canCancel}
-									<Button
-										variant="danger"
-										size="sm"
-										on:click={() => openCancelModal(registration.id)}
-									>
-										{$_('common.cancel')}
-									</Button>
-								{:else if !registration.cancelled_at && new Date(registration.event_date) > new Date()}
-									<p class="text-sm text-gray-400">
-										{$_('profile.cannotCancel')}
-									</p>
+
+								<!-- Бейдж статуса отзыва -->
+								{#if registration.review_status}
+									{@const badge = getReviewStatusBadge(
+										registration.review_status
+									)}
+									<div class="mb-3">
+										<span
+											class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {badge.colorClass}"
+										>
+											{badge.label}
+										</span>
+									</div>
 								{/if}
+
+								<div class="flex flex-wrap gap-2">
+									{#if canReview}
+										<a
+											href={`/events/${registration.event_id}/review`}
+											class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors min-h-11"
+										>
+											{$_('profile.reviews.add')}
+										</a>
+									{/if}
+									{#if canCancel}
+										<Button
+											variant="danger"
+											size="sm"
+											on:click={() => openCancelModal(registration.id)}
+										>
+											{$_('common.cancel')}
+										</Button>
+									{:else if !registration.cancelled_at && new Date(registration.event_date) > new Date() && !canReview && !registration.review_status}
+										<p class="text-sm text-gray-400">
+											{$_('profile.cannotCancel')}
+										</p>
+									{/if}
+								</div>
 							</div>
 						{/each}
 					</div>

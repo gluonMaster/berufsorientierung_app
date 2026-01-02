@@ -330,6 +330,7 @@ export async function getUserRegistrations(
 			event_title_ru: string | null;
 			event_title_uk: string | null;
 			event_date: string;
+			event_end_date: string | null;
 			event_location_de: string;
 			event_status: 'draft' | 'active' | 'cancelled';
 		}
@@ -343,6 +344,7 @@ export async function getUserRegistrations(
 					e.title_ru as event_title_ru,
 					e.title_uk as event_title_uk,
 					e.date as event_date,
+					e.end_date as event_end_date,
 					e.location_de as event_location_de,
 					e.status as event_status
 				FROM registrations r
@@ -365,6 +367,7 @@ export async function getUserRegistrations(
 			event_title_ru: row.event_title_ru,
 			event_title_uk: row.event_title_uk,
 			event_date: normalizeTimestamp(row.event_date) || '',
+			event_end_date: normalizeTimestamp(row.event_end_date),
 			event_location_de: row.event_location_de,
 			event_status: row.event_status,
 		}));

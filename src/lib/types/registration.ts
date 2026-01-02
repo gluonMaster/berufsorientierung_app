@@ -72,6 +72,9 @@ export interface RegistrationWithEvent extends Registration {
 	/** Дата проведения мероприятия */
 	event_date: string;
 
+	/** Дата окончания мероприятия (для расчета окна отзывов) */
+	event_end_date: string | null;
+
 	/** Место проведения на немецком */
 	event_location_de: string;
 

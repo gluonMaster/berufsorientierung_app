@@ -514,6 +514,71 @@ export async function getReviewById(db: D1Database, reviewId: number): Promise<R
 	return result || null;
 }
 
+/**
+ * Получает отзыв пользователя на конкретное мероприятие
+ *
+ * @param db - D1 Database instance
+ * @param userId - ID пользователя
+ * @param eventId - ID мероприятия
+ * @returns Отзыв или null
+ */
+export async function getUserReviewForEvent(
+	db: D1Database,
+	userId: number,
+	eventId: number
+): Promise<Review | null> {
+	const result = await db
+		.prepare('SELECT * FROM reviews WHERE user_id = ? AND event_id = ?')
+		.bind(userId, eventId)
+		.first<Review>();
+
+	return result || null;
+}
+
+/**
+ * Получает статусы отзывов пользователя для списка мероприятий
+ *
+ * @param db - D1 Database instance
+ * @param userId - ID пользователя
+ * @param eventIds - Массив ID мероприятий
+ * @returns Map: event_id -> { review_id, status }
+ */
+export async function getUserReviewsByEventIds(
+	db: D1Database,
+	userId: number,
+	eventIds: number[]
+): Promise<Map<number, { review_id: number; status: ReviewStatus }>> {
+	if (eventIds.length === 0) {
+		return new Map();
+	}
+
+	// D1 не поддерживает IN с массивом напрямую, используем batch
+	const statements = eventIds.map((eventId) =>
+		db
+			.prepare('SELECT id, event_id, status FROM reviews WHERE user_id = ? AND event_id = ?')
+			.bind(userId, eventId)
+	);
+
+	const results = await db.batch(statements);
+	const reviewMap = new Map<number, { review_id: number; status: ReviewStatus }>();
+
+	results.forEach((result) => {
+		if (result.success && result.results && result.results.length > 0) {
+			const review = result.results[0] as {
+				id: number;
+				event_id: number;
+				status: ReviewStatus;
+			};
+			reviewMap.set(review.event_id, {
+				review_id: review.id,
+				status: review.status,
+			});
+		}
+	});
+
+	return reviewMap;
+}
+
 // ==========================================
 // МОДЕРАЦИЯ ОТЗЫВОВ
 // ==========================================

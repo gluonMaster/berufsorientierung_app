@@ -261,7 +261,35 @@
 		"deletePoint2": "Your active registrations will be cancelled",
 		"deletePoint3": "This action cannot be undone",
 		"confirmDelete": "Confirm Deletion",
-		"eventTitle": "Event"
+		"eventTitle": "Event",
+		"reviews": {
+			"add": "Add Review",
+			"addShort": "Review",
+			"status": {
+				"pending": "Pending",
+				"approved": "Published",
+				"rejected": "Rejected"
+			}
+		}
+	},
+	"reviews": {
+		"form": {
+			"title": "Write a Review",
+			"rating": "Rating",
+			"ratingHint": "Select a rating from 1 to 10",
+			"comment": "Your Review",
+			"commentPlaceholder": "Share your experience from this event...",
+			"anonymous": "Submit anonymously",
+			"anonymousHint": "Your name will not be displayed with the review",
+			"submit": "Submit Review",
+			"success": "Review submitted for moderation",
+			"successDescription": "Your review has been submitted and will be visible after moderation.",
+			"alreadySubmitted": "You have already submitted a review for this event",
+			"submittedOn": "Submitted on {date}"
+		},
+		"window": {
+			"notAvailable": "The review period for this event is not available"
+		}
 	},
 	"gdpr": {
 		"dataProcessing": "I consent to the processing of my personal data in accordance with the privacy policy",
