@@ -132,6 +132,9 @@ export interface Event extends EventTranslations {
 	/** Дата проведения мероприятия (ISO 8601 format) */
 	date: string;
 
+	/** Дата и время окончания мероприятия (ISO 8601 format, nullable) */
+	end_date: string | null;
+
 	/** Крайний срок регистрации (ISO 8601 format) */
 	registration_deadline: string;
 
@@ -242,6 +245,9 @@ export interface EventCreateData extends EventTranslationsCreate {
 	/** Дата проведения мероприятия (ISO 8601 format) */
 	date: string;
 
+	/** Дата и время окончания мероприятия (ISO 8601 format, опционально) */
+	end_date?: string | null;
+
 	/** Крайний срок регистрации (ISO 8601 format) */
 	registration_deadline: string;
 
@@ -268,6 +274,9 @@ export interface EventCreateData extends EventTranslationsCreate {
 export interface EventUpdateData extends Partial<EventTranslations> {
 	/** Дата проведения мероприятия */
 	date?: string;
+
+	/** Дата и время окончания мероприятия */
+	end_date?: string | null;
 
 	/** Крайний срок регистрации */
 	registration_deadline?: string;
@@ -308,6 +317,9 @@ export interface EventListItem {
 
 	/** Дата проведения */
 	date: string;
+
+	/** Дата и время окончания мероприятия */
+	end_date: string | null;
 
 	/** Крайний срок регистрации */
 	registration_deadline: string;

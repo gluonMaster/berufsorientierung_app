@@ -35,3 +35,6 @@ coverage
 
 keys/
 *.key
+
+# Copilot prompts
+/COPILOT_PROMPT_*.md

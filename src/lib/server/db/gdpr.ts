@@ -403,10 +403,13 @@ export async function deleteUserCompletely(db: D1Database, userId: number): Prom
 			// 4. Удаляем из pending_deletions (если есть)
 			db.prepare('DELETE FROM pending_deletions WHERE user_id = ?').bind(userId),
 
-			// 5. Обнуляем user_id в activity_log (сохраняем историю, но убираем связь)
+			// 5. Удаляем отзывы пользователя (FK ON DELETE CASCADE также сработает, но явно для консистентности)
+			db.prepare('DELETE FROM reviews WHERE user_id = ?').bind(userId),
+
+			// 6. Обнуляем user_id в activity_log (сохраняем историю, но убираем связь)
 			db.prepare('UPDATE activity_log SET user_id = NULL WHERE user_id = ?').bind(userId),
 
-			// 6. Удаляем пользователя
+			// 7. Удаляем пользователя
 			db.prepare('DELETE FROM users WHERE id = ?').bind(userId),
 		];
 

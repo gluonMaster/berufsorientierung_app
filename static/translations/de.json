@@ -437,6 +437,7 @@
 				"requirements": "Voraussetzungen",
 				"location": "Ort",
 				"date": "Datum und Uhrzeit",
+				"endDate": "Enddatum und -zeit",
 				"registrationDeadline": "Anmeldefrist",
 				"maxParticipants": "Max. Teilnehmerzahl",
 				"telegramLink": "Telegram-Link",
@@ -453,6 +454,7 @@
 			},
 			"help": {
 				"date": "Wann findet die Veranstaltung statt?",
+				"endDate": "Wann endet die Veranstaltung? (erforderlich für Veröffentlichung)",
 				"deadline": "Bis wann können sich Teilnehmer anmelden?",
 				"maxParticipants": "Leer lassen für unbegrenzte Teilnehmerzahl",
 				"telegramLink": "Link zur Telegram-Gruppe (optional)",
@@ -488,6 +490,7 @@
 				"dateMustBeFuture": "Datum muss in der Zukunft liegen",
 				"deadlineRequired": "Anmeldefrist ist erforderlich",
 				"deadlineAfterDate": "Anmeldefrist muss vor dem Veranstaltungsdatum liegen",
+				"endDateBeforeStart": "Enddatum muss nach dem Startdatum liegen",
 				"invalidMaxParticipants": "Maximale Teilnehmerzahl muss größer als 0 sein",
 				"fieldKeyRequired": "Feldschlüssel für Feld #{number} ist erforderlich",
 				"fieldKeyInvalidFormat": "Feldschlüssel '{key}' muss im snake_case Format sein",

@@ -21,6 +21,7 @@
 
 	/**
 	 * Привести дату к формату для datetime-local input (YYYY-MM-DDTHH:MM)
+	 * Исправлено: учитывает timezoneOffset для корректного отображения локального времени
 	 */
 	function formatDateTimeForInput(value: string | null | undefined): string {
 		if (!value) return '';
@@ -30,8 +31,9 @@
 				// если в БД уже лежит строка вида "YYYY-MM-DDTHH:MM", просто возвращаем первые 16 символов
 				return value.slice(0, 16);
 			}
-			// ISO‑строка: "YYYY-MM-DDTHH:MM:SS.sssZ" → берём "YYYY-MM-DDTHH:MM"
-			return date.toISOString().slice(0, 16);
+			// Корректируем на локальный часовой пояс для datetime-local
+			const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+			return local.toISOString().slice(0, 16);
 		} catch {
 			return '';
 		}
@@ -67,6 +69,7 @@
 
 		// Основные поля
 		date: '',
+		end_date: '',
 		registration_deadline: '',
 		max_participants: null as number | null,
 
@@ -103,6 +106,7 @@
 				uk: event.location_uk || '',
 			},
 			date: formatDateTimeForInput(event.date),
+			end_date: formatDateTimeForInput(event.end_date),
 			registration_deadline: formatDateTimeForInput(event.registration_deadline),
 			max_participants: event.max_participants ?? null,
 			telegram_link: event.telegram_link || '',
@@ -240,6 +244,14 @@
 			return $_('admin.events.errors.deadlineAfterDate');
 		}
 
+		// Проверка end_date: если задан, должен быть после date
+		if (formData.end_date) {
+			const endDate = new Date(formData.end_date);
+			if (endDate <= eventDate) {
+				return $_('admin.events.errors.endDateBeforeStart');
+			}
+		}
+
 		// Проверка max_participants
 		if (formData.max_participants !== null && formData.max_participants !== undefined) {
 			const maxPart = Number(formData.max_participants);
@@ -349,6 +361,7 @@
 				location_ru: formData.location.ru.trim() || null,
 				location_uk: formData.location.uk.trim() || null,
 				date: formData.date,
+				end_date: formData.end_date || null,
 				registration_deadline: formData.registration_deadline,
 				max_participants: formData.max_participants || null,
 				// ✅ ИСПРАВЛЕНО: отправляем пустую строку вместо null для соответствия urlSchema
@@ -487,6 +500,20 @@
 							type="datetime-local"
 							bind:value={formData.date}
 							required
+							class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+						/>
+					</FormField>
+
+					<!-- Дата окончания мероприятия -->
+					<FormField
+						label={$_('admin.events.fields.endDate')}
+						required={false}
+						error=""
+						help={$_('admin.events.help.endDate')}
+					>
+						<input
+							type="datetime-local"
+							bind:value={formData.end_date}
 							class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
 						/>
 					</FormField>

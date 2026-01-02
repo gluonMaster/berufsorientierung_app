@@ -435,6 +435,7 @@
 				"requirements": "Requirements",
 				"location": "Location",
 				"date": "Date and Time",
+				"endDate": "End Date and Time",
 				"registrationDeadline": "Registration Deadline",
 				"maxParticipants": "Max Participants",
 				"telegramLink": "Telegram Link",
@@ -451,6 +452,7 @@
 			},
 			"help": {
 				"date": "When does the event take place?",
+				"endDate": "When does the event end? (required for publishing)",
 				"deadline": "Until when can participants register?",
 				"maxParticipants": "Leave empty for unlimited participants",
 				"telegramLink": "Link to Telegram group (optional)",
@@ -484,6 +486,7 @@
 				"dateRequired": "Date is required",
 				"deadlineRequired": "Registration deadline is required",
 				"deadlineAfterDate": "Registration deadline must be before the event date",
+				"endDateBeforeStart": "End date must be after start date",
 				"saveFailed": "Error saving event",
 				"reasonRequired": "Please provide a cancellation reason",
 				"cancelFailed": "Error cancelling event",

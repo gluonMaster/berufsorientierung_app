@@ -18,5 +18,8 @@ export * from './registration';
 // Admin types
 export * from './admin';
 
+// Review types
+export * from './review';
+
 // API types
 export * from './api';

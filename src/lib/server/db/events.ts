@@ -41,10 +41,10 @@ export async function createEvent(
 					description_de, description_en, description_ru, description_uk,
 					requirements_de, requirements_en, requirements_ru, requirements_uk,
 					location_de, location_en, location_ru, location_uk,
-					date, registration_deadline, max_participants,
+					date, end_date, registration_deadline, max_participants,
 					telegram_link, whatsapp_link,
 					status, created_by, created_at, updated_at
-				) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+				) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 			)
 			.bind(
 				data.title_de,
@@ -64,6 +64,7 @@ export async function createEvent(
 				data.location_ru || null,
 				data.location_uk || null,
 				data.date,
+				data.end_date ?? null,
 				data.registration_deadline,
 				data.max_participants,
 				data.telegram_link || null,
@@ -158,6 +159,10 @@ export async function updateEvent(
 		if ('date' in data) {
 			updateFields.push('date = ?');
 			values.push(data.date);
+		}
+		if ('end_date' in data) {
+			updateFields.push('end_date = ?');
+			values.push(data.end_date ?? null);
 		}
 		if ('registration_deadline' in data) {
 			updateFields.push('registration_deadline = ?');
@@ -464,10 +469,14 @@ export async function publishEvent(db: D1Database, id: number): Promise<Event> {
 		if (!event.date) {
 			throw new Error('Event date is required for publishing');
 		}
+		if (!event.end_date) {
+			throw new Error('Event end date is required for publishing');
+		}
 		if (!event.registration_deadline) {
 			throw new Error('Registration deadline is required for publishing');
 		}
-		if (!event.max_participants || event.max_participants <= 0) {
+		// max_participants = null означает безлимит, проверяем только если задано
+		if (event.max_participants !== null && event.max_participants <= 0) {
 			throw new Error('Max participants must be greater than 0');
 		}
 

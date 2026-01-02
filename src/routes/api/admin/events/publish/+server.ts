@@ -67,11 +67,23 @@ export async function POST({ request, platform }: RequestEvent) {
 
 		if (!event.title_de) validationErrors.push('German title is required');
 		if (!event.date) validationErrors.push('Event date is required');
+		if (!event.end_date) validationErrors.push('Event end date is required for publishing');
 		if (!event.registration_deadline)
 			validationErrors.push('Registration deadline is required');
-		// max_participants может быть null (безлимит) - не проверяем
+		// max_participants может быть null (безлимит) - проверяем только если задано
+		if (event.max_participants !== null && event.max_participants <= 0) {
+			validationErrors.push('Max participants must be greater than 0');
+		}
 
 		// Проверка что даты корректны
+		if (event.date && event.end_date) {
+			const startDate = new Date(event.date);
+			const endDate = new Date(event.end_date);
+			if (endDate <= startDate) {
+				validationErrors.push('End date must be after start date');
+			}
+		}
+
 		if (event.date && event.registration_deadline) {
 			const eventDate = new Date(event.date);
 			const deadline = new Date(event.registration_deadline);
@@ -90,6 +102,7 @@ export async function POST({ request, platform }: RequestEvent) {
 			return json(
 				{
 					error: 'Event cannot be published',
+					message: validationErrors[0],
 					validationErrors,
 				},
 				{ status: 400 }

@@ -423,6 +423,7 @@ export const eventCreateSchema = eventTranslationsSchema
 	.extend({
 		// Даты
 		date: futureDateSchema,
+		end_date: futureDateSchema.optional().nullable(),
 		registration_deadline: futureDateSchema,
 
 		// Ограничения
@@ -450,6 +451,21 @@ export const eventCreateSchema = eventTranslationsSchema
 		{
 			message: 'Registration deadline must be before the event date',
 			path: ['registration_deadline'],
+		}
+	)
+	.refine(
+		(data) => {
+			// Если end_date задан, он должен быть после date
+			if (data.end_date) {
+				const startDate = new Date(data.date);
+				const endDate = new Date(data.end_date);
+				return endDate > startDate;
+			}
+			return true;
+		},
+		{
+			message: 'End date must be after start date',
+			path: ['end_date'],
 		}
 	);
 
@@ -484,6 +500,7 @@ export const eventUpdateSchema = z
 
 		// Даты
 		date: futureDateSchema.optional(),
+		end_date: futureDateSchema.optional().nullable(),
 		registration_deadline: futureDateSchema.optional(),
 
 		// Ограничения
@@ -509,6 +526,21 @@ export const eventUpdateSchema = z
 		{
 			message: 'Registration deadline must be before the event date',
 			path: ['registration_deadline'],
+		}
+	)
+	.refine(
+		(data) => {
+			// Если указаны date и end_date, проверяем что end_date > date
+			if (data.date && data.end_date) {
+				const startDate = new Date(data.date);
+				const endDate = new Date(data.end_date);
+				return endDate > startDate;
+			}
+			return true;
+		},
+		{
+			message: 'End date must be after start date',
+			path: ['end_date'],
 		}
 	);
 
@@ -590,6 +622,7 @@ export const eventCreateWithFieldsSchema = z
 
 		// Даты
 		date: futureDateSchema,
+		end_date: futureDateSchema.optional().nullable(),
 		registration_deadline: futureDateSchema,
 
 		// Ограничения
@@ -624,6 +657,21 @@ export const eventCreateWithFieldsSchema = z
 			message: 'Registration deadline must be before the event date',
 			path: ['registration_deadline'],
 		}
+	)
+	.refine(
+		(data) => {
+			// Если end_date задан, он должен быть после date
+			if (data.end_date) {
+				const startDate = new Date(data.date);
+				const endDate = new Date(data.end_date);
+				return endDate > startDate;
+			}
+			return true;
+		},
+		{
+			message: 'End date must be after start date',
+			path: ['end_date'],
+		}
 	);
 
 /**
@@ -656,6 +704,7 @@ export const eventUpdateWithFieldsSchema = z
 
 		// Даты
 		date: futureDateSchema.optional(),
+		end_date: futureDateSchema.optional().nullable(),
 		registration_deadline: futureDateSchema.optional(),
 
 		// Ограничения
@@ -685,6 +734,21 @@ export const eventUpdateWithFieldsSchema = z
 		{
 			message: 'Registration deadline must be before the event date',
 			path: ['registration_deadline'],
+		}
+	)
+	.refine(
+		(data) => {
+			// Если указаны date и end_date, проверяем что end_date > date
+			if (data.date && data.end_date) {
+				const startDate = new Date(data.date);
+				const endDate = new Date(data.end_date);
+				return endDate > startDate;
+			}
+			return true;
+		},
+		{
+			message: 'End date must be after start date',
+			path: ['end_date'],
 		}
 	);
 
@@ -772,6 +836,122 @@ export const bulkEmailSchema = z
 	);
 
 // ==========================================
+// СХЕМЫ ДЛЯ ОТЗЫВОВ
+// ==========================================
+
+/**
+ * Схема создания отзыва авторизованным пользователем
+ */
+export const reviewCreateSchema = z.object({
+	// ID мероприятия
+	event_id: z.number().int().positive({ message: 'Invalid event ID' }),
+
+	// Оценка от 1 до 10
+	rating: z
+		.number()
+		.int()
+		.min(1, { message: 'Rating must be at least 1' })
+		.max(10, { message: 'Rating must be at most 10' }),
+
+	// Текст отзыва (10-2000 символов)
+	comment: z
+		.string()
+		.min(10, { message: 'Comment must be at least 10 characters' })
+		.max(2000, { message: 'Comment must be at most 2000 characters' })
+		.trim(),
+
+	// Флаг анонимности
+	is_anonymous: z.boolean().default(false),
+});
+
+/**
+ * Схема создания отзыва через публичную ссылку
+ */
+export const publicReviewCreateSchema = z.object({
+	// Токен публичной ссылки
+	token: z.string().min(1, { message: 'Token is required' }),
+
+	// Оценка от 1 до 10
+	rating: z
+		.number()
+		.int()
+		.min(1, { message: 'Rating must be at least 1' })
+		.max(10, { message: 'Rating must be at most 10' }),
+
+	// Текст отзыва (10-2000 символов)
+	comment: z
+		.string()
+		.min(10, { message: 'Comment must be at least 10 characters' })
+		.max(2000, { message: 'Comment must be at most 2000 characters' })
+		.trim(),
+
+	// Флаг анонимности
+	is_anonymous: z.boolean().default(false),
+
+	// Отображаемое имя (опционально, максимум 80 символов)
+	public_display_name: z
+		.string()
+		.max(80, { message: 'Display name must be at most 80 characters' })
+		.trim()
+		.optional()
+		.nullable(),
+});
+
+/**
+ * Схема модерации отзывов
+ */
+export const reviewModerationSchema = z
+	.object({
+		// ID отзывов для модерации (если не all_pending)
+		review_ids: z.array(z.number().int().positive()).optional(),
+
+		// Модерировать все pending отзывы
+		all_pending: z.boolean().optional(),
+
+		// Новый статус
+		status: z.enum(['approved', 'rejected'], {
+			message: 'Status must be approved or rejected',
+		}),
+	})
+	.refine(
+		(data) => {
+			// Либо указаны конкретные review_ids, либо all_pending = true
+			return (data.review_ids && data.review_ids.length > 0) || data.all_pending === true;
+		},
+		{
+			message: 'Either specify review_ids or set all_pending to true',
+			path: ['review_ids'],
+		}
+	);
+
+/**
+ * Схема создания публичной ссылки для отзывов
+ */
+export const reviewPublicLinkCreateSchema = z.object({
+	// ID мероприятия
+	event_id: z.number().int().positive({ message: 'Invalid event ID' }),
+
+	// Дата истечения срока действия
+	expires_at: z
+		.string()
+		.regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/, { message: 'Invalid date-time format' })
+		.refine(
+			(date) => {
+				const parsed = new Date(date);
+				return !isNaN(parsed.getTime());
+			},
+			{ message: 'Invalid date' }
+		)
+		.refine(
+			(date) => {
+				const parsed = new Date(date);
+				return parsed > new Date();
+			},
+			{ message: 'Expiration date must be in the future' }
+		),
+});
+
+// ==========================================
 // ТИПЫ, ВЫВЕДЕННЫЕ ИЗ СХЕМ
 // ==========================================
 
@@ -792,6 +972,11 @@ export type RegistrationCancelInput = z.infer<typeof registrationCancelSchema>;
 
 export type EventCancelInput = z.infer<typeof eventCancelSchema>;
 export type BulkEmailInput = z.infer<typeof bulkEmailSchema>;
+
+export type ReviewCreateInput = z.infer<typeof reviewCreateSchema>;
+export type PublicReviewCreateInput = z.infer<typeof publicReviewCreateSchema>;
+export type ReviewModerationInput = z.infer<typeof reviewModerationSchema>;
+export type ReviewPublicLinkCreateInput = z.infer<typeof reviewPublicLinkCreateSchema>;
 
 // ==========================================
 // HELPER ФУНКЦИИ ДЛЯ ЛОКАЛИЗАЦИИ ОШИБОК
@@ -988,6 +1173,55 @@ const errorTranslations: Record<string, { de: string; en: string; ru: string; uk
 		en: 'Maximum 1000 participants allowed',
 		ru: 'Максимум 1000 участников',
 		uk: 'Максимум 1000 учасників',
+	},
+	// Review validation messages
+	'Rating must be at least 1': {
+		de: 'Die Bewertung muss mindestens 1 sein',
+		en: 'Rating must be at least 1',
+		ru: 'Оценка должна быть не менее 1',
+		uk: 'Оцінка повинна бути не менше 1',
+	},
+	'Rating must be at most 10': {
+		de: 'Die Bewertung darf maximal 10 sein',
+		en: 'Rating must be at most 10',
+		ru: 'Оценка должна быть не более 10',
+		uk: 'Оцінка повинна бути не більше 10',
+	},
+	'Comment must be at least 10 characters': {
+		de: 'Der Kommentar muss mindestens 10 Zeichen lang sein',
+		en: 'Comment must be at least 10 characters',
+		ru: 'Комментарий должен содержать минимум 10 символов',
+		uk: 'Коментар повинен містити мінімум 10 символів',
+	},
+	'Comment must be at most 2000 characters': {
+		de: 'Der Kommentar darf maximal 2000 Zeichen lang sein',
+		en: 'Comment must be at most 2000 characters',
+		ru: 'Комментарий должен содержать максимум 2000 символов',
+		uk: 'Коментар повинен містити максимум 2000 символів',
+	},
+	'Display name must be at most 80 characters': {
+		de: 'Der Anzeigename darf maximal 80 Zeichen lang sein',
+		en: 'Display name must be at most 80 characters',
+		ru: 'Отображаемое имя должно содержать максимум 80 символов',
+		uk: "Відображуване ім'я повинно містити максимум 80 символів",
+	},
+	'Status must be approved or rejected': {
+		de: 'Status muss genehmigt oder abgelehnt sein',
+		en: 'Status must be approved or rejected',
+		ru: 'Статус должен быть одобрен или отклонен',
+		uk: 'Статус повинен бути схвалено або відхилено',
+	},
+	'Either specify review_ids or set all_pending to true': {
+		de: 'Geben Sie entweder review_ids an oder setzen Sie all_pending auf true',
+		en: 'Either specify review_ids or set all_pending to true',
+		ru: 'Укажите review_ids или установите all_pending в true',
+		uk: 'Вкажіть review_ids або встановіть all_pending в true',
+	},
+	'Expiration date must be in the future': {
+		de: 'Das Ablaufdatum muss in der Zukunft liegen',
+		en: 'Expiration date must be in the future',
+		ru: 'Дата истечения должна быть в будущем',
+		uk: 'Дата закінчення повинна бути в майбутньому',
 	},
 };
 

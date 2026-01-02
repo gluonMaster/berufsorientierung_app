@@ -23,6 +23,7 @@ import * as registrations from './registrations';
 import * as admin from './admin';
 import * as activityLog from './activityLog';
 import * as gdpr from './gdpr';
+import * as reviews from './reviews';
 
 // Экспорт всех модулей в единый объект DB (uppercase для избежания конфликтов)
 export const DB = {
@@ -33,6 +34,7 @@ export const DB = {
 	admin,
 	activityLog,
 	gdpr,
+	reviews,
 };
 
 /**

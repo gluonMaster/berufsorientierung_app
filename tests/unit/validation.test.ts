@@ -310,6 +310,116 @@ describe('Event Validation Schemas', () => {
 			const result = eventCreateSchema.safeParse(invalidData);
 			expect(result.success).toBe(false);
 		});
+
+		it('should accept valid event with end_date after start date', () => {
+			const startDate = new Date();
+			startDate.setDate(startDate.getDate() + 30);
+			const endDate = new Date();
+			endDate.setDate(endDate.getDate() + 30);
+			endDate.setHours(endDate.getHours() + 3); // 3 hours after start
+			const deadline = new Date();
+			deadline.setDate(deadline.getDate() + 20);
+
+			const validData = {
+				title_de: 'Test Event',
+				date: startDate.toISOString(),
+				end_date: endDate.toISOString(),
+				registration_deadline: deadline.toISOString(),
+				max_participants: 20,
+			};
+
+			const result = eventCreateSchema.safeParse(validData);
+			expect(result.success).toBe(true);
+		});
+
+		it('should reject event with end_date before start date', () => {
+			const startDate = new Date();
+			startDate.setDate(startDate.getDate() + 30);
+			const endDate = new Date();
+			endDate.setDate(endDate.getDate() + 29); // Before start
+			const deadline = new Date();
+			deadline.setDate(deadline.getDate() + 20);
+
+			const invalidData = {
+				title_de: 'Test Event',
+				date: startDate.toISOString(),
+				end_date: endDate.toISOString(),
+				registration_deadline: deadline.toISOString(),
+				max_participants: 20,
+			};
+
+			const result = eventCreateSchema.safeParse(invalidData);
+			expect(result.success).toBe(false);
+			if (!result.success) {
+				expect(result.error.issues.some((e) => e.path.includes('end_date'))).toBe(true);
+			}
+		});
+
+		it('should allow event without end_date (nullable)', () => {
+			const futureDate = new Date();
+			futureDate.setDate(futureDate.getDate() + 30);
+			const deadline = new Date();
+			deadline.setDate(deadline.getDate() + 20);
+
+			const validData = {
+				title_de: 'Test Event',
+				date: futureDate.toISOString(),
+				end_date: null,
+				registration_deadline: deadline.toISOString(),
+				max_participants: 20,
+			};
+
+			const result = eventCreateSchema.safeParse(validData);
+			expect(result.success).toBe(true);
+		});
+	});
+
+	describe('eventUpdateSchema - end_date validation', () => {
+		it('should accept valid update with end_date after start date', () => {
+			const startDate = new Date();
+			startDate.setDate(startDate.getDate() + 30);
+			const endDate = new Date();
+			endDate.setDate(endDate.getDate() + 30);
+			endDate.setHours(endDate.getHours() + 3);
+
+			const validData = {
+				id: 1,
+				date: startDate.toISOString(),
+				end_date: endDate.toISOString(),
+			};
+
+			const result = eventUpdateSchema.safeParse(validData);
+			expect(result.success).toBe(true);
+		});
+
+		it('should reject update with end_date before start date', () => {
+			const startDate = new Date();
+			startDate.setDate(startDate.getDate() + 30);
+			const endDate = new Date();
+			endDate.setDate(endDate.getDate() + 29); // Before start
+
+			const invalidData = {
+				id: 1,
+				date: startDate.toISOString(),
+				end_date: endDate.toISOString(),
+			};
+
+			const result = eventUpdateSchema.safeParse(invalidData);
+			expect(result.success).toBe(false);
+			if (!result.success) {
+				expect(result.error.issues.some((e) => e.path.includes('end_date'))).toBe(true);
+			}
+		});
+
+		it('should allow update with null end_date', () => {
+			const validData = {
+				id: 1,
+				end_date: null,
+			};
+
+			const result = eventUpdateSchema.safeParse(validData);
+			expect(result.success).toBe(true);
+		});
 	});
 
 	describe('additionalFieldSchema', () => {
