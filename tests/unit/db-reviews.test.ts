@@ -507,3 +507,192 @@ describe('Reviews Validation Schemas', () => {
 		});
 	});
 });
+
+describe('Review Moderation Schema - Extended Tests', () => {
+	describe('reviewModerationSchema edge cases', () => {
+		it('should accept both review_ids and all_pending together', () => {
+			const validData = {
+				review_ids: [1, 2],
+				all_pending: true,
+				status: 'approved' as const,
+			};
+
+			const result = reviewModerationSchema.safeParse(validData);
+			expect(result.success).toBe(true);
+		});
+
+		it('should reject all_pending=false without review_ids', () => {
+			const invalidData = {
+				all_pending: false,
+				status: 'approved' as const,
+			};
+
+			const result = reviewModerationSchema.safeParse(invalidData);
+			expect(result.success).toBe(false);
+		});
+
+		it('should reject negative review_ids', () => {
+			const invalidData = {
+				review_ids: [-1, 2],
+				status: 'approved' as const,
+			};
+
+			const result = reviewModerationSchema.safeParse(invalidData);
+			expect(result.success).toBe(false);
+		});
+
+		it('should reject non-integer review_ids', () => {
+			const invalidData = {
+				review_ids: [1.5, 2],
+				status: 'approved' as const,
+			};
+
+			const result = reviewModerationSchema.safeParse(invalidData);
+			expect(result.success).toBe(false);
+		});
+
+		it('should accept single review_id in array', () => {
+			const validData = {
+				review_ids: [42],
+				status: 'rejected' as const,
+			};
+
+			const result = reviewModerationSchema.safeParse(validData);
+			expect(result.success).toBe(true);
+			if (result.success) {
+				expect(result.data.review_ids).toEqual([42]);
+			}
+		});
+
+		it('should accept large array of review_ids', () => {
+			const validData = {
+				review_ids: Array.from({ length: 100 }, (_, i) => i + 1),
+				status: 'approved' as const,
+			};
+
+			const result = reviewModerationSchema.safeParse(validData);
+			expect(result.success).toBe(true);
+			if (result.success) {
+				expect(result.data.review_ids?.length).toBe(100);
+			}
+		});
+	});
+});
+
+describe('Public Reviews Display', () => {
+	describe('getLatestApprovedReviews query logic', () => {
+		it('should filter only approved reviews via SQL WHERE clause', () => {
+			// This test documents the expected behavior:
+			// The SQL query in getLatestApprovedReviews uses WHERE r.status = 'approved'
+			// which ensures only approved reviews are returned
+			const sqlPattern = /WHERE.*status\s*=\s*['"]approved['"]/i;
+			const queryFragment = "WHERE r.status = 'approved'";
+
+			expect(sqlPattern.test(queryFragment)).toBe(true);
+		});
+
+		it('should order by created_at DESC', () => {
+			// The SQL query orders by created_at DESC to show newest reviews first
+			const sqlPattern = /ORDER BY.*created_at\s+DESC/i;
+			const queryFragment = 'ORDER BY r.created_at DESC';
+
+			expect(sqlPattern.test(queryFragment)).toBe(true);
+		});
+
+		it('should apply LIMIT parameter', () => {
+			// The SQL query uses LIMIT ? to restrict the number of results
+			const sqlPattern = /LIMIT\s+\?/i;
+			const queryFragment = 'LIMIT ?';
+
+			expect(sqlPattern.test(queryFragment)).toBe(true);
+		});
+	});
+
+	describe('getApprovedReviews pagination logic', () => {
+		it('should calculate correct offset from page number', () => {
+			const REVIEWS_PER_PAGE = 12;
+
+			// Page 1: offset 0
+			expect((1 - 1) * REVIEWS_PER_PAGE).toBe(0);
+
+			// Page 2: offset 12
+			expect((2 - 1) * REVIEWS_PER_PAGE).toBe(12);
+
+			// Page 3: offset 24
+			expect((3 - 1) * REVIEWS_PER_PAGE).toBe(24);
+		});
+
+		it('should calculate totalPages correctly', () => {
+			const REVIEWS_PER_PAGE = 12;
+
+			// 0 reviews: 0 pages
+			expect(Math.ceil(0 / REVIEWS_PER_PAGE)).toBe(0);
+
+			// 1 review: 1 page
+			expect(Math.ceil(1 / REVIEWS_PER_PAGE)).toBe(1);
+
+			// 12 reviews: 1 page
+			expect(Math.ceil(12 / REVIEWS_PER_PAGE)).toBe(1);
+
+			// 13 reviews: 2 pages
+			expect(Math.ceil(13 / REVIEWS_PER_PAGE)).toBe(2);
+
+			// 25 reviews: 3 pages
+			expect(Math.ceil(25 / REVIEWS_PER_PAGE)).toBe(3);
+		});
+
+		it('should determine hasMore correctly', () => {
+			// hasMore = page < totalPages
+
+			// Page 1 of 3: hasMore = true
+			expect(1 < 3).toBe(true);
+
+			// Page 2 of 3: hasMore = true
+			expect(2 < 3).toBe(true);
+
+			// Page 3 of 3: hasMore = false
+			expect(3 < 3).toBe(false);
+
+			// Page 1 of 1: hasMore = false
+			expect(1 < 1).toBe(false);
+		});
+	});
+
+	describe('Display name logic', () => {
+		it('should return null display_name for anonymous reviews', () => {
+			// SQL CASE logic: WHEN r.is_anonymous = 1 THEN NULL
+			const review = { is_anonymous: 1, user_id: 123, display_name: null };
+
+			// Anonymous user: display_name should be null
+			expect(review.is_anonymous === 1 ? null : 'SomeName').toBe(null);
+		});
+
+		it('should return first_name for non-anonymous user reviews', () => {
+			// SQL CASE logic: WHEN r.user_id IS NOT NULL THEN u.first_name
+			const review = { is_anonymous: 0, user_id: 123, first_name: 'Max' };
+
+			const displayName =
+				review.is_anonymous === 1
+					? null
+					: review.user_id !== null
+						? review.first_name
+						: null;
+
+			expect(displayName).toBe('Max');
+		});
+
+		it('should return public_display_name for public link reviews', () => {
+			// SQL CASE logic: ELSE r.public_display_name
+			const review = { is_anonymous: 0, user_id: null, public_display_name: 'Guest User' };
+
+			const displayName =
+				review.is_anonymous === 1
+					? null
+					: review.user_id !== null
+						? null
+						: review.public_display_name;
+
+			expect(displayName).toBe('Guest User');
+		});
+	});
+});

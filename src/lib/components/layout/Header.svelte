@@ -30,6 +30,7 @@
 	const navLinks = $derived([
 		{ href: '/', label: $_('nav.home'), requireAuth: false },
 		{ href: '/events', label: $_('nav.events'), requireAuth: false },
+		{ href: '/reviews', label: $_('nav.reviews'), requireAuth: false },
 		...(currentUser
 			? [
 					{ href: '/profile', label: $_('nav.profile'), requireAuth: true },

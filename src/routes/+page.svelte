@@ -6,6 +6,7 @@
 	 * - Hero секцию с заголовком и призывом к действию
 	 * - Список активных предстоящих мероприятий
 	 * - Empty state если нет мероприятий
+	 * - Секцию с последними отзывами
 	 *
 	 * Мультиязычная и мобильно адаптированная
 	 */
@@ -14,11 +15,13 @@
 	import EventCard from '$lib/components/events/EventCard.svelte';
 	import EventModal from '$lib/components/events/EventModal.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
+	import StarRating from '$lib/components/ui/StarRating.svelte';
 	import { user as userStore } from '$lib/stores/user';
 	import type { EventWithStats } from './+page.server';
+	import type { PublicReview } from '$lib/types/review';
 
 	// Получаем данные из +page.server.ts
-	let { data } = $props<{ data: { events: EventWithStats[] } }>();
+	let { data } = $props<{ data: { events: EventWithStats[]; latestReviews: PublicReview[] } }>();
 
 	// Состояние модального окна
 	let selectedEvent: EventWithStats | null = $state(null);
@@ -48,6 +51,32 @@
 	 * Синхронизируется с Header и автоматически обновляется при логине/логауте
 	 */
 	const isAuthenticated = $derived($userStore !== null);
+
+	/**
+	 * Форматирует дату отзыва для отображения
+	 */
+	function formatReviewDate(dateStr: string): string {
+		try {
+			const date = new Date(dateStr);
+			return date.toLocaleDateString(undefined, {
+				year: 'numeric',
+				month: 'short',
+				day: 'numeric',
+			});
+		} catch {
+			return dateStr;
+		}
+	}
+
+	/**
+	 * Получает отображаемое имя автора отзыва
+	 */
+	function getReviewAuthorName(review: PublicReview): string {
+		if (!review.display_name) {
+			return $_('reviews.author.anonymous');
+		}
+		return review.display_name;
+	}
 </script>
 
 <main class="min-h-screen bg-gray-50">
@@ -133,6 +162,87 @@
 			</div>
 		{/if}
 	</section>
+
+	<!-- Секция отзывов -->
+	{#if data.latestReviews && data.latestReviews.length > 0}
+		<section class="container mx-auto px-4 py-8 sm:py-12">
+			<!-- Заголовок секции -->
+			<div class="mb-8">
+				<h2 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
+					{$_('homepage.reviews.title')}
+				</h2>
+				<p class="text-gray-600">
+					{$_('homepage.reviews.subtitle')}
+				</p>
+			</div>
+
+			<!-- Список отзывов (mobile-first: вертикальный список, на desktop - горизонтальный скролл/grid) -->
+			<div
+				class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-6"
+			>
+				{#each data.latestReviews as review (review.id)}
+					<article
+						class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-5 flex flex-col"
+					>
+						<!-- Рейтинг -->
+						<div class="mb-3">
+							<StarRating
+								value={review.rating}
+								max={10}
+								readonly={true}
+								size="sm"
+								ariaLabel={$_('reviews.form.rating')}
+							/>
+						</div>
+
+						<!-- Комментарий (ограничение высоты на mobile) -->
+						<p
+							class="text-gray-700 text-sm leading-relaxed mb-4 flex-grow line-clamp-4"
+						>
+							{review.comment}
+						</p>
+
+						<!-- Мета-информация -->
+						<div class="mt-auto pt-3 border-t border-gray-100">
+							<!-- Автор -->
+							<p class="text-sm font-medium text-gray-900">
+								{getReviewAuthorName(review)}
+							</p>
+
+							<!-- Событие и дата -->
+							<p
+								class="text-xs text-gray-500 mt-1 truncate"
+								title={review.event_title_de}
+							>
+								{review.event_title_de}
+							</p>
+							<p class="text-xs text-gray-400 mt-0.5">
+								{formatReviewDate(review.created_at)}
+							</p>
+						</div>
+					</article>
+				{/each}
+			</div>
+
+			<!-- Ссылка "Все отзывы" -->
+			<div class="mt-8 text-center">
+				<a
+					href="/reviews"
+					class="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium transition-colors"
+				>
+					{$_('homepage.reviews.allLink')}
+					<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M9 5l7 7-7 7"
+						></path>
+					</svg>
+				</a>
+			</div>
+		</section>
+	{/if}
 </main>
 
 <!-- Модальное окно с деталями мероприятия -->

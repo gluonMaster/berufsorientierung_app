@@ -139,7 +139,6 @@ export async function getPublicLinkByToken(
 	token: string
 ): Promise<(ReviewPublicLink & { event_end_date: string | null }) | null> {
 	const tokenHash = await hashToken(token);
-	const now = new Date().toISOString();
 
 	const result = await db
 		.prepare(
@@ -151,13 +150,18 @@ export async function getPublicLinkByToken(
 			INNER JOIN events e ON rpl.event_id = e.id
 			WHERE rpl.token_hash = ?
 			  AND rpl.revoked_at IS NULL
-			  AND rpl.expires_at > ?
 		`
 		)
-		.bind(tokenHash, now)
+		.bind(tokenHash)
 		.first<ReviewPublicLink & { event_end_date: string | null }>();
 
-	return result || null;
+	if (!result) return null;
+
+	const expiresAt = new Date(result.expires_at);
+	if (Number.isNaN(expiresAt.getTime())) return null;
+	if (expiresAt <= new Date()) return null;
+
+	return result;
 }
 
 /**
@@ -374,14 +378,16 @@ export async function createPublicReview(
 	}
 
 	// Проверяем окно отзывов (рекомендуется, но ссылка может быть специально продлена)
-	if (event.end_date) {
-		const now = new Date();
-		if (!isNowWithinWindow(now, event.end_date)) {
-			const window = getReviewWindow(event.end_date);
-			throw new Error(
-				`Review window is from ${window.start.toISOString()} to ${window.end.toISOString()}`
-			);
-		}
+	if (!event.end_date) {
+		throw new Error('Event has no end date, cannot accept reviews');
+	}
+
+	const now = new Date();
+	if (!isNowWithinWindow(now, event.end_date)) {
+		const window = getReviewWindow(event.end_date);
+		throw new Error(
+			`Review window is from ${window.start.toISOString()} to ${window.end.toISOString()}`
+		);
 	}
 
 	// Создаем отзыв (user_id = NULL для публичных отзывов)

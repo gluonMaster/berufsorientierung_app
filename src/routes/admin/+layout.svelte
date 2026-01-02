@@ -13,6 +13,7 @@
 		FileText,
 		LogOut,
 		Menu,
+		MessageSquare,
 	} from 'lucide-svelte';
 
 	// Данные наследуются из родительского layout (+layout.server.ts)
@@ -31,6 +32,7 @@
 		{ path: '/admin/events', label: 'admin.nav.events', icon: Calendar },
 		{ path: '/admin/users', label: 'admin.nav.users', icon: Users },
 		{ path: '/admin/registrations', label: 'admin.nav.registrations', icon: ClipboardList },
+		{ path: '/admin/reviews', label: 'admin.nav.reviews', icon: MessageSquare },
 		{ path: '/admin/newsletter', label: 'admin.nav.newsletter', icon: Mail },
 		{ path: '/admin/stats', label: 'admin.nav.stats', icon: BarChart2 },
 		{ path: '/admin/logs', label: 'admin.nav.logs', icon: FileText },

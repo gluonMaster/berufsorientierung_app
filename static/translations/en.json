@@ -24,7 +24,8 @@
 		"import": "Import",
 		"yes": "Yes",
 		"no": "No",
-		"actions": "Actions"
+		"actions": "Actions",
+		"page": "Page"
 	},
 	"form": {
 		"firstName": "First Name",
@@ -285,10 +286,41 @@
 			"success": "Review submitted for moderation",
 			"successDescription": "Your review has been submitted and will be visible after moderation.",
 			"alreadySubmitted": "You have already submitted a review for this event",
-			"submittedOn": "Submitted on {date}"
+			"submittedOn": "Submitted on {date}",
+			"event": "Event",
+			"characters": "characters",
+			"commentTooShort": "Comment must be at least 10 characters",
+			"commentTooLong": "Comment must be at most 2000 characters",
+			"submitSuccess": "Thank you! Your review has been submitted for moderation.",
+			"submitError": "Failed to submit review. Please try again.",
+			"thankYou": "Thank you for your review!",
+			"pendingModeration": "Your review has been submitted and will be published after moderation.",
+			"displayName": "Display Name",
+			"displayNamePlaceholder": "How would you like to be called?",
+			"displayNameHelp": "This name will be shown with your review. It is not verified."
 		},
 		"window": {
 			"notAvailable": "The review period for this event is not available"
+		},
+		"public": {
+			"title": "Submit a Review",
+			"subtitle": "Share your experience from the event",
+			"invalidLink": "Invalid or Expired Link",
+			"invalidLinkDescription": "This review link is no longer valid. It may have expired or been revoked.",
+			"windowClosed": "Review Period Ended",
+			"windowClosedDescription": "The review period for this event has ended. Reviews can only be submitted within a limited time after the event.",
+			"notAvailable": "Reviews Not Available",
+			"notAvailableDescription": "This event is not accepting reviews at this time."
+		},
+		"author": {
+			"anonymous": "Anonymous"
+		},
+		"page": {
+			"title": "Reviews",
+			"description": "Experiences and reviews from our event participants",
+			"heading": "All Reviews",
+			"empty": "No reviews yet",
+			"emptyDescription": "Be the first to review an event!"
 		}
 	},
 	"gdpr": {
@@ -372,9 +404,65 @@
 			"events": "Events",
 			"users": "Users",
 			"registrations": "Registrations",
+			"reviews": "Reviews",
 			"newsletter": "Newsletter",
 			"stats": "Statistics",
 			"logs": "Logs"
+		},
+		"reviews": {
+			"title": "Review Moderation",
+			"pending": "Pending Reviews",
+			"approve": "Approve",
+			"reject": "Reject",
+			"approveAll": "Approve All",
+			"approveAllShort": "Approve All",
+			"rejectAll": "Reject All",
+			"rejectAllShort": "Reject All",
+			"confirmApproveAllTitle": "Approve All Reviews",
+			"confirmApproveAllMessage": "Are you sure you want to approve all {count} pending reviews?",
+			"confirmRejectAllTitle": "Reject All Reviews",
+			"confirmRejectAllMessage": "Are you sure you want to reject all {count} pending reviews?",
+			"approveSuccess": "Review approved successfully",
+			"approveError": "Failed to approve review",
+			"rejectSuccess": "Review rejected successfully",
+			"rejectError": "Failed to reject review",
+			"approveAllSuccess": "Successfully approved {count} reviews",
+			"rejectAllSuccess": "Successfully rejected {count} reviews",
+			"author": {
+				"user": "Registered User",
+				"public": "Public Link",
+				"anonymous": "Anonymous"
+			},
+			"status": {
+				"pending": "Pending",
+				"approved": "Approved",
+				"rejected": "Rejected"
+			},
+			"empty": "No reviews to display",
+			"untitledEvent": "Untitled Event",
+			"showFull": "Show full",
+			"fullComment": "Full Comment",
+			"anonymous": "Anonymous",
+			"table": {
+				"event": "Event",
+				"author": "Author",
+				"rating": "Rating",
+				"comment": "Comment",
+				"date": "Date",
+				"actions": "Actions"
+			},
+			"links": {
+				"title": "Generate Public Review Link",
+				"event": "Event",
+				"expiresAt": "Link Expires At",
+				"generate": "Generate Link",
+				"copy": "Copy",
+				"copied": "Copied!",
+				"generated": "Link generated successfully",
+				"generateError": "Failed to generate link",
+				"copyError": "Failed to copy link",
+				"selectEventAndDate": "Please select an event and expiration date"
+			}
 		},
 		"dashboard": {
 			"title": "Dashboard",
@@ -814,7 +902,9 @@
 		},
 		"pagination": {
 			"previous": "Previous",
-			"next": "Next"
+			"next": "Next",
+			"page": "Page",
+			"label": "Pagination"
 		}
 	},
 	"errors": {
@@ -831,6 +921,7 @@
 	"nav": {
 		"home": "Home",
 		"events": "Events",
+		"reviews": "Reviews",
 		"profile": "Profile",
 		"admin": "Admin",
 		"login": "Login",
@@ -865,6 +956,11 @@
 				"message": "There are currently no scheduled events. Please check back soon!",
 				"refresh": "Refresh page"
 			}
+		},
+		"reviews": {
+			"title": "What Our Participants Say",
+			"subtitle": "Experiences and reviews from our events",
+			"allLink": "View all reviews"
 		}
 	},
 	"legal": {

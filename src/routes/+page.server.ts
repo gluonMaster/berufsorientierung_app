@@ -10,8 +10,10 @@
 
 import { getActiveEvents } from '$lib/server/db/events';
 import { getRegistrationCount, isUserRegistered } from '$lib/server/db/registrations';
+import { getLatestApprovedReviews } from '$lib/server/db/reviews';
 import { extractTokenFromRequest, verifyToken } from '$lib/server/auth';
 import type { Event } from '$lib/types/event';
+import type { PublicReview } from '$lib/types/review';
 
 /**
  * Расширенная информация о мероприятии для главной страницы
@@ -90,8 +92,18 @@ export const load = async ({ platform, request }: { platform: any; request: Requ
 			})
 		);
 
+		// Загружаем последние одобренные отзывы (до 5)
+		let latestReviews: PublicReview[] = [];
+		try {
+			latestReviews = await getLatestApprovedReviews(db, 5);
+		} catch (reviewsError) {
+			console.error('Error loading latest reviews:', reviewsError);
+			// Продолжаем работу даже если отзывы не загрузились
+		}
+
 		return {
 			events: eventsWithStats,
+			latestReviews,
 		};
 	} catch (error) {
 		console.error('Error loading homepage data:', error);
@@ -100,6 +112,7 @@ export const load = async ({ platform, request }: { platform: any; request: Requ
 		// SvelteKit автоматически обработает это в +page.svelte
 		return {
 			events: [],
+			latestReviews: [],
 		};
 	}
 };

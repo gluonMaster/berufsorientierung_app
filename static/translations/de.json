@@ -26,7 +26,8 @@
 		"import": "Importieren",
 		"yes": "Ja",
 		"no": "Nein",
-		"actions": "Aktionen"
+		"actions": "Aktionen",
+		"page": "Seite"
 	},
 	"form": {
 		"firstName": "Vorname",
@@ -287,10 +288,41 @@
 			"success": "Bewertung zur Moderation eingereicht",
 			"successDescription": "Ihre Bewertung wurde eingereicht und wird nach der Moderation sichtbar sein.",
 			"alreadySubmitted": "Sie haben bereits eine Bewertung für diese Veranstaltung abgegeben",
-			"submittedOn": "Eingereicht am {date}"
+			"submittedOn": "Eingereicht am {date}",
+			"event": "Veranstaltung",
+			"characters": "Zeichen",
+			"commentTooShort": "Der Kommentar muss mindestens 10 Zeichen lang sein",
+			"commentTooLong": "Der Kommentar darf maximal 2000 Zeichen lang sein",
+			"submitSuccess": "Vielen Dank! Ihre Bewertung wurde zur Moderation eingereicht.",
+			"submitError": "Fehler beim Absenden der Bewertung. Bitte versuchen Sie es erneut.",
+			"thankYou": "Vielen Dank für Ihre Bewertung!",
+			"pendingModeration": "Ihre Bewertung wurde eingereicht und wird nach der Moderation veröffentlicht.",
+			"displayName": "Anzeigename",
+			"displayNamePlaceholder": "Wie möchten Sie genannt werden?",
+			"displayNameHelp": "Dieser Name wird mit Ihrer Bewertung angezeigt. Er wird nicht verifiziert."
 		},
 		"window": {
 			"notAvailable": "Der Bewertungszeitraum für diese Veranstaltung ist nicht verfügbar"
+		},
+		"public": {
+			"title": "Bewertung abgeben",
+			"subtitle": "Teilen Sie Ihre Erfahrungen von der Veranstaltung",
+			"invalidLink": "Ungültiger oder abgelaufener Link",
+			"invalidLinkDescription": "Dieser Bewertungslink ist nicht mehr gültig. Er ist möglicherweise abgelaufen oder wurde widerrufen.",
+			"windowClosed": "Bewertungszeitraum beendet",
+			"windowClosedDescription": "Der Bewertungszeitraum für diese Veranstaltung ist abgelaufen. Bewertungen können nur innerhalb einer begrenzten Zeit nach der Veranstaltung abgegeben werden.",
+			"notAvailable": "Bewertungen nicht verfügbar",
+			"notAvailableDescription": "Diese Veranstaltung nimmt derzeit keine Bewertungen an."
+		},
+		"author": {
+			"anonymous": "Anonym"
+		},
+		"page": {
+			"title": "Bewertungen",
+			"description": "Erfahrungen und Bewertungen unserer Veranstaltungsteilnehmer",
+			"heading": "Alle Bewertungen",
+			"empty": "Noch keine Bewertungen vorhanden",
+			"emptyDescription": "Seien Sie der Erste, der eine Veranstaltung bewertet!"
 		}
 	},
 	"gdpr": {
@@ -374,9 +406,65 @@
 			"events": "Veranstaltungen",
 			"users": "Benutzer",
 			"registrations": "Anmeldungen",
+			"reviews": "Bewertungen",
 			"newsletter": "Newsletter",
 			"stats": "Statistiken",
 			"logs": "Protokolle"
+		},
+		"reviews": {
+			"title": "Bewertungen moderieren",
+			"pending": "Ausstehende Bewertungen",
+			"approve": "Genehmigen",
+			"reject": "Ablehnen",
+			"approveAll": "Alle genehmigen",
+			"approveAllShort": "Alle gen.",
+			"rejectAll": "Alle ablehnen",
+			"rejectAllShort": "Alle abl.",
+			"confirmApproveAllTitle": "Alle Bewertungen genehmigen",
+			"confirmApproveAllMessage": "Möchten Sie wirklich alle {count} ausstehenden Bewertungen genehmigen?",
+			"confirmRejectAllTitle": "Alle Bewertungen ablehnen",
+			"confirmRejectAllMessage": "Möchten Sie wirklich alle {count} ausstehenden Bewertungen ablehnen?",
+			"approveSuccess": "Bewertung erfolgreich genehmigt",
+			"approveError": "Fehler beim Genehmigen der Bewertung",
+			"rejectSuccess": "Bewertung erfolgreich abgelehnt",
+			"rejectError": "Fehler beim Ablehnen der Bewertung",
+			"approveAllSuccess": "{count} Bewertungen erfolgreich genehmigt",
+			"rejectAllSuccess": "{count} Bewertungen erfolgreich abgelehnt",
+			"author": {
+				"user": "Registrierter Benutzer",
+				"public": "Öffentlicher Link",
+				"anonymous": "Anonym"
+			},
+			"status": {
+				"pending": "Ausstehend",
+				"approved": "Genehmigt",
+				"rejected": "Abgelehnt"
+			},
+			"empty": "Keine Bewertungen vorhanden",
+			"untitledEvent": "Veranstaltung ohne Titel",
+			"showFull": "Vollständig anzeigen",
+			"fullComment": "Vollständiger Kommentar",
+			"anonymous": "Anonym",
+			"table": {
+				"event": "Veranstaltung",
+				"author": "Autor",
+				"rating": "Bewertung",
+				"comment": "Kommentar",
+				"date": "Datum",
+				"actions": "Aktionen"
+			},
+			"links": {
+				"title": "Öffentlichen Bewertungslink erstellen",
+				"event": "Veranstaltung",
+				"expiresAt": "Link gültig bis",
+				"generate": "Link erstellen",
+				"copy": "Kopieren",
+				"copied": "Kopiert!",
+				"generated": "Link erfolgreich erstellt",
+				"generateError": "Fehler beim Erstellen des Links",
+				"copyError": "Fehler beim Kopieren des Links",
+				"selectEventAndDate": "Bitte wählen Sie eine Veranstaltung und ein Ablaufdatum"
+			}
 		},
 		"dashboard": {
 			"title": "Dashboard",
@@ -804,7 +892,9 @@
 		},
 		"pagination": {
 			"previous": "Zurück",
-			"next": "Weiter"
+			"next": "Weiter",
+			"page": "Seite",
+			"label": "Seitennavigation"
 		}
 	},
 	"errors": {
@@ -821,6 +911,7 @@
 	"nav": {
 		"home": "Startseite",
 		"events": "Veranstaltungen",
+		"reviews": "Bewertungen",
 		"profile": "Profil",
 		"admin": "Admin",
 		"login": "Anmelden",
@@ -855,6 +946,11 @@
 				"message": "Aktuell sind keine Veranstaltungen geplant. Schauen Sie bald wieder vorbei!",
 				"refresh": "Seite aktualisieren"
 			}
+		},
+		"reviews": {
+			"title": "Was unsere Teilnehmer sagen",
+			"subtitle": "Erfahrungen und Bewertungen unserer Veranstaltungen",
+			"allLink": "Alle Bewertungen anzeigen"
 		}
 	},
 	"legal": {
