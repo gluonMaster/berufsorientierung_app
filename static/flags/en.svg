@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 18">
+	<defs>
+		<clipPath id="clip">
+			<rect width="24" height="18" />
+		</clipPath>
+	</defs>
+	<g clip-path="url(#clip)">
+		<rect width="24" height="18" fill="#012169" />
+		<path
+			d="M0 0 L24 18 M24 0 L0 18"
+			stroke="#FFFFFF"
+			stroke-width="6"
+			stroke-linecap="square"
+		/>
+		<path
+			d="M0 0 L24 18 M24 0 L0 18"
+			stroke="#C8102E"
+			stroke-width="3.5"
+			stroke-linecap="square"
+		/>
+		<path
+			d="M12 0 V18 M0 9 H24"
+			stroke="#FFFFFF"
+			stroke-width="8"
+			stroke-linecap="square"
+		/>
+		<path
+			d="M12 0 V18 M0 9 H24"
+			stroke="#C8102E"
+			stroke-width="4.5"
+			stroke-linecap="square"
+		/>
+	</g>
+</svg>
+

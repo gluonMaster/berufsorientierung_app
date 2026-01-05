@@ -17,6 +17,7 @@ import { requireAdmin, getClientIP } from '$lib/server/middleware/auth';
 import { getDB, DB } from '$lib/server/db';
 import { logActivity } from '$lib/server/db/activityLog';
 import { reviewPublicLinkCreateSchema } from '$lib/server/validation/schemas';
+import { parseDateTime } from '$lib/utils/datetime';
 
 export async function POST({ request, platform }: RequestEvent) {
 	try {
@@ -50,36 +51,33 @@ export async function POST({ request, platform }: RequestEvent) {
 			return json({ error: 'Event not found' }, { status: 404 });
 		}
 
-		if (!event.end_date) {
+		if (event.status === 'cancelled') {
 			return json(
-				{ error: 'Event end date is required for review links' },
+				{ error: 'Cannot create review link for a cancelled event' },
 				{ status: 400 }
 			);
 		}
 
 		// Шаг 4: Проверяем, что expires_at не позже end_date + 30 дней (анти-"вечные ссылки")
-		const endDate = new Date(event.end_date);
-		const maxExpiry = new Date(endDate.getTime() + 30 * 24 * 60 * 60 * 1000);
-		const expiryDate = new Date(expires_at);
-
-		if (expiryDate > maxExpiry) {
-			return json(
-				{
-					error: 'Expiration date cannot be more than 30 days after event end date',
-				},
-				{ status: 400 }
-			);
+		// Normalize to ISO (UTC) so expiry checks are stable on Cloudflare Workers (timezone=UTC)
+		const expiresAtDate = parseDateTime(expires_at);
+		if (Number.isNaN(expiresAtDate.getTime())) {
+			return json({ error: 'Invalid expiration date' }, { status: 400 });
 		}
+		if (expiresAtDate <= new Date()) {
+			return json({ error: 'Expiration date must be in the future' }, { status: 400 });
+		}
+		const expiresAtIso = expiresAtDate.toISOString();
 
 		// Шаг 5: Создаем публичную ссылку
-		const result = await DB.reviews.createReviewPublicLink(db, event_id, admin.id, expires_at);
+		const result = await DB.reviews.createReviewPublicLink(db, event_id, admin.id, expiresAtIso);
 
 		// Шаг 6: Логируем действие
 		await logActivity(
 			db,
 			admin.id,
 			'review_public_link_create',
-			`Created public review link for event ${event_id}, expires at ${expires_at}`,
+			`Created public review link for event ${event_id}, expires at ${expiresAtIso}`,
 			getClientIP(request) ?? undefined
 		);
 

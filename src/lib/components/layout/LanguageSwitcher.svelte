@@ -54,6 +54,10 @@
 			isOpen = false;
 		}
 	}
+
+	function getFlagSrc(langCode: LanguageCode): string {
+		return `/flags/${langCode}.svg`;
+	}
 </script>
 
 <svelte:window on:keydown={handleKeydown} />
@@ -68,9 +72,13 @@
 		aria-haspopup="true"
 		aria-label={$_('profile.language')}
 	>
-		<span class="flag" aria-hidden="true">
-			{SUPPORTED_LANGUAGES[$currentLanguage].flag}
-		</span>
+		<img
+			class="flag"
+			src={getFlagSrc($currentLanguage)}
+			alt=""
+			aria-hidden="true"
+			loading="eager"
+		/>
 		<span class="language-name">
 			{SUPPORTED_LANGUAGES[$currentLanguage].nativeName}
 		</span>
@@ -106,7 +114,13 @@
 					role="menuitem"
 					aria-label={`${$_('profile.language')}: ${lang.nativeName}`}
 				>
-					<span class="flag" aria-hidden="true">{lang.flag}</span>
+					<img
+						class="flag"
+						src={getFlagSrc(lang.code)}
+						alt=""
+						aria-hidden="true"
+						loading="lazy"
+					/>
 					<span class="language-name">{lang.nativeName}</span>
 					{#if $currentLanguage === lang.code}
 						<svg
@@ -167,8 +181,11 @@
 	}
 
 	.flag {
-		font-size: 1.25rem;
-		line-height: 1;
+		width: 1.25rem;
+		height: 0.9375rem;
+		border-radius: 0.125rem;
+		object-fit: cover;
+		display: block;
 		flex-shrink: 0;
 	}
 
@@ -204,11 +221,13 @@
 		animation: slideDown 0.2s ease;
 	}
 
-	/* Mobile: ensure dropdown doesn't overflow screen */
-	@media (max-width: 639px) {
+	/* <= 767px: language switcher lives in the mobile menu (left aligned) */
+	@media (max-width: 767px) {
 		.language-dropdown {
-			right: -0.5rem;
+			left: 0;
+			right: auto;
 			min-width: 10rem;
+			max-width: calc(100vw - 2rem);
 		}
 	}
 

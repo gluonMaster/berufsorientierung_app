@@ -14,6 +14,7 @@ import type {
 	ReviewAdminListResult,
 	ReviewWindow,
 } from '$lib/types/review';
+import { parseDateTime } from '$lib/utils/datetime';
 
 // ==========================================
 // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
@@ -60,7 +61,7 @@ export function generateToken(): string {
  * @returns Объект с датами начала и конца окна
  */
 export function getReviewWindow(endDate: string): ReviewWindow {
-	const endDateTime = new Date(endDate);
+	const endDateTime = parseDateTime(endDate);
 
 	// Начало: 45 минут до окончания
 	const start = new Date(endDateTime.getTime() - 45 * 60 * 1000);
@@ -157,7 +158,7 @@ export async function getPublicLinkByToken(
 
 	if (!result) return null;
 
-	const expiresAt = new Date(result.expires_at);
+	const expiresAt = parseDateTime(result.expires_at);
 	if (Number.isNaN(expiresAt.getTime())) return null;
 	if (expiresAt <= new Date()) return null;
 
@@ -243,13 +244,13 @@ export async function createUserReview(
 	const event = await db
 		.prepare(
 			`
-			SELECT id, status, end_date
+			SELECT id, status
 			FROM events
 			WHERE id = ?
 		`
 		)
 		.bind(eventId)
-		.first<{ id: number; status: string; end_date: string | null }>();
+		.first<{ id: number; status: string }>();
 
 	if (!event) {
 		throw new Error('Event not found');
@@ -378,17 +379,7 @@ export async function createPublicReview(
 	}
 
 	// Проверяем окно отзывов (рекомендуется, но ссылка может быть специально продлена)
-	if (!event.end_date) {
-		throw new Error('Event has no end date, cannot accept reviews');
-	}
-
-	const now = new Date();
-	if (!isNowWithinWindow(now, event.end_date)) {
-		const window = getReviewWindow(event.end_date);
-		throw new Error(
-			`Review window is from ${window.start.toISOString()} to ${window.end.toISOString()}`
-		);
-	}
+	// Public review links are controlled by expires_at, not by the event review window.
 
 	// Создаем отзыв (user_id = NULL для публичных отзывов)
 	const result = await db

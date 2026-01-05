@@ -3,9 +3,7 @@
  * Загрузка формы отзыва по публичной ссылке (без авторизации)
  */
 
-import { error } from '@sveltejs/kit';
 import { getDB, DB } from '$lib/server/db';
-import { isNowWithinWindow, getReviewWindow } from '$lib/server/db/reviews';
 
 /**
  * Load функция для публичной страницы отзыва
@@ -49,9 +47,10 @@ export const load = async ({
 	}
 
 	// Проверяем окно отзывов
-	if (!event.end_date) {
+	// Public links are controlled by expires_at, not by the event review window.
+	if (event.status === 'cancelled') {
 		return {
-			error: 'no_end_date',
+			error: 'not_available',
 			event: {
 				id: event.id,
 				title_de: event.title_de,
@@ -62,30 +61,6 @@ export const load = async ({
 				end_date: event.end_date,
 			},
 			canReview: false,
-		};
-	}
-
-	const now = new Date();
-	const windowOpen = isNowWithinWindow(now, event.end_date);
-
-	if (!windowOpen) {
-		const window = getReviewWindow(event.end_date);
-		return {
-			error: 'window_closed',
-			event: {
-				id: event.id,
-				title_de: event.title_de,
-				title_en: event.title_en,
-				title_ru: event.title_ru,
-				title_uk: event.title_uk,
-				date: event.date,
-				end_date: event.end_date,
-			},
-			canReview: false,
-			reviewWindow: {
-				start: window.start.toISOString(),
-				end: window.end.toISOString(),
-			},
 		};
 	}
 

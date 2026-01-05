@@ -104,6 +104,16 @@ describe('Reviews Database Utilities', () => {
 			expect(window.end.getTime()).toBe(expectedEnd.getTime());
 		});
 
+		it('should treat timezone-less endDate as Europe/Berlin time', () => {
+			// In winter Europe/Berlin is UTC+1
+			const endDate = '2025-12-01T18:00';
+			const window = getReviewWindow(endDate);
+
+			// 18:00 Berlin -> 17:00 UTC, window starts 45 min earlier
+			const expectedStart = new Date('2025-12-01T16:15:00Z');
+			expect(window.start.getTime()).toBe(expectedStart.getTime());
+		});
+
 		it('should handle different timezones in ISO string', () => {
 			const endDate = '2025-12-01T18:00:00+02:00';
 			const window = getReviewWindow(endDate);
