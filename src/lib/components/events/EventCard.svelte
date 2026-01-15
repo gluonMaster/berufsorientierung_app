@@ -161,6 +161,21 @@
 		<span class="sr-only">{$_('events.viewDetails')}</span>
 	</button>
 
+	<!-- Постер мероприятия (если есть) -->
+	{#if event.poster_url}
+		<div
+			class="relative z-10 w-full aspect-[4/3] overflow-hidden bg-gray-50 border-b border-gray-200 pointer-events-none"
+		>
+			<img
+				src={event.poster_url}
+				alt={title}
+				class="w-full h-full object-contain"
+				loading="lazy"
+				decoding="async"
+			/>
+		</div>
+	{/if}
+
 	<!-- Контент карточки (все интерактивные элементы должны иметь z-index выше оверлея) -->
 	<div class="relative z-10 p-4 sm:p-6 pointer-events-none">
 		<h3 class="text-lg sm:text-xl font-semibold text-gray-900 mb-2">

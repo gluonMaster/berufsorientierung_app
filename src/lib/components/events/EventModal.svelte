@@ -130,6 +130,21 @@
 <Modal {isOpen} {onClose} {title}>
 	<!-- Содержимое модального окна -->
 	<div class="space-y-6">
+		<!-- Постер мероприятия (если есть) -->
+		{#if event.poster_url}
+			<div
+				class="w-full aspect-[4/3] sm:aspect-video overflow-hidden rounded-lg bg-gray-50 border border-gray-200"
+			>
+				<img
+					src={event.poster_url}
+					alt={title}
+					class="w-full h-full object-contain"
+					loading="lazy"
+					decoding="async"
+				/>
+			</div>
+		{/if}
+
 		<!-- Дата и время -->
 		<div class="flex items-start space-x-3">
 			<svg

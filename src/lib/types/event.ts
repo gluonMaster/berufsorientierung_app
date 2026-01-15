@@ -153,6 +153,9 @@ export interface Event extends EventTranslations {
 	/** URL QR-кода для WhatsApp (в R2 storage) */
 	qr_whatsapp_url: string | null;
 
+	/** URL постера мероприятия (в R2 storage) */
+	poster_url: string | null;
+
 	/** Текущий статус мероприятия */
 	status: EventStatus;
 

@@ -626,6 +626,21 @@
 				"email": "E-Mail",
 				"phone": "Telefon",
 				"registeredAt": "Angemeldet am"
+			},
+			"poster": {
+				"title": "Poster",
+				"upload": "Poster hochladen",
+				"replace": "Poster ersetzen",
+				"remove": "Poster entfernen",
+				"help": "Das Poster wird in den öffentlichen Veranstaltungs-Karten angezeigt.",
+				"removeConfirm": "Möchten Sie das Poster wirklich entfernen?",
+				"uploadFailed": "Poster konnte nicht hochgeladen werden.",
+				"invalidType": "Bitte wählen Sie eine JPG-, PNG- oder GIF-Datei.",
+				"tooLarge": "Die Datei ist zu groß (max. 5 MB).",
+				"uploading": "Wird hochgeladen...",
+				"uploadSuccess": "Poster erfolgreich hochgeladen",
+				"removeSuccess": "Poster erfolgreich entfernt",
+				"removeFailed": "Poster konnte nicht entfernt werden"
 			}
 		},
 		"activityLog": {
@@ -952,6 +967,9 @@
 			"subtitle": "Erfahrungen und Bewertungen unserer Veranstaltungen",
 			"allLink": "Alle Bewertungen anzeigen"
 		}
+	},
+	"footer": {
+		"fundingSignetAlt": "Signet des Landes"
 	},
 	"legal": {
 		"impressum": {

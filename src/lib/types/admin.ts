@@ -29,6 +29,8 @@ export type ActivityLogActionType =
 	| 'event_publish' // Публикация мероприятия
 	| 'event_cancel' // Отмена мероприятия
 	| 'event_regenerate_qr' // Перегенерация QR-кодов мероприятия
+	| 'event_poster_upload' // Загрузка/замена постера мероприятия
+	| 'event_poster_delete' // Удаление постера мероприятия
 	| 'event_export' // Экспорт мероприятий в JSON
 	| 'event_import' // Импорт мероприятий из JSON
 	// Действия с записями

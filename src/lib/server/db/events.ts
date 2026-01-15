@@ -241,16 +241,20 @@ export async function deleteEvent(db: D1Database, id: number, r2Bucket?: R2Bucke
 			throw new Error(`Event with id ${id} not found`);
 		}
 
-		// Удаляем QR-коды из R2, если bucket предоставлен
+		// Удаляем QR-коды и постер из R2, если bucket предоставлен
 		if (r2Bucket) {
-			const qrUrls = [event.qr_telegram_url, event.qr_whatsapp_url].filter(
-				(url): url is string => url !== null
-			);
+			const urlsToDelete = [
+				event.qr_telegram_url,
+				event.qr_whatsapp_url,
+				event.poster_url,
+			].filter((url): url is string => url !== null);
 
-			if (qrUrls.length > 0) {
+			if (urlsToDelete.length > 0) {
 				const { deleteFilesByUrls } = await import('$lib/server/storage/r2');
-				const deletedCount = await deleteFilesByUrls(r2Bucket, qrUrls);
-				console.log(`Deleted ${deletedCount} QR codes from R2 for event ${id}`);
+				const deletedCount = await deleteFilesByUrls(r2Bucket, urlsToDelete);
+				console.log(
+					`Deleted ${deletedCount} files (QR codes/poster) from R2 for event ${id}`
+				);
 			}
 		}
 

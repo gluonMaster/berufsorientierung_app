@@ -616,6 +616,21 @@
 				"email": "Email",
 				"phone": "Phone",
 				"registeredAt": "Registered At"
+			},
+			"poster": {
+				"title": "Poster",
+				"upload": "Upload Poster",
+				"replace": "Replace Poster",
+				"remove": "Remove Poster",
+				"help": "The poster will be displayed in public event cards.",
+				"removeConfirm": "Do you really want to remove the poster?",
+				"uploadFailed": "Poster could not be uploaded.",
+				"invalidType": "Please select a JPG, PNG or GIF file.",
+				"tooLarge": "The file is too large (max. 5 MB).",
+				"uploading": "Uploading...",
+				"uploadSuccess": "Poster uploaded successfully",
+				"removeSuccess": "Poster removed successfully",
+				"removeFailed": "Poster could not be removed"
 			}
 		},
 		"activityLog": {
@@ -962,6 +977,9 @@
 			"subtitle": "Experiences and reviews from our events",
 			"allLink": "View all reviews"
 		}
+	},
+	"footer": {
+		"fundingSignetAlt": "Funding land signet"
 	},
 	"legal": {
 		"impressum": {

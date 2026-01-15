@@ -57,6 +57,17 @@
 				</a>
 			</div>
 		</div>
+
+		<!-- Сигнет министерства-донора -->
+		<div class="funding-signet">
+			<img
+				src="/img/Signet_gruen.gif"
+				alt={$_('footer.fundingSignetAlt')}
+				class="signet-img"
+				loading="lazy"
+				decoding="async"
+			/>
+		</div>
 	</div>
 </footer>
 
@@ -153,6 +164,18 @@
 
 	.icon {
 		flex-shrink: 0;
+	}
+
+	/* Сигнет министерства */
+	.funding-signet {
+		display: flex;
+		justify-content: flex-end;
+		margin-top: 1rem;
+	}
+
+	.signet-img {
+		width: clamp(48px, 10vw, 96px);
+		height: auto;
 	}
 
 	/* Tablet (640px+) */
