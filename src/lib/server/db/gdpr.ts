@@ -274,6 +274,7 @@ export async function archiveUser(db: D1Database, userId: number): Promise<void>
 
 		// Получаем список мероприятий, в которых УЧАСТВОВАЛ пользователь
 		// (только завершенные, не отмененные регистрации)
+		// Note: e.date is stored as datetime-local format (YYYY-MM-DDTHH:MM), need to normalize 'T' separator
 		const eventsResult = await db
 			.prepare(
 				`
@@ -285,8 +286,8 @@ export async function archiveUser(db: D1Database, userId: number): Promise<void>
 				INNER JOIN events e ON r.event_id = e.id
 				WHERE r.user_id = ?
 				  AND r.cancelled_at IS NULL
-				  AND e.date <= datetime('now')
-				ORDER BY e.date DESC
+				  AND datetime(replace(e.date, 'T', ' ')) <= datetime('now')
+				ORDER BY datetime(replace(e.date, 'T', ' ')) DESC
 			`
 			)
 			.bind(userId)
@@ -359,6 +360,7 @@ export async function deleteUserCompletely(db: D1Database, userId: number): Prom
 		const statements = [
 			// 1. Архивируем данные (через prepared statement с подзапросом)
 			// Только завершенные мероприятия (не отмененные регистрации, прошедшие даты)
+			// Note: e.date is stored as datetime-local format (YYYY-MM-DDTHH:MM), need to normalize 'T' separator
 			db
 				.prepare(
 					`
@@ -386,7 +388,7 @@ export async function deleteUserCompletely(db: D1Database, userId: number): Prom
 						INNER JOIN events e ON r.event_id = e.id
 						WHERE r.user_id = ?
 						  AND r.cancelled_at IS NULL
-						  AND e.date <= datetime('now')
+						  AND datetime(replace(e.date, 'T', ' ')) <= datetime('now')
 					)
 				FROM users u
 				WHERE u.id = ?

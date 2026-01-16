@@ -37,6 +37,9 @@
 	// Мобильная панель фильтров
 	let showMobileFilters = false;
 
+	// Состояние загрузки для is_listed toggle
+	let listedLoadingIds: Set<number> = new Set();
+
 	// Фильтрация мероприятий
 	$: filteredEvents = data.events.filter((event: EventWithStats) => {
 		// Фильтр по статусу
@@ -293,6 +296,42 @@
 	}
 
 	/**
+	 * Изменить флаг is_listed для мероприятия
+	 */
+	async function setListed(event: EventWithStats, checked: boolean) {
+		listedLoadingIds = new Set([...listedLoadingIds, event.id]);
+
+		try {
+			const response = await fetch('/api/admin/events/set-listed', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ event_id: event.id, is_listed: checked }),
+			});
+
+			if (response.ok) {
+				// Обновляем локально
+				event.is_listed = checked ? 1 : 0;
+				// Принудительно обновляем reactive binding
+				data.events = data.events;
+				showToastMessage(
+					checked
+						? $_('admin.events.listingEnabled')
+						: $_('admin.events.listingDisabled'),
+					'success'
+				);
+			} else {
+				const error = await response.json();
+				showToastMessage(error.message || $_('admin.events.listingUpdateError'), 'error');
+			}
+		} catch (error) {
+			console.error('Failed to update is_listed:', error);
+			showToastMessage($_('admin.events.listingUpdateError'), 'error');
+		} finally {
+			listedLoadingIds = new Set([...listedLoadingIds].filter((id) => id !== event.id));
+		}
+	}
+
+	/**
 	 * Перейти на страницу
 	 */
 	function goToPage(page: number) {
@@ -445,6 +484,11 @@
 					{$_('admin.events.qrCodes')}
 				</th>
 				<th
+					class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+				>
+					{$_('admin.events.listing')}
+				</th>
+				<th
 					class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
 				>
 					{$_('admin.events.actions')}
@@ -512,6 +556,22 @@
 								</span>
 							{/if}
 						</div>
+					</td>
+
+					<!-- Листинг на /events -->
+					<td class="px-6 py-4 whitespace-nowrap">
+						<label class="relative inline-flex items-center cursor-pointer">
+							<input
+								type="checkbox"
+								checked={Boolean(event.is_listed)}
+								disabled={listedLoadingIds.has(event.id)}
+								on:change={(e) => setListed(event, e.currentTarget.checked)}
+								class="sr-only peer"
+							/>
+							<div
+								class="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600 peer-disabled:opacity-50"
+							></div>
+						</label>
 					</td>
 
 					<!-- Действия -->
@@ -636,7 +696,7 @@
 				</tr>
 			{:else}
 				<tr>
-					<td colspan="6" class="px-6 py-8 text-center text-gray-500">
+					<td colspan="7" class="px-6 py-8 text-center text-gray-500">
 						{$_('admin.events.noEvents')}
 					</td>
 				</tr>
@@ -718,6 +778,23 @@
 						{/if}
 					</div>
 				{/if}
+			</div>
+
+			<!-- Листинг на /events -->
+			<div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-100">
+				<span class="text-sm text-gray-600">{$_('admin.events.listing')}</span>
+				<label class="relative inline-flex items-center cursor-pointer">
+					<input
+						type="checkbox"
+						checked={Boolean(event.is_listed)}
+						disabled={listedLoadingIds.has(event.id)}
+						on:change={(e) => setListed(event, e.currentTarget.checked)}
+						class="sr-only peer"
+					/>
+					<div
+						class="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600 peer-disabled:opacity-50"
+					></div>
+				</label>
 			</div>
 
 			<!-- Действия -->

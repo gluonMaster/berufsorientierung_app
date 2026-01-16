@@ -2,7 +2,7 @@
 	"common": {
 		"welcome": "Welcome",
 		"login": "Login",
-		"register": "Register",
+		"register": "Create account",
 		"logout": "Logout",
 		"profile": "Profile",
 		"events": "Events",
@@ -88,7 +88,7 @@
 	},
 	"auth": {
 		"loginTitle": "Login",
-		"registerTitle": "Register",
+		"registerTitle": "Create account",
 		"registerSubtitle": "Create an account to participate in Berufsorientierung events",
 		"alreadyHaveAccount": "Already have an account?",
 		"dontHaveAccount": "Don't have an account?",
@@ -129,7 +129,18 @@
 		"requestNewLink": "Request New Link",
 		"goToLogin": "Go to Login",
 		"backToLogin": "Back to Login",
-		"or": "or"
+		"or": "or",
+		"eventFlow": {
+			"title": "Event signup",
+			"stepHint": "Step 1 of 2: Create an account or log in. Step 2: Then continue to the event signup.",
+			"cancel": "Cancel"
+		},
+		"afterRegisterModal": {
+			"title": "Account created",
+			"text": "Step 2: Continue to the event signup now?",
+			"continue": "Continue",
+			"later": "Later"
+		}
 	},
 	"events": {
 		"page": {
@@ -153,7 +164,7 @@
 		"time": "Time",
 		"registrationDeadline": "Registration Deadline",
 		"viewDetails": "View details",
-		"loginToRegister": "Login to register",
+		"loginToRegister": "Log in to sign up for this event",
 		"status": {
 			"open": "Registration open",
 			"full": "Full",
@@ -329,7 +340,7 @@
 		"parentalConsent": "Parental consent (required for participants under 18)",
 		"parentalConsentRequired": "Since you are under 18 years old, we need your parents'/guardian's consent",
 		"guardianInfoRequired": "Please provide your parent/guardian information",
-		"deleteExplanation": "According to GDPR, you can delete your profile at any time. Your data will be completely removed, except for the minimum required information for our reporting (name, participation dates). If you participated in an event within the last 28 days, deletion will be automatically performed after this period expires.",
+		"deleteExplanation": "According to GDPR, you can delete your profile at any time. Deletion is performed immediately. Your data will be completely removed, except for the minimum required information for our reporting (name, participation dates).",
 		"dataRetention": "Data Retention",
 		"rightToDelete": "Right to Deletion",
 		"privacyPolicy": "Privacy Policy"
@@ -395,7 +406,7 @@
 		"users": "Users",
 		"stats": "Statistics",
 		"logs": "Logs",
-		"logout": "Logout",
+		"logout": "Close admin",
 		"menu": {
 			"toggle": "Toggle menu"
 		},
@@ -540,6 +551,10 @@
 			"deleteWarning": "This action cannot be undone!",
 			"publishSuccess": "Event successfully published",
 			"publishError": "Error publishing event",
+			"listing": "Show on /events",
+			"listingEnabled": "Display on /events enabled",
+			"listingDisabled": "Display on /events disabled",
+			"listingUpdateError": "Error updating display setting",
 			"deleteSuccess": "Event successfully deleted",
 			"deleteError": "Error deleting event",
 			"createSuccess": "Event successfully created",
@@ -725,7 +740,8 @@
 				"view": "View",
 				"makeAdmin": "Make Admin",
 				"removeAdmin": "Remove Admin",
-				"export": "Export Data"
+				"export": "Export Data",
+				"delete": "Delete"
 			},
 			"pagination": {
 				"page": "Page",
@@ -737,7 +753,11 @@
 			"noResults": "No users found",
 			"confirmMakeAdmin": "Do you want to give this user admin rights?",
 			"confirmRemoveAdmin": "Do you want to remove this user's admin rights?",
-			"cannotRemoveSuperadmin": "Superadmin rights cannot be removed"
+			"cannotRemoveSuperadmin": "Superadmin rights cannot be removed",
+			"confirmDeleteUser": "Are you sure you want to delete this user? This action cannot be undone.",
+			"deleteSuccess": "User has been deleted",
+			"deleteError": "Failed to delete user",
+			"cannotDeleteAdmin": "Admins cannot be deleted. Remove admin rights first."
 		},
 		"registrations": {
 			"title": "Manage Registrations",
@@ -961,7 +981,7 @@
 		"hero": {
 			"title": "Career Guidance for Young People",
 			"subtitle": "Register for project events",
-			"registerCta": "Register now"
+			"registerCta": "Create account"
 		},
 		"events": {
 			"title": "Upcoming Events",

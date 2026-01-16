@@ -135,16 +135,12 @@ export const actions = {
 	 * Delete action - удаление профиля
 	 *
 	 * Вызывает API endpoint /api/profile/delete
-	 * Результат может быть:
-	 * - immediate: профиль удалён сразу (редирект на главную)
-	 * - scheduled: удаление запланировано (показать дату)
+	 * Результат: профиль удалён сразу (редирект на главную)
 	 */
 	delete: async ({ request, fetch, platform }: RequestEvent) => {
 		if (!platform?.env?.DB || !platform?.env?.JWT_SECRET) {
 			return fail(500, { error: 'Server configuration error' });
 		}
-
-		let result: any;
 
 		try {
 			// Проверяем аутентификацию
@@ -155,14 +151,22 @@ export const actions = {
 				method: 'POST',
 			});
 
-			result = await response.json();
+			const result = await response.json();
 
 			if (!response.ok) {
 				return fail(response.status, {
 					error: result.error || 'Failed to delete profile',
 				});
 			}
+
+			// Удаление всегда немедленное — редирект на главную
+			throw redirect(303, '/?deleted=true');
 		} catch (err: any) {
+			// Проверяем, что это не redirect (который тоже throw)
+			if (err?.status === 303) {
+				throw err;
+			}
+
 			console.error('Error in delete action:', err);
 
 			if (err?.status === 401) {
@@ -173,18 +177,5 @@ export const actions = {
 				error: 'An error occurred while deleting profile',
 			});
 		}
-
-		// ВАЖНО: redirect больше не в try/catch — он не превращается в ошибку
-		if (result.immediate) {
-			throw redirect(303, '/?deleted=true');
-		}
-
-		// Отложенное удаление — обычный success-ответ для формы
-		return {
-			success: true,
-			type: 'scheduled',
-			deleteDate: result.deletionDate,
-			message: result.message,
-		};
 	},
 };

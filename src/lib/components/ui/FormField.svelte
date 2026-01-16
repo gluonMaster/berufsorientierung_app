@@ -1,4 +1,6 @@
 <script lang="ts">
+	import type { HTMLInputAttributes } from 'svelte/elements';
+
 	// Компонент поля формы с валидацией, поддержкой различных типов и доступностью
 	export let label: string;
 	export let type: 'text' | 'email' | 'password' | 'date' | 'tel' | 'textarea' = 'text';
@@ -8,7 +10,7 @@
 	export let value = '';
 	export let name: string | undefined = undefined;
 	export let disabled = false;
-	export let autocomplete: string | undefined = undefined;
+	export let autocomplete: HTMLInputAttributes['autocomplete'] = undefined;
 	export let id: string | undefined = undefined;
 	export let help: string | undefined = undefined;
 

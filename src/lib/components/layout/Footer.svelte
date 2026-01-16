@@ -14,59 +14,62 @@
 	<div class="container">
 		<!-- Основной контент footer -->
 		<div class="footer-content">
-			<!-- Копирайт -->
+			<!-- Копирайт (слева) -->
 			<div class="copyright">
 				<p>© {currentYear} Kolibri Dresden</p>
 			</div>
 
-			<!-- Навигационные ссылки -->
-			<nav class="footer-links" aria-label="Footer navigation">
-				<a href="/datenschutz" class="footer-link"> Datenschutz </a>
-				<span class="separator" aria-hidden="true">•</span>
-				<a href="/impressum" class="footer-link"> Impressum </a>
-			</nav>
+			<!-- Центральная колонка: ссылки + контакт -->
+			<div class="center-column">
+				<!-- Навигационные ссылки -->
+				<nav class="footer-links" aria-label="Footer navigation">
+					<a href="/datenschutz" class="footer-link"> Datenschutz </a>
+					<span class="separator" aria-hidden="true">•</span>
+					<a href="/impressum" class="footer-link"> Impressum </a>
+				</nav>
 
-			<!-- Контакты -->
-			<div class="contact">
-				<a href="mailto:Berufsorientierung@kolibri-dresden.de" class="contact-link">
-					<svg
-						width="16"
-						height="16"
-						viewBox="0 0 16 16"
-						fill="none"
-						xmlns="http://www.w3.org/2000/svg"
-						aria-hidden="true"
-						class="icon"
-					>
-						<path
-							d="M2 3.5C2 2.67157 2.67157 2 3.5 2H12.5C13.3284 2 14 2.67157 14 3.5V12.5C14 13.3284 13.3284 14 12.5 14H3.5C2.67157 14 2 13.3284 2 12.5V3.5Z"
-							stroke="currentColor"
-							stroke-width="1.5"
-							stroke-linecap="round"
-							stroke-linejoin="round"
-						/>
-						<path
-							d="M2 4L8 8.5L14 4"
-							stroke="currentColor"
-							stroke-width="1.5"
-							stroke-linecap="round"
-							stroke-linejoin="round"
-						/>
-					</svg>
-					<span>Berufsorientierung@kolibri-dresden.de</span>
-				</a>
+				<!-- Контакты -->
+				<div class="contact">
+					<a href="mailto:Berufsorientierung@kolibri-dresden.de" class="contact-link">
+						<svg
+							width="16"
+							height="16"
+							viewBox="0 0 16 16"
+							fill="none"
+							xmlns="http://www.w3.org/2000/svg"
+							aria-hidden="true"
+							class="icon"
+						>
+							<path
+								d="M2 3.5C2 2.67157 2.67157 2 3.5 2H12.5C13.3284 2 14 2.67157 14 3.5V12.5C14 13.3284 13.3284 14 12.5 14H3.5C2.67157 14 2 13.3284 2 12.5V3.5Z"
+								stroke="currentColor"
+								stroke-width="1.5"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+							/>
+							<path
+								d="M2 4L8 8.5L14 4"
+								stroke="currentColor"
+								stroke-width="1.5"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+							/>
+						</svg>
+						<span>Berufsorientierung@kolibri-dresden.de</span>
+					</a>
+				</div>
 			</div>
-		</div>
 
-		<!-- Сигнет министерства-донора -->
-		<div class="funding-signet">
-			<img
-				src="/img/Signet_gruen.gif"
-				alt={$_('footer.fundingSignetAlt')}
-				class="signet-img"
-				loading="lazy"
-				decoding="async"
-			/>
+			<!-- Сигнет министерства-донора (справа) -->
+			<div class="funding-signet">
+				<img
+					src="/img/Signet_gruen.gif"
+					alt={$_('footer.fundingSignetAlt')}
+					class="signet-img"
+					loading="lazy"
+					decoding="async"
+				/>
+			</div>
 		</div>
 	</div>
 </footer>
@@ -90,6 +93,14 @@
 		flex-direction: column;
 		align-items: center;
 		gap: 1rem;
+	}
+
+	/* Центральная колонка (ссылки + контакт) */
+	.center-column {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.5rem;
 	}
 
 	/* Копирайт */
@@ -169,8 +180,7 @@
 	/* Сигнет министерства */
 	.funding-signet {
 		display: flex;
-		justify-content: flex-end;
-		margin-top: 1rem;
+		justify-content: center;
 	}
 
 	.signet-img {
@@ -191,13 +201,27 @@
 			gap: 1.5rem;
 		}
 
-		.copyright,
-		.contact {
+		.copyright {
+			flex-shrink: 0;
 			text-align: left;
 		}
 
+		.center-column {
+			flex: 1;
+			align-items: center;
+		}
+
+		.funding-signet {
+			flex-shrink: 0;
+			justify-content: flex-end;
+		}
+
 		.footer-links {
-			justify-content: flex-start;
+			justify-content: center;
+		}
+
+		.contact {
+			text-align: center;
 		}
 	}
 

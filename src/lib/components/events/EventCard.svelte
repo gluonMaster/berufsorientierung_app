@@ -126,7 +126,7 @@
 	 * Обработчик клика по кнопке входа
 	 */
 	function handleLoginClick() {
-		window.location.href = '/login';
+		window.location.href = `/login?redirectTo=${encodeURIComponent(`/events/${event.id}/register`)}`;
 	}
 
 	/**

@@ -56,6 +56,10 @@ function userToProfile(user: {
 	photo_video_consent: boolean;
 	preferred_language: 'de' | 'en' | 'ru' | 'uk';
 	parental_consent: boolean;
+	guardian_first_name: string | null;
+	guardian_last_name: string | null;
+	guardian_phone: string | null;
+	guardian_consent: boolean;
 	is_blocked: boolean;
 	created_at: string;
 	updated_at: string;

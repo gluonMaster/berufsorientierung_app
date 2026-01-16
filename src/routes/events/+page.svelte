@@ -4,7 +4,8 @@
 	 *
 	 * Отображает:
 	 * - Заголовок страницы
-	 * - Список активных предстоящих мероприятий
+	 * - Список будущих активных мероприятий (upcoming)
+	 * - Список прошедших мероприятий (past)
 	 * - Empty state если нет мероприятий
 	 *
 	 * Переиспользует компоненты с главной страницы, но без Hero секции
@@ -17,11 +18,14 @@
 	import type { EventWithStats } from './+page.server';
 
 	// Получаем данные из +page.server.ts
-	export let data: { events: EventWithStats[] };
+	export let data: { upcomingEvents: EventWithStats[]; pastEvents: EventWithStats[] };
 
 	// Состояние модального окна
 	let selectedEvent: EventWithStats | null = null;
 	let isModalOpen = false;
+
+	// Проверяем есть ли хоть какие-то мероприятия
+	$: hasAnyEvents = data.upcomingEvents.length > 0 || data.pastEvents.length > 0;
 
 	/**
 	 * Открывает модальное окно с деталями мероприятия
@@ -66,13 +70,36 @@
 	<!-- Секция мероприятий -->
 	<section class="container mx-auto px-4 py-8 sm:py-12">
 		<!-- Список мероприятий или Empty state -->
-		{#if data.events.length > 0}
-			<!-- Grid мероприятий (адаптивный: 1 колонка на mobile, 2 на tablet, 3 на desktop) -->
-			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-				{#each data.events as event (event.id)}
-					<EventCard {event} onCardClick={() => openEventModal(event)} />
-				{/each}
-			</div>
+		{#if hasAnyEvents}
+			<!-- Будущие мероприятия -->
+			{#if data.upcomingEvents.length > 0}
+				<div class="mb-12">
+					<h2 class="text-2xl font-bold text-gray-900 mb-6">
+						{$_('events.upcomingEvents')}
+					</h2>
+					<!-- Grid мероприятий (адаптивный: 1 колонка на mobile, 2 на tablet, 3 на desktop) -->
+					<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+						{#each data.upcomingEvents as event (event.id)}
+							<EventCard {event} onCardClick={() => openEventModal(event)} />
+						{/each}
+					</div>
+				</div>
+			{/if}
+
+			<!-- Прошедшие мероприятия -->
+			{#if data.pastEvents.length > 0}
+				<div>
+					<h2 class="text-2xl font-bold text-gray-900 mb-6">
+						{$_('events.pastEvents')}
+					</h2>
+					<!-- Grid мероприятий (адаптивный: 1 колонка на mobile, 2 на tablet, 3 на desktop) -->
+					<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+						{#each data.pastEvents as event (event.id)}
+							<EventCard {event} onCardClick={() => openEventModal(event)} />
+						{/each}
+					</div>
+				</div>
+			{/if}
 		{:else}
 			<!-- Empty state -->
 			<div

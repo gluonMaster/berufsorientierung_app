@@ -2,7 +2,7 @@
 	"common": {
 		"welcome": "Willkommen",
 		"login": "Anmelden",
-		"register": "Registrieren",
+		"register": "Konto erstellen",
 		"logout": "Abmelden",
 		"profile": "Profil",
 		"events": "Veranstaltungen",
@@ -90,7 +90,7 @@
 	},
 	"auth": {
 		"loginTitle": "Anmelden",
-		"registerTitle": "Registrieren",
+		"registerTitle": "Konto erstellen",
 		"registerSubtitle": "Erstellen Sie ein Konto für die Teilnahme an Berufsorientierung-Veranstaltungen",
 		"alreadyHaveAccount": "Bereits registriert?",
 		"dontHaveAccount": "Noch kein Konto?",
@@ -131,7 +131,18 @@
 		"requestNewLink": "Neuen Link anfordern",
 		"goToLogin": "Zur Anmeldung",
 		"backToLogin": "Zurück zur Anmeldung",
-		"or": "oder"
+		"or": "oder",
+		"eventFlow": {
+			"title": "Veranstaltungsanmeldung",
+			"stepHint": "Schritt 1 von 2: Konto erstellen oder einloggen. Schritt 2: Danach zur Veranstaltungsanmeldung.",
+			"cancel": "Abbrechen"
+		},
+		"afterRegisterModal": {
+			"title": "Konto erstellt",
+			"text": "Schritt 2: Jetzt zur Veranstaltungsanmeldung wechseln?",
+			"continue": "Weiter",
+			"later": "Später"
+		}
 	},
 	"events": {
 		"page": {
@@ -155,7 +166,7 @@
 		"time": "Uhrzeit",
 		"registrationDeadline": "Anmeldefrist",
 		"viewDetails": "Details anzeigen",
-		"loginToRegister": "Anmelden zum Registrieren",
+		"loginToRegister": "Einloggen, um dich für die Veranstaltung anzumelden",
 		"status": {
 			"open": "Anmeldung offen",
 			"full": "Ausgebucht",
@@ -331,7 +342,7 @@
 		"parentalConsent": "Elterliche Zustimmung (erforderlich für Teilnehmer unter 18 Jahren)",
 		"parentalConsentRequired": "Da Sie unter 18 Jahre alt sind, benötigen wir die Zustimmung Ihrer Eltern/Erziehungsberechtigten",
 		"guardianInfoRequired": "Bitte geben Sie die Daten Ihres Elternteils/Erziehungsberechtigten ein",
-		"deleteExplanation": "Gemäß DSGVO können Sie Ihr Profil jederzeit löschen. Ihre Daten werden vollständig entfernt, mit Ausnahme der minimal erforderlichen Informationen für unsere Berichterstattung (Name, Teilnahmedaten). Wenn Sie an einer Veranstaltung in den letzten 28 Tagen teilgenommen haben, wird die Löschung automatisch nach Ablauf dieser Frist durchgeführt.",
+		"deleteExplanation": "Gemäß DSGVO können Sie Ihr Profil jederzeit löschen. Die Löschung erfolgt sofort. Ihre Daten werden vollständig entfernt, mit Ausnahme der minimal erforderlichen Informationen für unsere Berichterstattung (Name, Teilnahmedaten).",
 		"dataRetention": "Datenspeicherung",
 		"rightToDelete": "Recht auf Löschung",
 		"privacyPolicy": "Datenschutzerklärung"
@@ -397,7 +408,7 @@
 		"users": "Benutzer",
 		"stats": "Statistiken",
 		"logs": "Protokolle",
-		"logout": "Abmelden",
+		"logout": "Admin schließen",
 		"menu": {
 			"toggle": "Menü umschalten"
 		},
@@ -542,6 +553,10 @@
 			"deleteWarning": "Diese Aktion kann nicht rückgängig gemacht werden!",
 			"publishSuccess": "Veranstaltung erfolgreich veröffentlicht",
 			"publishError": "Fehler beim Veröffentlichen",
+			"listing": "Auf /events anzeigen",
+			"listingEnabled": "Anzeige auf /events aktiviert",
+			"listingDisabled": "Anzeige auf /events deaktiviert",
+			"listingUpdateError": "Fehler beim Aktualisieren der Anzeige",
 			"deleteSuccess": "Veranstaltung erfolgreich gelöscht",
 			"deleteError": "Fehler beim Löschen",
 			"createSuccess": "Veranstaltung erfolgreich erstellt",
@@ -715,7 +730,8 @@
 				"view": "Ansehen",
 				"makeAdmin": "Zum Admin machen",
 				"removeAdmin": "Admin-Rechte entfernen",
-				"export": "Daten exportieren"
+				"export": "Daten exportieren",
+				"delete": "Löschen"
 			},
 			"pagination": {
 				"page": "Seite",
@@ -727,7 +743,11 @@
 			"noResults": "Keine Benutzer gefunden",
 			"confirmMakeAdmin": "Möchten Sie diesem Benutzer Admin-Rechte geben?",
 			"confirmRemoveAdmin": "Möchten Sie die Admin-Rechte dieses Benutzers entfernen?",
-			"cannotRemoveSuperadmin": "Superadmin-Rechte können nicht entfernt werden"
+			"cannotRemoveSuperadmin": "Superadmin-Rechte können nicht entfernt werden",
+			"confirmDeleteUser": "Möchten Sie diesen Benutzer wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
+			"deleteSuccess": "Benutzer wurde gelöscht",
+			"deleteError": "Fehler beim Löschen des Benutzers",
+			"cannotDeleteAdmin": "Admins können nicht gelöscht werden. Entfernen Sie zuerst die Admin-Rechte."
 		},
 		"registrations": {
 			"title": "Anmeldungsverwaltung",
@@ -951,7 +971,7 @@
 		"hero": {
 			"title": "Berufsorientierung für Jugendliche",
 			"subtitle": "Registrierung für Veranstaltungen des Projekts",
-			"registerCta": "Jetzt registrieren"
+			"registerCta": "Konto erstellen"
 		},
 		"events": {
 			"title": "Kommende Veranstaltungen",

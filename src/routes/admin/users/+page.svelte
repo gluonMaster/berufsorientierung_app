@@ -163,6 +163,43 @@
 	}
 
 	/**
+	 * Удаление пользователя
+	 */
+	async function deleteUser(userId: number, isAdmin: boolean, isSuperadmin: boolean) {
+		// Нельзя удалять админов
+		if (isAdmin || isSuperadmin) {
+			showToastNotification($_('admin.usersPage.cannotDeleteAdmin'), 'error');
+			return;
+		}
+
+		// Подтверждение удаления
+		if (!confirm($_('admin.usersPage.confirmDeleteUser'))) {
+			return;
+		}
+
+		actionLoading[userId] = true;
+
+		try {
+			const response = await fetch(`/api/admin/users/${userId}`, {
+				method: 'DELETE',
+			});
+
+			if (!response.ok) {
+				const error = await response.json();
+				throw new Error(error.message || 'Failed to delete user');
+			}
+
+			showToastNotification($_('admin.usersPage.deleteSuccess'), 'success');
+			await invalidateAll();
+		} catch (error: any) {
+			console.error('[deleteUser] Error:', error);
+			showToastNotification(error.message || $_('admin.usersPage.deleteError'), 'error');
+		} finally {
+			actionLoading[userId] = false;
+		}
+	}
+
+	/**
 	 * Вычисление диапазона страниц для пагинации
 	 */
 	function getPageRange(current: number, total: number): number[] {
@@ -420,6 +457,19 @@
 								>
 									{$_('admin.usersPage.actions.export')}
 								</button>
+
+								<!-- Удаление пользователя (только для не-админов и не себя) -->
+								{#if !user.is_admin && !user.is_superadmin && user.id !== data.currentUser.id}
+									<button
+										on:click={() =>
+											deleteUser(user.id, user.is_admin, user.is_superadmin)}
+										disabled={actionLoading[user.id]}
+										class="text-red-600 hover:text-red-900 disabled:opacity-50 dark:text-red-400 dark:hover:text-red-300"
+										title={$_('admin.usersPage.actions.delete')}
+									>
+										{$_('admin.usersPage.actions.delete')}
+									</button>
+								{/if}
 							</div>
 						</td>
 					</tr>
@@ -549,6 +599,17 @@
 				<Button size="sm" variant="secondary" on:click={() => exportUserData(user.id)}>
 					{$_('admin.usersPage.actions.export')}
 				</Button>
+
+				{#if !user.is_admin && !user.is_superadmin && user.id !== data.currentUser.id}
+					<Button
+						size="sm"
+						variant="danger"
+						on:click={() => deleteUser(user.id, user.is_admin, user.is_superadmin)}
+						disabled={actionLoading[user.id]}
+					>
+						{$_('admin.usersPage.actions.delete')}
+					</Button>
+				{/if}
 			</div>
 		</div>
 	{:else}

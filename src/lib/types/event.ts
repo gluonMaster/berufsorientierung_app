@@ -156,6 +156,9 @@ export interface Event extends EventTranslations {
 	/** URL постера мероприятия (в R2 storage) */
 	poster_url: string | null;
 
+	/** Флаг отображения на странице /events (SQLite boolean 0/1) */
+	is_listed: number;
+
 	/** Текущий статус мероприятия */
 	status: EventStatus;
 

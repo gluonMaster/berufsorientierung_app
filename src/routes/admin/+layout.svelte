@@ -56,19 +56,15 @@
 		mobileMenuOpen = false;
 	}
 
-	// Обработчик выхода
-	async function handleLogout() {
-		try {
-			const response = await fetch('/api/auth/logout', {
-				method: 'POST',
-			});
-
-			if (response.ok) {
-				await goto('/');
-			}
-		} catch (error) {
-			console.error('Logout error:', error);
-		}
+	// Обработчик закрытия админки (не logout!)
+	function handleCloseAdmin() {
+		// Пытаемся закрыть вкладку
+		window.close();
+		// Если браузер заблокировал закрытие, переходим на главную
+		// (setTimeout даёт время на закрытие вкладки)
+		setTimeout(() => {
+			goto('/');
+		}, 100);
 	}
 
 	// Получаем имя страницы для заголовка
@@ -139,7 +135,7 @@
 				</div>
 				<div class="admin-email">{data.user.email}</div>
 			</div>
-			<button class="logout-button" on:click={handleLogout}>
+			<button class="logout-button" on:click={handleCloseAdmin}>
 				<span class="logout-icon">
 					<LogOut size={18} />
 				</span>

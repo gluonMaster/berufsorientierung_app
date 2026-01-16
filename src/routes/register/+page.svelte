@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
 	import { Button, FormField } from '$lib/components/ui';
 	import Turnstile from '$lib/components/security/Turnstile.svelte';
 	import { userRegistrationSchema, calculateAge } from '$lib/validation/schemas';
@@ -10,6 +11,41 @@
 
 	// Данные из server load функции (включая CSRF токен и Turnstile site key)
 	export let data: { csrfToken?: string; turnstileSiteKey?: string };
+
+	/**
+	 * Sanitize redirectTo parameter to prevent open-redirect attacks.
+	 * Only allows internal relative paths starting with `/` but not `//`.
+	 */
+	function getSafeRedirectTo(value: string | null): string | null {
+		if (!value) return null;
+		// Must start with `/` and NOT start with `//`
+		if (value.startsWith('/') && !value.startsWith('//')) {
+			return value;
+		}
+		return null;
+	}
+
+	// Get sanitized redirectTo from URL
+	$: safeRedirectTo = getSafeRedirectTo($page.url.searchParams.get('redirectTo'));
+
+	// Check if redirectTo leads to event registration
+	$: isEventRegistrationFlow = safeRedirectTo
+		? /^\/events\/[^/]+\/register/.test(safeRedirectTo)
+		: false;
+
+	// Modal state for post-registration choice
+	let showAfterRegisterModal = false;
+
+	/**
+	 * Handle cancel button click - go back or to events page
+	 */
+	function handleCancelFlow() {
+		if (typeof window !== 'undefined' && window.history.length > 1) {
+			window.history.back();
+		} else {
+			goto('/events');
+		}
+	}
 
 	// Состояние формы
 	let formData: UserRegistrationData = {
@@ -173,8 +209,13 @@
 				}
 			}
 
-			// Редирект в профиль
-			await goto('/profile');
+			// Если есть redirectTo - показываем модалку с выбором
+			if (safeRedirectTo) {
+				showAfterRegisterModal = true;
+			} else {
+				// Редирект в профиль
+				await goto('/profile');
+			}
 		} catch (err: any) {
 			// Сбрасываем Turnstile виджет после ошибки
 			if (turnstileComponent?.reset) {
@@ -227,6 +268,44 @@
 				})}
 			</p>
 		</div>
+
+		<!-- Инфо-блок для регистрации на мероприятие -->
+		{#if isEventRegistrationFlow}
+			<div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+				<div class="flex items-start gap-3">
+					<svg
+						class="w-6 h-6 text-blue-600 shrink-0 mt-0.5"
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+						/>
+					</svg>
+					<div class="flex-1">
+						<h3 class="text-sm font-semibold text-blue-900 mb-1">
+							{$_('auth.eventFlow.title')}
+						</h3>
+						<p class="text-sm text-blue-800">
+							{$_('auth.eventFlow.stepHint')}
+						</p>
+					</div>
+				</div>
+				<div class="mt-3 flex justify-end">
+					<button
+						type="button"
+						class="text-sm font-medium text-blue-700 hover:text-blue-900 hover:underline"
+						on:click={handleCancelFlow}
+					>
+						{$_('auth.eventFlow.cancel')}
+					</button>
+				</div>
+			</div>
+		{/if}
 
 		<!-- DSGVO Информационный баннер -->
 		<div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 flex items-start gap-3">
@@ -796,7 +875,12 @@
 					<Button
 						type="button"
 						variant="secondary"
-						on:click={() => goto('/login')}
+						on:click={() =>
+							goto(
+								safeRedirectTo
+									? '/login?redirectTo=' + encodeURIComponent(safeRedirectTo)
+									: '/login'
+							)}
 						disabled={isSubmitting}
 						class="flex-1 sm:flex-none"
 					>
@@ -809,7 +893,9 @@
 					<p class="text-sm text-gray-600">
 						{$_('auth.alreadyHaveAccount')}
 						<a
-							href="/login"
+							href={safeRedirectTo
+								? '/login?redirectTo=' + encodeURIComponent(safeRedirectTo)
+								: '/login'}
 							class="font-medium text-blue-600 hover:text-blue-500 hover:underline"
 						>
 							{$_('common.login')}
@@ -834,3 +920,81 @@
 		</div>
 	</div>
 </div>
+
+<!-- Модалка после успешной регистрации -->
+{#if showAfterRegisterModal}
+	<div
+		class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
+		role="dialog"
+		aria-modal="true"
+		aria-labelledby="after-register-modal-title"
+	>
+		<div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6 animate-fadeIn">
+			<div class="text-center">
+				<!-- Иконка успеха -->
+				<div
+					class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4"
+				>
+					<svg
+						class="h-6 w-6 text-green-600"
+						fill="none"
+						viewBox="0 0 24 24"
+						stroke="currentColor"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M5 13l4 4L19 7"
+						/>
+					</svg>
+				</div>
+
+				<h3
+					id="after-register-modal-title"
+					class="text-lg font-semibold text-gray-900 mb-2"
+				>
+					{$_('auth.afterRegisterModal.title')}
+				</h3>
+				<p class="text-sm text-gray-600 mb-6">
+					{$_('auth.afterRegisterModal.text')}
+				</p>
+
+				<div class="flex flex-col sm:flex-row gap-3">
+					<Button
+						type="button"
+						variant="primary"
+						fullWidth
+						on:click={() => goto(safeRedirectTo ?? '/profile')}
+					>
+						{$_('auth.afterRegisterModal.continue')}
+					</Button>
+					<Button
+						type="button"
+						variant="secondary"
+						fullWidth
+						on:click={() => goto('/profile')}
+					>
+						{$_('auth.afterRegisterModal.later')}
+					</Button>
+				</div>
+			</div>
+		</div>
+	</div>
+{/if}
+
+<style>
+	@keyframes fadeIn {
+		from {
+			opacity: 0;
+			transform: scale(0.95);
+		}
+		to {
+			opacity: 1;
+			transform: scale(1);
+		}
+	}
+	.animate-fadeIn {
+		animation: fadeIn 0.2s ease-out;
+	}
+</style>

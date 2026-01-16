@@ -4,21 +4,13 @@
  *
  * Логика:
  * 1. Проверка авторизации (requireAuth)
- * 2. Проверка возможности немедленного удаления (DB.gdpr.canDeleteUser)
- * 3. Если можно удалить сейчас:
- *    - Полное удаление (DB.gdpr.deleteUserCompletely)
- *    - Очистка auth cookie
- *    - Логирование
- *    - Возврат: { deleted: true, immediate: true }
- * 4. Если нельзя удалить сейчас:
- *    - Планирование удаления (DB.gdpr.scheduleUserDeletion)
- *    - Немедленная блокировка доступа (is_blocked = 1)
- *    - Очистка auth cookie
- *    - Логирование
- *    - Возврат: { deleted: true, immediate: false, deletionDate: "..." }
+ * 2. Логирование информации о пользователе (ДО удаления)
+ * 3. Полное удаление пользователя (DB.gdpr.deleteUserCompletely)
+ * 4. Очистка auth cookie
+ * 5. Возврат: { deleted: true, immediate: true }
  *
- * ВАЖНО: После вызова этого endpoint пользователь ВСЕГДА разлогинен
- * (либо удален полностью, либо заблокирован и запланирован к удалению)
+ * ВАЖНО: Удаление всегда немедленное. Архив данных сохраняется
+ * в deleted_users_archive через deleteUserCompletely.
  */
 
 import { json, type RequestEvent } from '@sveltejs/kit';
@@ -35,24 +27,14 @@ import { clearAuthCookie } from '$lib/server/auth';
  * Request body: пустой (пользователь определяется по auth токену)
  *
  * Response:
- * - 200: { deleted: true, immediate: boolean, deletionDate?: string }
+ * - 200: { deleted: true, immediate: true }
  * - 401: { error: 'Unauthorized' }
  * - 500: { error: 'Server error' }
  *
- * @example Немедленное удаление (прошло >= 28 дней после последнего мероприятия)
+ * @example Немедленное удаление
  * ```
  * POST /api/profile/delete
  * → 200 { deleted: true, immediate: true }
- * ```
- *
- * @example Запланированное удаление (есть предстоящие мероприятия или прошло < 28 дней)
- * ```
- * POST /api/profile/delete
- * → 200 {
- *     deleted: true,
- *     immediate: false,
- *     deletionDate: "2025-12-05T10:00:00.000Z"
- *   }
  * ```
  */
 export const POST = async ({ request, platform }: RequestEvent) => {
@@ -80,126 +62,50 @@ export const POST = async ({ request, platform }: RequestEvent) => {
 		// Получаем IP адрес для логирования
 		const ipAddress = getClientIP(request);
 
-		// Шаг 2: Проверяем, можно ли удалить пользователя прямо сейчас
-		let canDeleteResult;
 		try {
-			canDeleteResult = await DB.gdpr.canDeleteUser(db, user.id);
-		} catch (error) {
-			console.error('[DELETE Profile] Error checking if user can be deleted:', error);
-			return json({ error: 'Failed to check deletion eligibility' }, { status: 500 });
-		}
+			// Шаг 2: Проверяем, посещал ли пользователь мероприятия
+			// (есть хотя бы одна запись на прошедшее мероприятие, cancelled_at IS NULL)
+			// Note: e.date is stored as datetime-local format (YYYY-MM-DDTHH:MM), need to normalize 'T' separator
+			const attendedResult = await db
+				.prepare(
+					`SELECT COUNT(*) as cnt
+					 FROM registrations r
+					 JOIN events e ON r.event_id = e.id
+					 WHERE r.user_id = ?
+					   AND r.cancelled_at IS NULL
+					   AND datetime(replace(e.date, 'T', ' ')) <= datetime('now')`
+				)
+				.bind(user.id)
+				.first<{ cnt: number }>();
 
-		// Шаг 3: Если можно удалить немедленно
-		if (canDeleteResult.canDelete) {
-			try {
-				// Полное удаление пользователя (включая архивацию)
-				await DB.gdpr.deleteUserCompletely(db, user.id);
+			const attendedAny = (attendedResult?.cnt ?? 0) > 0;
 
-				// Логируем успешное удаление
-				// ВАЖНО: логирование ПОСЛЕ удаления, т.к. user_id будет NULL в логе
-				await DB.activityLog.logActivity(
-					db,
-					null, // user_id = null, т.к. пользователь уже удален
-					'profile_deleted_immediate',
-					JSON.stringify({
-						deleted_user_id: user.id,
-						email: user.email,
-						reason: 'immediate_deletion',
-					}),
-					ipAddress || undefined
-				);
+			// Шаг 3: Логируем информацию ДО удаления (пока данные еще есть)
+			await DB.activityLog.logActivity(
+				db,
+				null, // user_id = null, т.к. пользователь будет удален
+				'profile_deleted_immediate',
+				JSON.stringify({
+					deleted_user_id: user.id,
+					first_name: user.first_name || null,
+					last_name: user.last_name || null,
+					email: user.email,
+					phone: user.phone || null,
+					attendedAny,
+				}),
+				ipAddress || undefined
+			);
 
-				console.log(`[DELETE Profile] User ${user.id} (${user.email}) deleted immediately`);
+			// Шаг 4: Полное удаление пользователя (включая архивацию)
+			await DB.gdpr.deleteUserCompletely(db, user.id);
 
-				// Возвращаем ответ с заголовком для очистки cookie
-				return json(
-					{
-						deleted: true,
-						immediate: true,
-					},
-					{
-						status: 200,
-						headers: {
-							// Очищаем auth cookie (secure зависит от окружения: false для dev HTTP, true для production HTTPS)
-							'Set-Cookie': clearAuthCookie(!dev),
-						},
-					}
-				);
-			} catch (error) {
-				console.error('[DELETE Profile] Error during immediate deletion:', error);
+			console.log(`[DELETE Profile] User ${user.id} (${user.email}) deleted immediately`);
 
-				// Логируем ошибку
-				await DB.activityLog.logActivity(
-					db,
-					user.id,
-					'profile_deletion_failed',
-					JSON.stringify({
-						reason: 'immediate_deletion_error',
-						error: error instanceof Error ? error.message : 'Unknown error',
-					}),
-					ipAddress || undefined
-				);
-
-				return json({ error: 'Failed to delete profile' }, { status: 500 });
-			}
-		}
-
-		// Шаг 4: Если нельзя удалить сейчас - планируем удаление
-		try {
-			// Планируем удаление + немедленно блокируем аккаунт
-			let deletionDate: string;
-
-			try {
-				deletionDate = await DB.gdpr.scheduleUserDeletion(db, user.id);
-			} catch (scheduleError: any) {
-				// Graceful handling: если удаление уже запланировано, возвращаем существующую дату
-				if (scheduleError.message?.includes('already scheduled')) {
-					// Получаем существующую запланированную дату
-					const existingDeletion = await db
-						.prepare('SELECT deletion_date FROM pending_deletions WHERE user_id = ?')
-						.bind(user.id)
-						.first<{ deletion_date: string }>();
-
-					if (existingDeletion) {
-						deletionDate = existingDeletion.deletion_date;
-						console.log(
-							`[DELETE Profile] User ${user.id} (${user.email}) deletion already scheduled for ${deletionDate}`
-						);
-					} else {
-						// Не нашли запись - это неожиданно, пробрасываем ошибку
-						throw scheduleError;
-					}
-				} else {
-					// Другая ошибка - пробрасываем
-					throw scheduleError;
-				}
-			}
-
-			// Логируем запланированное удаление (только если это новая запись)
-			if (deletionDate) {
-				await DB.activityLog.logActivity(
-					db,
-					user.id,
-					'profile_deletion_scheduled',
-					JSON.stringify({
-						deletion_date: deletionDate,
-						reason: canDeleteResult.reason || 'Unknown reason',
-						account_blocked: true,
-					}),
-					ipAddress || undefined
-				);
-
-				console.log(
-					`[DELETE Profile] User ${user.id} (${user.email}) deletion scheduled for ${deletionDate}. Account blocked.`
-				);
-			}
-
-			// Возвращаем ответ с датой планируемого удаления и очищаем cookie
+			// Возвращаем ответ с заголовком для очистки cookie
 			return json(
 				{
 					deleted: true,
-					immediate: false,
-					deletionDate: deletionDate,
+					immediate: true,
 				},
 				{
 					status: 200,
@@ -210,7 +116,7 @@ export const POST = async ({ request, platform }: RequestEvent) => {
 				}
 			);
 		} catch (error) {
-			console.error('[DELETE Profile] Error during scheduled deletion:', error);
+			console.error('[DELETE Profile] Error during immediate deletion:', error);
 
 			// Логируем ошибку
 			await DB.activityLog.logActivity(
@@ -218,13 +124,13 @@ export const POST = async ({ request, platform }: RequestEvent) => {
 				user.id,
 				'profile_deletion_failed',
 				JSON.stringify({
-					reason: 'scheduled_deletion_error',
+					reason: 'immediate_deletion_error',
 					error: error instanceof Error ? error.message : 'Unknown error',
 				}),
 				ipAddress || undefined
 			);
 
-			return json({ error: 'Failed to schedule profile deletion' }, { status: 500 });
+			return json({ error: 'Failed to delete profile' }, { status: 500 });
 		}
 	} catch (error) {
 		// Общий обработчик непредвиденных ошибок

@@ -120,12 +120,14 @@
 			aria-modal="true"
 			aria-labelledby="modal-title"
 		>
+			<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 			<div
 				bind:this={modalElement}
 				class="bg-white rounded-lg shadow-xl w-full {sizeClasses[
 					size
 				]} max-h-[90vh] overflow-hidden transform transition-all duration-200 animate-fade-in-scale flex flex-col"
 				on:keydown={handleModalKeydown}
+				role="document"
 			>
 				<!-- Header -->
 				<div class="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200">

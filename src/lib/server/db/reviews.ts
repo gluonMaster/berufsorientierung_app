@@ -244,13 +244,13 @@ export async function createUserReview(
 	const event = await db
 		.prepare(
 			`
-			SELECT id, status
+			SELECT id, status, end_date
 			FROM events
 			WHERE id = ?
 		`
 		)
 		.bind(eventId)
-		.first<{ id: number; status: string }>();
+		.first<{ id: number; status: string; end_date: string | null }>();
 
 	if (!event) {
 		throw new Error('Event not found');
